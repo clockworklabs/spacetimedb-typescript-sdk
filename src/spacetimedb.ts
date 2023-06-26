@@ -62,6 +62,30 @@ export type SpacetimeDBEvent = {
   };
 };
 
+type DBOpType = "insert" | "update" | "delete";
+
+class DBOp {
+  public type: DBOpType;
+  public instance: any;
+  public oldInstance: any;
+  public rowPk: string;
+  public entry: any;
+
+  constructor(
+    type: DBOpType,
+    rowPk: string,
+    instance: any,
+    entry: any,
+    oldInstance: any
+  ) {
+    this.type = type;
+    this.rowPk = rowPk;
+    this.instance = instance;
+    this.oldInstance = oldInstance;
+    this.entry = entry;
+  }
+}
+
 class Table {
   // TODO: most of this stuff should be probably private
   public name: string;
@@ -102,71 +126,72 @@ class Table {
   applyOperations = (
     operations: { op: string; row_pk: string; row: any[] }[]
   ) => {
-    if (this.pkCol !== undefined) {
+    let dbOps: DBOp[] = [];
+    for (let operation of operations) {
+      const pk = operation.row_pk;
+      const entry = AlgebraicValue.deserialize(
+        this.entityClass.getAlgebraicType(),
+        operation.row
+      );
+      const instance = this.entityClass.fromValue(entry);
+      const oldInstance = this.instances.get(pk);
+
+      dbOps.push(
+        new DBOp(operation.op as DBOpType, pk, instance, entry, oldInstance)
+      );
+    }
+
+    if (this.entityClass.primaryKey !== undefined) {
+      const pkName = this.entityClass.primaryKey;
       const inserts: any[] = [];
       const deleteMap = new Map();
-      for (const op of operations) {
-        if (op.op === "insert") {
-          inserts.push(op);
+      for (const dbOp of dbOps) {
+        if (dbOp.type === "insert") {
+          inserts.push(dbOp);
         } else {
-          deleteMap.set(op.row[this.pkCol], op);
+          deleteMap.set(dbOp.instance[pkName], dbOp);
         }
       }
-      for (const op of inserts) {
-        const deleteOp = deleteMap.get(op.row[this.pkCol]);
+      for (const dbOp of inserts) {
+        const deleteOp = deleteMap.get(dbOp.instance[pkName]);
         if (deleteOp) {
-          this.update(deleteOp.row_pk, op.row_pk, op.row);
-          deleteMap.delete(op.row[this.pkCol]);
+          this.update(dbOp);
+          deleteMap.delete(dbOp.instance[pkName]);
         } else {
-          this.insert(op.row_pk, op.row);
+          this.insert(dbOp);
         }
       }
-      for (const op of deleteMap.values()) {
-        this.delete(op.row_pk);
+      for (const dbOp of deleteMap.values()) {
+        this.delete(dbOp);
       }
     } else {
-      for (const op of operations) {
-        if (op.op === "insert") {
-          this.insert(op.row_pk, op.row);
+      for (const dbOp of dbOps) {
+        if (dbOp.type === "insert") {
+          this.insert(dbOp);
         } else {
-          this.delete(op.row_pk);
+          this.delete(dbOp);
         }
       }
     }
   };
 
-  update = (oldPk: string, pk: string, row: Array<any>) => {
-    let entry = AlgebraicValue.deserialize(
-      this.entityClass.getAlgebraicType(),
-      row
-    );
-    const instance = this.entityClass.fromValue(entry);
-    this.entries.set(pk, entry);
-    this.instances.set(pk, instance);
-    const oldInstance = this.instances.get(oldPk)!;
-    this.entries.delete(oldPk);
-    this.instances.delete(oldPk);
-    this.emitter.emit("update", instance, oldInstance);
+  update = (dbOp) => {
+    this.entries.set(dbOp.rowPk, dbOp.entry);
+    this.instances.set(dbOp.rowPk, dbOp.instance);
+    const oldInstance = dbOp.oldInstance;
+    this.emitter.emit("update", dbOp.instance, oldInstance);
   };
 
-  insert = (pk: string, row: Array<any>) => {
-    let entry = AlgebraicValue.deserialize(
-      this.entityClass.getAlgebraicType(),
-      row
-    );
-    const instance = this.entityClass.fromValue(entry);
-    this.instances.set(pk, instance);
-    this.entries.set(pk, entry);
-    this.emitter.emit("insert", instance);
+  insert = (dbOp) => {
+    this.instances.set(dbOp.rowPk, dbOp.instance);
+    this.entries.set(dbOp.rowPk, dbOp.entry);
+    this.emitter.emit("insert", dbOp.instance);
   };
 
-  delete = (pk: string) => {
-    const instance = this.instances.get(pk);
-    this.instances.delete(pk);
-    this.entries.delete(pk);
-    if (instance) {
-      this.emitter.emit("delete", instance);
-    }
+  delete = (dbOp) => {
+    this.instances.delete(dbOp.rowPk);
+    this.entries.delete(dbOp.rowPk);
+    this.emitter.emit("delete", dbOp.instance, dbOp.oldInstance);
   };
 
   /**
@@ -181,7 +206,7 @@ class Table {
    * Called when a row is deleted
    * @param cb Callback to be called when a row is deleted
    */
-  onDelete = (cb: (value: any) => void) => {
+  onDelete = (cb: (value: any, oldValue: any) => void) => {
     this.emitter.on("delete", cb);
   };
 
@@ -205,7 +230,7 @@ class Table {
    * Removes the event listener for when a row is deleted
    * @param cb Callback to be called when the event listener is removed
    */
-  removeOnDelete = (cb: (value: any) => void) => {
+  removeOnDelete = (cb: (value: any, oldValue: any) => void) => {
     this.emitter.off("delete", cb);
   };
 
@@ -213,7 +238,7 @@ class Table {
    * Removes the event listener for when a row is updated
    * @param cb Callback to be called when the event listener is removed
    */
-  removeOnUpdate = (cb: (value: any, oldRow: any) => void) => {
+  removeOnUpdate = (cb: (value: any, oldValue: any) => void) => {
     this.emitter.off("update", cb);
   };
 }
