@@ -515,20 +515,23 @@ export class SpacetimeDBClient {
           const tableUpdates = subUpdate["table_updates"];
 
           let reducerEvent: ReducerEvent | undefined;
+          let reducerName: string | undefined;
+          let status: string | undefined;
+          let reducer: any | undefined;
+          let reducerArgs: any | undefined;
+          let identity: any | string;
 
           if (event) {
             const functionCall = event["function_call"];
-            const identity = event["caller_identity"];
+            identity = event["caller_identity"];
             const originalReducerName: string | undefined =
               functionCall && functionCall["reducer"];
-            const reducerName: string | undefined = originalReducerName
+            reducerName = originalReducerName
               ? toPascalCase(originalReducerName)
               : undefined;
             const args: string | undefined = functionCall?.["args"];
-            const status: string | undefined = event["status"];
-            const reducer: any | undefined = reducerName
-              ? this.reducers.get(reducerName)
-              : undefined;
+            status = event["status"];
+            reducer = reducerName ? this.reducers.get(reducerName) : undefined;
 
             if (
               reducerName &&
@@ -539,13 +542,7 @@ export class SpacetimeDBClient {
               originalReducerName
             ) {
               const jsonArray = JSON.parse(args);
-              const reducerArgs = reducer.deserializeArgs(jsonArray);
-              this.emitter.emit(
-                "reducer:" + reducerName,
-                status,
-                identity,
-                reducerArgs
-              );
+              reducerArgs = reducer.deserializeArgs(jsonArray);
 
               reducerEvent = new ReducerEvent(
                 identity,
@@ -571,7 +568,14 @@ export class SpacetimeDBClient {
             );
           }
 
-          // this.emitter.emit("event", txUpdate['event']);
+          if (reducerName && status && identity && reducerArgs) {
+            this.emitter.emit(
+              "reducer:" + reducerName,
+              status,
+              identity,
+              reducerArgs
+            );
+          }
         } else if (data["IdentityToken"]) {
           const identityToken = data["IdentityToken"];
           const identity = identityToken["identity"];

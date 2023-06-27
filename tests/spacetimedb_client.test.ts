@@ -284,4 +284,67 @@ describe("SpacetimeDBClient", () => {
     expect(players).toHaveLength(2);
     expect(players[1].ownerId).toBe("player-2");
   });
+
+  test("a reducer callback should be called after the database callbacks", () => {
+    const client = new SpacetimeDBClient("ws://127.0.0.1:1234", "db");
+    const wsAdapter = new WebsocketTestAdapter();
+    client._setCreateWSFn(
+      (
+        _url: string,
+        _headers: { [key: string]: string },
+        _protocol: string
+      ) => {
+        return wsAdapter;
+      }
+    );
+
+    client.connect();
+    wsAdapter.acceptConnection();
+
+    let callbackLog: string[] = [];
+
+    Player.onInsert(
+      (player: Player, reducerEvent: ReducerEvent | undefined) => {
+        callbackLog.push("Player");
+      }
+    );
+
+    CreatePlayerReducer.on(() => {
+      callbackLog.push("CreatePlayerReducer");
+    });
+
+    const transactionUpdate = {
+      TransactionUpdate: {
+        event: {
+          timestamp: 1681391805281203,
+          status: "committed",
+          caller_identity: "identity-0",
+          function_call: {
+            reducer: "create_player",
+            args: '["A Player",[0.2, 0.3]]',
+          },
+          energy_quanta_used: 33841000,
+          message: "a message",
+        },
+        subscription_update: {
+          table_updates: [
+            {
+              table_id: 35,
+              table_name: "Player",
+              table_row_operations: [
+                {
+                  op: "insert",
+                  row_pk: "abcdef",
+                  row: ["player-2", [0, 0]],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    };
+    wsAdapter.sendToClient({ data: transactionUpdate });
+
+    expect(callbackLog).toEqual(["Player", "CreatePlayerReducer"]);
+  });
 });
