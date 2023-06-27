@@ -117,7 +117,7 @@ describe("SpacetimeDBClient", () => {
               {
                 op: "insert",
                 row_pk: "abcd123",
-                row: ["player-1", [0, 0]],
+                row: ["player-1", "drogus", [0, 0]],
               },
             ],
           },
@@ -151,7 +151,7 @@ describe("SpacetimeDBClient", () => {
                 {
                   op: "insert",
                   row_pk: "abcdef",
-                  row: ["player-2", [0, 0]],
+                  row: ["player-2", "drogus", [0, 0]],
                 },
               ],
             },
@@ -196,9 +196,12 @@ describe("SpacetimeDBClient", () => {
     };
     wsAdapter.sendToClient(tokenMessage);
 
-    const players: Player[] = [];
-    Player.onUpdate((player: Player) => {
-      players.push(player);
+    const updates: { oldPlayer: Player; newPlayer: Player }[] = [];
+    Player.onUpdate((oldPlayer: Player, newPlayer: Player) => {
+      updates.push({
+        oldPlayer,
+        newPlayer,
+      });
     });
 
     const subscriptionMessage = {
@@ -211,12 +214,12 @@ describe("SpacetimeDBClient", () => {
               {
                 op: "delete",
                 row_pk: "abcd123",
-                row: ["player-1", [0, 0]],
+                row: ["player-1", "drogus", [0, 0]],
               },
               {
                 op: "insert",
                 row_pk: "def456",
-                row: ["player-1", [0, 0]],
+                row: ["player-1", "mr.drogus", [0, 0]],
               },
             ],
           },
@@ -225,8 +228,9 @@ describe("SpacetimeDBClient", () => {
     };
     wsAdapter.sendToClient({ data: subscriptionMessage });
 
-    expect(players).toHaveLength(1);
-    expect(players[0].ownerId).toBe("player-1");
+    expect(updates).toHaveLength(1);
+    expect(updates[0]["oldPlayer"].name).toBe("drogus");
+    expect(updates[0]["newPlayer"].name).toBe("mr.drogus");
 
     const transactionUpdate = {
       TransactionUpdate: {
@@ -250,12 +254,12 @@ describe("SpacetimeDBClient", () => {
                 {
                   op: "delete",
                   row_pk: "abcdef",
-                  row: ["player-2", [0, 0]],
+                  row: ["player-2", "Jamie", [0, 0]],
                 },
                 {
                   op: "insert",
                   row_pk: "123456",
-                  row: ["player-2", [0, 0]],
+                  row: ["player-2", "Kingslayer", [0, 0]],
                 },
               ],
             },
@@ -265,7 +269,8 @@ describe("SpacetimeDBClient", () => {
     };
     wsAdapter.sendToClient({ data: transactionUpdate });
 
-    expect(players).toHaveLength(2);
-    expect(players[1].ownerId).toBe("player-2");
+    expect(updates).toHaveLength(2);
+    expect(updates[1]["oldPlayer"].name).toBe("Jamie");
+    expect(updates[1]["newPlayer"].name).toBe("Kingslayer");
   });
 });

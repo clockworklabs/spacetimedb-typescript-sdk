@@ -19,13 +19,15 @@ import { Point } from "./point";
 export class Player extends IDatabaseTable {
   public static tableName = "Player";
   public ownerId: string;
+  public name: string;
   public position: Point;
 
   public static primaryKey: string | undefined = "ownerId";
 
-  constructor(ownerId: string, position: Point) {
+  constructor(ownerId: string, name: string, position: Point) {
     super();
     this.ownerId = ownerId;
+    this.name = name;
     this.position = position;
   }
 
@@ -39,6 +41,10 @@ export class Player extends IDatabaseTable {
         "owner_id",
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
+      new ProductTypeElement(
+        "name",
+        AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
+      ),
       new ProductTypeElement("position", Point.getAlgebraicType()),
     ]);
   }
@@ -46,8 +52,9 @@ export class Player extends IDatabaseTable {
   public static fromValue(value: AlgebraicValue): Player {
     let productValue = value.asProductValue();
     let __owner_id = productValue.elements[0].asString();
-    let __position = Point.fromValue(productValue.elements[1]);
-    return new this(__owner_id, __position);
+    let __name = productValue.elements[1].asString();
+    let __position = Point.fromValue(productValue.elements[2]);
+    return new this(__owner_id, __name, __position);
   }
 
   public static count(): number {

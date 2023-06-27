@@ -155,6 +155,9 @@ class Table {
       for (const dbOp of inserts) {
         const deleteOp = deleteMap.get(dbOp.instance[pkName]);
         if (deleteOp) {
+          // the pk for updates will differ between insert/delete, so we have to
+          // use the instance from delete
+          dbOp.oldInstance = deleteOp.instance;
           this.update(dbOp);
           deleteMap.delete(dbOp.instance[pkName]);
         } else {
@@ -179,7 +182,7 @@ class Table {
     this.entries.set(dbOp.rowPk, dbOp.entry);
     this.instances.set(dbOp.rowPk, dbOp.instance);
     const oldInstance = dbOp.oldInstance;
-    this.emitter.emit("update", dbOp.instance, oldInstance);
+    this.emitter.emit("update", oldInstance, dbOp.instance);
   };
 
   insert = (dbOp) => {
@@ -191,7 +194,7 @@ class Table {
   delete = (dbOp) => {
     this.instances.delete(dbOp.rowPk);
     this.entries.delete(dbOp.rowPk);
-    this.emitter.emit("delete", dbOp.instance, dbOp.oldInstance);
+    this.emitter.emit("delete", dbOp.oldInstance, dbOp.instance);
   };
 
   /**
