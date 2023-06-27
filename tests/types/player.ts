@@ -11,6 +11,7 @@ import {
   SumType,
   SumTypeVariant,
   IDatabaseTable,
+  ReducerEvent,
   AlgebraicValue,
 } from "../../src/index";
 // @ts-ignore
@@ -73,31 +74,55 @@ export class Player extends IDatabaseTable {
     return null;
   }
 
-  public static onInsert(callback: (value: Player) => void) {
+  public static onInsert(
+    callback: (value: Player, reducerEvent: ReducerEvent | undefined) => void
+  ) {
     __SPACETIMEDB__.clientDB.getTable("Player").onInsert(callback);
   }
 
   public static onUpdate(
-    callback: (oldValue: Player, newValue: Player) => void
+    callback: (
+      oldValue: Player,
+      newValue: Player,
+      reducerEvent: ReducerEvent | undefined
+    ) => void
   ) {
     __SPACETIMEDB__.clientDB.getTable("Player").onUpdate(callback);
   }
 
-  public static onDelete(callback: (value: Player) => void) {
+  public static onDelete(
+    callback: (
+      value: Player,
+      oldValue: Player,
+      reducerEvent: ReducerEvent | undefined
+    ) => void
+  ) {
     __SPACETIMEDB__.clientDB.getTable("Player").onDelete(callback);
   }
 
-  public static removeOnInsert(callback: (value: Player) => void) {
+  public static removeOnInsert(
+    callback: (value: Player, reducerEvent: ReducerEvent | undefined) => void
+  ) {
     __SPACETIMEDB__.clientDB.getTable("Player").removeOnInsert(callback);
   }
 
   public static removeOnUpdate(
-    callback: (oldValue: Player, newValue: Player) => void
+    callback: (
+      oldValue: Player,
+      newValue: Player,
+      reducerEvent: ReducerEvent | undefined
+    ) => void
   ) {
     __SPACETIMEDB__.clientDB.getTable("Player").removeOnUpdate(callback);
   }
 
-  public static removeOnDelete(callback: (value: Player) => void) {
+  public static removeOnDelete(
+    callback: (
+      value: Player,
+      oldValue: Player,
+      reducerEvent: ReducerEvent | undefined
+    ) => void
+  ) {
     __SPACETIMEDB__.clientDB.getTable("Player").removeOnDelete(callback);
   }
 }
