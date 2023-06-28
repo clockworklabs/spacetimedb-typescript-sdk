@@ -4,7 +4,9 @@ import {
   AlgebraicType,
   BuiltinType,
   EnumLabel,
+  MapType,
 } from "./algebraic_type";
+import BinaryReader from "./binary_reader";
 
 export class SumValue {
   public tag: number;
@@ -17,20 +19,19 @@ export class SumValue {
 
   public static deserialize(
     type: SumType | undefined,
-    value: object
+    reader: BinaryReader
   ): SumValue {
     if (type === undefined) {
       // TODO: get rid of undefined here
       throw "sum type is undefined";
     }
 
-    let tag = parseInt(Object.keys(value)[0]);
+    let tag = reader.readByte();
     let variant = type.variants[tag];
     let at = variant.algebraicType;
-    let enumValue = Object.values(value)[0];
     let sumValue = AlgebraicValue.deserialize(
       type.variants[tag].algebraicType,
-      enumValue
+      reader
     );
     return new SumValue(tag, sumValue);
   }
@@ -45,7 +46,7 @@ export class ProductValue {
 
   public static deserialize(
     type: ProductType | undefined,
-    value: any
+    reader: BinaryReader
   ): ProductValue {
     if (type === undefined) {
       throw "type is undefined";
@@ -53,11 +54,8 @@ export class ProductValue {
 
     let elements: AlgebraicValue[] = [];
 
-    for (let i in type.elements) {
-      let element = type.elements[i];
-      elements.push(
-        AlgebraicValue.deserialize(element.algebraicType, value[i])
-      );
+    for (let element of type.elements) {
+      elements.push(AlgebraicValue.deserialize(element.algebraicType, reader));
     }
     return new ProductValue(elements);
   }
@@ -68,6 +66,8 @@ type BuiltinValueType =
   | string
   | number
   | AlgebraicValue[]
+  | BigInt
+  | Map<AlgebraicValue, AlgebraicValue>
   | Uint8Array;
 
 export class BuiltinValue {
@@ -77,7 +77,10 @@ export class BuiltinValue {
     this.value = value;
   }
 
-  public static deserialize(type: BuiltinType, value: any): BuiltinValue {
+  public static deserialize(
+    type: BuiltinType,
+    reader: BinaryReader
+  ): BuiltinValue {
     switch (type.type) {
       case BuiltinType.Type.Array:
         let arrayBuiltinType: BuiltinType.Type | undefined =
@@ -89,18 +92,42 @@ export class BuiltinValue {
           arrayBuiltinType !== undefined &&
           arrayBuiltinType === BuiltinType.Type.U8
         ) {
-          return new this(new TextEncoder().encode(value));
+          const length = reader.readU32();
+          const value = reader.readUInt8Array(length);
+          return new this(value);
         } else {
+          const length = reader.readU32();
           let result: AlgebraicValue[] = [];
-          for (let el of value) {
+          for (let i = 0; i < length; i++) {
             result.push(
-              AlgebraicValue.deserialize(type.arrayType as AlgebraicType, el)
+              AlgebraicValue.deserialize(
+                type.arrayType as AlgebraicType,
+                reader
+              )
             );
           }
           return new this(result);
         }
+      case BuiltinType.Type.Map:
+        const mapLength = reader.readU32();
+        let result: Map<AlgebraicValue, AlgebraicValue> = new Map();
+        for (let i = 0; i < mapLength; i++) {
+          const key = AlgebraicValue.deserialize(
+            (type.mapType as MapType).keyType,
+            reader
+          );
+          const value = AlgebraicValue.deserialize(
+            (type.mapType as MapType).valueType,
+            reader
+          );
+          result.set(key, value);
+        }
+        return new this(result);
+      case BuiltinType.Type.String:
+        const strLength = reader.readU32();
+        return new this(reader.readString(strLength));
       default:
-        return new this(value);
+        return new this(reader["read" + type.type]());
     }
   }
 
@@ -112,12 +139,20 @@ export class BuiltinValue {
     return this.value as AlgebraicValue[];
   }
 
+  public asJsArray(type: string): any[] {
+    return this.asArray().map((el) => el["as" + type]());
+  }
+
   public asNumber(): number {
     return this.value as number;
   }
 
   public asBool(): boolean {
     return this.value as boolean;
+  }
+
+  public asBigInt(): BigInt {
+    return this.value as BigInt;
   }
 
   public asBoolean(): boolean {
@@ -154,14 +189,14 @@ export class AlgebraicValue {
     }
   }
 
-  public static deserialize(type: AlgebraicType, value: any) {
+  public static deserialize(type: AlgebraicType, reader: BinaryReader) {
     switch (type.type) {
       case AlgebraicType.Type.ProductType:
-        return new this(ProductValue.deserialize(type.product, value));
+        return new this(ProductValue.deserialize(type.product, reader));
       case AlgebraicType.Type.SumType:
-        return new this(SumValue.deserialize(type.sum, value));
+        return new this(SumValue.deserialize(type.sum, reader));
       case AlgebraicType.Type.BuiltinType:
-        return new this(BuiltinValue.deserialize(type.builtin, value));
+        return new this(BuiltinValue.deserialize(type.builtin, reader));
       default:
         throw new Error("not implemented");
     }
@@ -205,6 +240,11 @@ export class AlgebraicValue {
   public asBool(): boolean {
     this.assertBuiltin();
     return (this.builtin as BuiltinValue).asBool();
+  }
+
+  public asBigInt(): BigInt {
+    this.assertBuiltin();
+    return (this.builtin as BuiltinValue).asBigInt();
   }
 
   public asBoolean(): boolean {

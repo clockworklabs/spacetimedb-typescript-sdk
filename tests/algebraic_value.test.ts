@@ -10,6 +10,7 @@ import {
   SumValue,
   BuiltinValue,
 } from "../src/algebraic_value";
+import BinaryReader from "../src/binary_reader";
 
 describe("AlgebraicValue", () => {
   test("when created with a ProductValue it assigns the product property", () => {
@@ -52,16 +53,158 @@ describe("AlgebraicValue", () => {
   });
 });
 
-describe("ProductValue", () => {
-  test("can be deserialized from an array", () => {
-    let type = new ProductType([
-      new ProductTypeElement(
-        "age",
-        AlgebraicType.createPrimitiveType(BuiltinType.Type.U16)
-      ),
-    ]);
-    let value = ProductValue.deserialize(type, [1]);
+describe("BuiltinValue", () => {
+  describe("deserialize", () => {
+    test("should correctly deserialize array with U8 type", () => {
+      const input = new Uint8Array([2, 0, 0, 0, 10, 20]);
+      const reader = new BinaryReader(input);
+      const elementType = AlgebraicType.createPrimitiveType(
+        BuiltinType.Type.U8
+      );
+      const type: BuiltinType = new BuiltinType(
+        BuiltinType.Type.Array,
+        elementType
+      );
 
-    expect(value.elements[0].asNumber()).toBe(1);
+      const result = BuiltinValue.deserialize(type, reader);
+
+      expect(result.asBytes()).toEqual(new Uint8Array([10, 20]));
+    });
+
+    test("should correctly deserialize array with U128 type", () => {
+      // byte array of length 0002
+      const input = new Uint8Array([
+        3,
+        0,
+        0,
+        0, // 4 bytes for length
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0, // 16 bytes for u128
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255, // 16 bytes for max u128
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0, // 16 bytes for u128
+      ]);
+      const reader = new BinaryReader(input);
+      const elementType = AlgebraicType.createPrimitiveType(
+        BuiltinType.Type.U128
+      );
+      const type: BuiltinType = new BuiltinType(
+        BuiltinType.Type.Array,
+        elementType
+      );
+
+      const result = BuiltinValue.deserialize(type, reader);
+
+      const u128_max = BigInt(2) ** BigInt(128) - BigInt(1);
+      expect(result.asJsArray("BigInt")).toEqual([
+        BigInt(1),
+        u128_max,
+        BigInt(10),
+      ]);
+    });
+
+    test("should correctly deserialize an U128 type", () => {
+      // byte array of length 0002
+      const input = new Uint8Array([
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255, // 16 bytes for max u128
+      ]);
+      const reader = new BinaryReader(input);
+      const result = BuiltinValue.deserialize(
+        new BuiltinType(BuiltinType.Type.U128, undefined),
+        reader
+      );
+
+      const u128_max = BigInt(2) ** BigInt(128) - BigInt(1);
+      expect(result.asBigInt()).toEqual(u128_max);
+    });
+
+    test("should correctly deserialize a boolean type", () => {
+      // byte array of length 0002
+      const input = new Uint8Array([1]);
+      const reader = new BinaryReader(input);
+      const result = BuiltinValue.deserialize(
+        new BuiltinType(BuiltinType.Type.Bool, undefined),
+        reader
+      );
+
+      expect(result.asBool()).toEqual(true);
+    });
+
+    test("should correctly deserialize a string type", () => {
+      // byte array of length 0002
+      const text = "zażółć gęślą jaźń";
+      const encoder = new TextEncoder();
+      const textBytes = encoder.encode(text);
+
+      const input = new Uint8Array(textBytes.length + 4);
+      input.set(new Uint8Array([textBytes.length, 0, 0, 0]));
+      input.set(textBytes, 4);
+
+      const reader = new BinaryReader(input);
+      const result = BuiltinValue.deserialize(
+        new BuiltinType(BuiltinType.Type.String, undefined),
+        reader
+      );
+
+      expect(result.asString()).toEqual("zażółć gęślą jaźń");
+    });
   });
 });

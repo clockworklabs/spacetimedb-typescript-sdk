@@ -13,6 +13,12 @@ import {
   BuiltinType,
 } from "./algebraic_type";
 import { EventType } from "./types";
+import {
+  Message,
+  event_StatusToJSON,
+  TableRowOperation_OperationType,
+} from "./client_api";
+import BinaryReader from "./binary_reader";
 
 export {
   ProductValue,
@@ -65,13 +71,17 @@ export type SpacetimeDBEvent = {
 type DBOpType = "insert" | "update" | "delete";
 
 class DBOp {
-  public type: DBOpType;
+  public type: TableRowOperation_OperationType;
   public instance: any;
   public rowPk: string;
 
-  constructor(type: DBOpType, rowPk: string, instance: any) {
+  constructor(
+    type: TableRowOperation_OperationType,
+    rowPk: Uint8Array,
+    instance: any
+  ) {
     this.type = type;
-    this.rowPk = rowPk;
+    this.rowPk = new TextDecoder().decode(rowPk);
     this.instance = instance;
   }
 }
@@ -107,18 +117,22 @@ class Table {
   }
 
   applyOperations = (
-    operations: { op: string; row_pk: string; row: any[] }[]
+    operations: {
+      op: TableRowOperation_OperationType;
+      row: Uint8Array;
+      rowPk: Uint8Array;
+    }[]
   ) => {
     let dbOps: DBOp[] = [];
     for (let operation of operations) {
-      const pk = operation.row_pk;
+      const pk = operation.rowPk;
       const entry = AlgebraicValue.deserialize(
         this.entityClass.getAlgebraicType(),
-        operation.row
+        new BinaryReader(operation.row)
       );
       const instance = this.entityClass.fromValue(entry);
 
-      dbOps.push(new DBOp(operation.op as DBOpType, pk, instance));
+      dbOps.push(new DBOp(operation.op, pk, instance));
     }
 
     if (this.entityClass.primaryKey !== undefined) {
@@ -126,7 +140,7 @@ class Table {
       const inserts: any[] = [];
       const deleteMap = new Map();
       for (const dbOp of dbOps) {
-        if (dbOp.type === "insert") {
+        if (dbOp.type === TableRowOperation_OperationType.INSERT) {
           inserts.push(dbOp);
         } else {
           deleteMap.set(dbOp.instance[pkName], dbOp);
@@ -148,7 +162,7 @@ class Table {
       }
     } else {
       for (const dbOp of dbOps) {
-        if (dbOp.type === "insert") {
+        if (dbOp.type === TableRowOperation_OperationType.INSERT) {
           this.insert(dbOp);
         } else {
           this.delete(dbOp);
@@ -285,7 +299,7 @@ export class SpacetimeDBClient {
   /**
    * The identity of the user.
    */
-  identity?: string = undefined;
+  identity?: Uint8Array = undefined;
   /**
    * The token of the user.
    */
@@ -396,7 +410,7 @@ export class SpacetimeDBClient {
       url = "ws://" + url;
     }
 
-    this.ws = this.createWSFn(url, headers, "v1.text.spacetimedb");
+    this.ws = this.createWSFn(url, headers, "v1.bin.spacetimedb");
 
     // Create a timeout for the connection to be established
     var connectionTimeout = setTimeout(() => {
@@ -429,78 +443,82 @@ export class SpacetimeDBClient {
       }
     };
 
-    this.ws.onmessage = (message: any) => {
-      const data = JSON.parse(message.data);
+    this.ws.onmessage = (wsMessage: any) => {
+      wsMessage.data.arrayBuffer().then((data) => {
+        const message: Message = Message.decode(new Uint8Array(data));
 
-      if (data) {
-        if (data["SubscriptionUpdate"]) {
-          let subUpdate = data["SubscriptionUpdate"];
-          const tableUpdates = subUpdate["table_updates"];
-          for (const tableUpdate of tableUpdates) {
-            const tableName = tableUpdate["table_name"];
-            const entityClass = this.runtime.global.components.get(tableName);
-            const table = this.db.getOrCreateTable(
-              tableName,
-              undefined,
-              entityClass
-            );
-            table.applyOperations(tableUpdate["table_row_operations"]);
-          }
-
-          if (this.emitter) {
-            this.emitter.emit("initialStateSync");
-          }
-        } else if (data["TransactionUpdate"]) {
-          const txUpdate = data["TransactionUpdate"];
-          const subUpdate = txUpdate["subscription_update"];
-          const tableUpdates = subUpdate["table_updates"];
-          for (const tableUpdate of tableUpdates) {
-            const tableName = tableUpdate["table_name"];
-            const entityClass = this.runtime.global.components.get(tableName);
-            const table = this.db.getOrCreateTable(
-              tableName,
-              undefined,
-              entityClass
-            );
-            table.applyOperations(tableUpdate["table_row_operations"]);
-          }
-
-          const event = txUpdate["event"];
-          if (event) {
-            const functionCall = event["function_call"];
-            const identity = event["caller_identity"];
-            const reducerName: string | undefined =
-              functionCall && functionCall["reducer"]
-                ? toPascalCase(functionCall["reducer"])
-                : undefined;
-            const args: string | undefined = functionCall?.["args"];
-            const status: string | undefined = event["status"];
-            const reducer: any | undefined = reducerName
-              ? this.reducers.get(reducerName)
-              : undefined;
-
-            if (reducerName && args && identity && status && reducer) {
-              const jsonArray = JSON.parse(args);
-              const reducerArgs = reducer.deserializeArgs(jsonArray);
-              this.emitter.emit(
-                "reducer:" + reducerName,
-                status,
-                identity,
-                reducerArgs
+        if (message) {
+          if (message["subscriptionUpdate"]) {
+            let subUpdate = message["subscriptionUpdate"] as any;
+            const tableUpdates = subUpdate["tableUpdates"];
+            for (const tableUpdate of tableUpdates) {
+              const tableName = tableUpdate["tableName"];
+              const entityClass = this.runtime.global.components.get(tableName);
+              const table = this.db.getOrCreateTable(
+                tableName,
+                undefined,
+                entityClass
               );
+              table.applyOperations(tableUpdate["tableRowOperations"]);
             }
-          }
 
-          // this.emitter.emit("event", txUpdate['event']);
-        } else if (data["IdentityToken"]) {
-          const identityToken = data["IdentityToken"];
-          const identity = identityToken["identity"];
-          const token = identityToken["token"];
-          this.identity = identity;
-          this.token = token;
-          this.emitter.emit("connected", token, identity);
+            if (this.emitter) {
+              this.emitter.emit("initialStateSync");
+            }
+          } else if (message["transactionUpdate"]) {
+            const txUpdate = message["transactionUpdate"];
+            const subUpdate = txUpdate["subscriptionUpdate"] as any;
+            const tableUpdates = subUpdate["tableUpdates"];
+            for (const tableUpdate of tableUpdates) {
+              const tableName = tableUpdate["tableName"];
+              const entityClass = this.runtime.global.components.get(tableName);
+              const table = this.db.getOrCreateTable(
+                tableName,
+                undefined,
+                entityClass
+              );
+              table.applyOperations(tableUpdate["tableRowOperations"]);
+            }
+
+            const event = txUpdate["event"];
+            if (event) {
+              const functionCall = event["functionCall"];
+              const identity = event["callerIdentity"];
+              const reducerName: string | undefined =
+                functionCall && functionCall["reducer"]
+                  ? toPascalCase(functionCall["reducer"])
+                  : undefined;
+              const args: string | undefined = functionCall?.["args"];
+              const status: string | undefined = event_StatusToJSON(
+                event["status"]
+              );
+              const reducer: any | undefined = reducerName
+                ? this.reducers.get(reducerName)
+                : undefined;
+
+              if (reducerName && args && identity && status && reducer) {
+                const jsonArray = JSON.parse(args);
+                const reducerArgs = reducer.deserializeArgs(jsonArray);
+                this.emitter.emit(
+                  "reducer:" + reducerName,
+                  status,
+                  identity,
+                  reducerArgs
+                );
+              }
+            }
+
+            // this.emitter.emit("event", txUpdate['event']);
+          } else if (message["identityToken"]) {
+            const identityToken = message["identityToken"];
+            const identity = identityToken["identity"];
+            const token = identityToken["token"];
+            this.identity = identity;
+            this.token = token;
+            this.emitter.emit("connected", token, identity);
+          }
         }
-      }
+      });
     };
   }
 
