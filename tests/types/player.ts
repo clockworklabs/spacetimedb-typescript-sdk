@@ -68,13 +68,11 @@ export class Player extends IDatabaseTable {
   }
 
   public static filterByOwnerId(value: string): Player | null {
-    for (let entry of __SPACETIMEDB__.clientDB
+    for (let instance of __SPACETIMEDB__.clientDB
       .getTable("Player")
-      .getEntries()) {
-      var productValue = entry.asProductValue();
-      let compareValue = productValue.elements[0].asString() as string;
-      if (compareValue == value) {
-        return Player.fromValue(entry);
+      .getInstances()) {
+      if (instance.ownerId === value) {
+        return instance;
       }
     }
     return null;

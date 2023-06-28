@@ -67,29 +67,18 @@ type DBOpType = "insert" | "update" | "delete";
 class DBOp {
   public type: DBOpType;
   public instance: any;
-  public oldInstance: any;
   public rowPk: string;
-  public entry: any;
 
-  constructor(
-    type: DBOpType,
-    rowPk: string,
-    instance: any,
-    entry: any,
-    oldInstance: any
-  ) {
+  constructor(type: DBOpType, rowPk: string, instance: any) {
     this.type = type;
     this.rowPk = rowPk;
     this.instance = instance;
-    this.oldInstance = oldInstance;
-    this.entry = entry;
   }
 }
 
 class Table {
   // TODO: most of this stuff should be probably private
   public name: string;
-  public entries: Map<string, AlgebraicValue>;
   public instances: Map<string, IDatabaseTable>;
   public emitter: EventEmitter;
   private entityClass: any;
@@ -97,8 +86,6 @@ class Table {
 
   constructor(name: string, pkCol: number | undefined, entityClass: any) {
     this.name = name;
-    // TODO: not sure if it's worth it to keep both rows and entries here 🤔
-    this.entries = new Map();
     this.instances = new Map();
     this.emitter = new EventEmitter();
     this.pkCol = pkCol;
@@ -109,16 +96,12 @@ class Table {
    * @returns number of entries in the table
    */
   public count(): number {
-    return this.entries.size;
+    return this.instances.size;
   }
 
   /**
    * @returns The values of the entries in the table
    */
-  public getEntries(): IterableIterator<AlgebraicValue> {
-    return this.entries.values();
-  }
-
   public getInstances(): IterableIterator<any> {
     return this.instances.values();
   }
@@ -134,11 +117,8 @@ class Table {
         operation.row
       );
       const instance = this.entityClass.fromValue(entry);
-      const oldInstance = this.instances.get(pk);
 
-      dbOps.push(
-        new DBOp(operation.op as DBOpType, pk, instance, entry, oldInstance)
-      );
+      dbOps.push(new DBOp(operation.op as DBOpType, pk, instance));
     }
 
     if (this.entityClass.primaryKey !== undefined) {
@@ -157,8 +137,7 @@ class Table {
         if (deleteOp) {
           // the pk for updates will differ between insert/delete, so we have to
           // use the instance from delete
-          dbOp.oldInstance = deleteOp.instance;
-          this.update(dbOp);
+          this.update(dbOp, deleteOp);
           deleteMap.delete(dbOp.instance[pkName]);
         } else {
           this.insert(dbOp);
@@ -178,23 +157,23 @@ class Table {
     }
   };
 
-  update = (dbOp) => {
-    this.entries.set(dbOp.rowPk, dbOp.entry);
-    this.instances.set(dbOp.rowPk, dbOp.instance);
-    const oldInstance = dbOp.oldInstance;
-    this.emitter.emit("update", oldInstance, dbOp.instance);
+  update = (newDbOp, oldDbOp) => {
+    const newInstance = newDbOp.instance;
+    const oldInstance = oldDbOp.instance;
+    this.instances.delete(oldDbOp.rowPk);
+    this.instances.set(newDbOp.rowPk, newInstance);
+    this.emitter.emit("update", oldInstance, newInstance);
   };
 
   insert = (dbOp) => {
     this.instances.set(dbOp.rowPk, dbOp.instance);
-    this.entries.set(dbOp.rowPk, dbOp.entry);
     this.emitter.emit("insert", dbOp.instance);
   };
 
   delete = (dbOp) => {
+    const oldInstance = this.instances.get(dbOp.rowPk);
     this.instances.delete(dbOp.rowPk);
-    this.entries.delete(dbOp.rowPk);
-    this.emitter.emit("delete", dbOp.oldInstance, dbOp.instance);
+    this.emitter.emit("delete", oldInstance, dbOp.instance);
   };
 
   /**

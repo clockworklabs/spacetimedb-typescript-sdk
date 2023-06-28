@@ -272,5 +272,7 @@ describe("SpacetimeDBClient", () => {
     expect(updates).toHaveLength(2);
     expect(updates[1]["oldPlayer"].name).toBe("Jamie");
     expect(updates[1]["newPlayer"].name).toBe("Kingslayer");
+
+    console.log(Player.all());
   });
 });
