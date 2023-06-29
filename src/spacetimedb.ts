@@ -896,7 +896,7 @@ export class SpacetimeDBClient {
     this.emitter.off(eventName, callback);
   }
 
-  onConnect(callback: (...args: any[]) => void) {
+  onConnect(callback: (token: string, identity: Uint8Array) => void) {
     this.on("connected", callback);
   }
 
