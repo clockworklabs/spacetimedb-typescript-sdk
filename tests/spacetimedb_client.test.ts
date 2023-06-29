@@ -4,7 +4,12 @@ import Player from "./types/player";
 
 describe("SpacetimeDBClient", () => {
   test("auto subscribe on connect", async () => {
-    const client = new SpacetimeDBClient("ws://127.0.0.1:1234", "db");
+    const client = new SpacetimeDBClient(
+      "ws://127.0.0.1:1234",
+      "db",
+      undefined,
+      "json"
+    );
     const wsAdapter = new WebsocketTestAdapter();
     client._setCreateWSFn(
       (
@@ -38,7 +43,12 @@ describe("SpacetimeDBClient", () => {
   });
 
   test("call onConnect callback after getting an identity", async () => {
-    const client = new SpacetimeDBClient("ws://127.0.0.1:1234", "db");
+    const client = new SpacetimeDBClient(
+      "ws://127.0.0.1:1234",
+      "db",
+      undefined,
+      "json"
+    );
     const wsAdapter = new WebsocketTestAdapter();
     client._setCreateWSFn(
       (
@@ -72,7 +82,12 @@ describe("SpacetimeDBClient", () => {
   });
 
   test("it calls onInsert callback when a record is added with a subscription update and then with a transaction update", () => {
-    const client = new SpacetimeDBClient("ws://127.0.0.1:1234", "db");
+    const client = new SpacetimeDBClient(
+      "ws://127.0.0.1:1234",
+      "db",
+      undefined,
+      "json"
+    );
     const wsAdapter = new WebsocketTestAdapter();
     client._setCreateWSFn(
       (
@@ -166,7 +181,12 @@ describe("SpacetimeDBClient", () => {
   });
 
   test("it calls onUpdate callback when a record is added with a subscription update and then with a transaction update", () => {
-    const client = new SpacetimeDBClient("ws://127.0.0.1:1234", "db");
+    const client = new SpacetimeDBClient(
+      "ws://127.0.0.1:1234",
+      "db",
+      undefined,
+      "json"
+    );
     const wsAdapter = new WebsocketTestAdapter();
     client._setCreateWSFn(
       (
