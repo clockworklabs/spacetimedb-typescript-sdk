@@ -35,6 +35,7 @@ export class CreatePlayerReducer {
       adapter.next()
     );
     let location = Point.fromValue(locationValue);
+    console.log("LOCATION", location);
     return [name, location];
   }
 

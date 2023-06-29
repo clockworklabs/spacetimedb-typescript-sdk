@@ -595,13 +595,29 @@ export class SpacetimeDBClient {
             ? this.reducers.get(reducerName)
             : undefined;
 
-          const reducerEvent = new ReducerEvent(
-            message.event.identity,
-            message.event.originalReducerName,
-            message.event.status,
-            message.event.message,
-            message.event.args
-          );
+          let reducerEvent: ReducerEvent | undefined;
+          let reducerArgs: any;
+          if (reducer) {
+            let adapter: ReducerArgsAdapter;
+            if (this.protocol === "binary") {
+              adapter = new BinaryReducerArgsAdapter(
+                new BinaryAdapter(
+                  new BinaryReader(message.event.args as Uint8Array)
+                )
+              );
+            } else {
+              adapter = new JSONReducerArgsAdapter(message.event.args as any[]);
+            }
+
+            reducerArgs = reducer.deserializeArgs(adapter);
+            reducerEvent = new ReducerEvent(
+              message.event.identity,
+              message.event.originalReducerName,
+              message.event.status,
+              message.event.message,
+              reducerArgs
+            );
+          }
 
           for (let tableUpdate of message.tableUpdates) {
             const tableName = tableUpdate.tableName;
@@ -620,18 +636,6 @@ export class SpacetimeDBClient {
           }
 
           if (reducer) {
-            let adapter: ReducerArgsAdapter;
-            if (this.protocol === "binary") {
-              adapter = new BinaryReducerArgsAdapter(
-                new BinaryAdapter(
-                  new BinaryReader(message.event.args as Uint8Array)
-                )
-              );
-            } else {
-              adapter = new JSONReducerArgsAdapter(message.event.args as any[]);
-            }
-
-            const reducerArgs = reducer.deserializeArgs(adapter);
             this.emitter.emit(
               "reducer:" + reducerName,
               message.event.status,
