@@ -69,14 +69,14 @@ export class Reducer {}
 export class IDatabaseTable {}
 
 export class ReducerEvent {
-  public callerIdentity: string;
+  public callerIdentity: Uint8Array;
   public reducerName: string;
   public status: string;
   public message: string;
   public args: any;
 
   constructor(
-    callerIdentity: string,
+    callerIdentity: Uint8Array,
     reducerName: string,
     status: string,
     message: string,
@@ -353,7 +353,7 @@ class SubscriptionUpdateMessage {
 }
 
 class TransactionUpdateEvent {
-  public identity: string;
+  public identity: Uint8Array;
   public originalReducerName: string;
   public reducerName: string;
   public args: any[] | Uint8Array;
@@ -361,7 +361,7 @@ class TransactionUpdateEvent {
   public message: string;
 
   constructor(
-    identity: string,
+    identity: Uint8Array,
     originalReducerName: string,
     reducerName: string,
     args: any[] | Uint8Array,
@@ -716,7 +716,7 @@ export class SpacetimeDBClient {
 
           const event = message["transactionUpdate"]["event"] as any;
           const functionCall = event["functionCall"] as any;
-          const identity: string = event["callerIdentity"];
+          const identity: Uint8Array = event["callerIdentity"];
           const originalReducerName: string = functionCall["reducer"];
           const reducerName: string = toPascalCase(originalReducerName);
           const args = functionCall["argBytes"];
@@ -793,7 +793,11 @@ export class SpacetimeDBClient {
 
         const event = txUpdate["event"] as any;
         const functionCall = event["function_call"] as any;
-        const identity: string = event["caller_identity"];
+        const identity: Uint8Array = Uint8Array.from(
+          event["caller_identity"]
+            .match(/.{1,2}/g)
+            .map((byte: string) => parseInt(byte, 16))
+        );
         const originalReducerName: string = functionCall["reducer"];
         const reducerName: string = toPascalCase(originalReducerName);
         const args = JSON.parse(functionCall["args"]);
