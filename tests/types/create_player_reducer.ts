@@ -39,7 +39,7 @@ export class CreatePlayerReducer {
   }
 
   public static on(
-    callback: (status: string, identity: string, reducerArgs: any[]) => void
+    callback: (status: string, identity: Uint8Array, reducerArgs: any[]) => void
   ) {
     if (__SPACETIMEDB__.spacetimeDBClient) {
       __SPACETIMEDB__.spacetimeDBClient.on("reducer:CreatePlayer", callback);

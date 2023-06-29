@@ -129,6 +129,17 @@ describe("SpacetimeDBClient", () => {
       }
     );
 
+    let reducerCallbackLog: {
+      status: string;
+      identity: Uint8Array;
+      reducerArgs: any[];
+    }[] = [];
+    CreatePlayerReducer.on(
+      (status: string, identity: Uint8Array, reducerArgs: any[]) => {
+        reducerCallbackLog.push({ status, identity, reducerArgs });
+      }
+    );
+
     const subscriptionMessage = {
       SubscriptionUpdate: {
         table_updates: [
@@ -157,7 +168,7 @@ describe("SpacetimeDBClient", () => {
         event: {
           timestamp: 1681391805281203,
           status: "committed",
-          caller_identity: "00FF00",
+          caller_identity: "00FF01",
           function_call: {
             reducer: "create_player",
             args: '["A Player",[0.2, 0.3]]',
@@ -190,12 +201,17 @@ describe("SpacetimeDBClient", () => {
     expect(inserts[1].reducerEvent?.status).toBe("committed");
     expect(inserts[1].reducerEvent?.message).toBe("a message");
     expect(inserts[1].reducerEvent?.callerIdentity).toEqual(
-      Uint8Array.from([0, 255, 0])
+      Uint8Array.from([0, 255, 1])
     );
     expect(inserts[1].reducerEvent?.args).toEqual([
       "A Player",
       new Point(0.2, 0.3),
     ]);
+
+    expect(reducerCallbackLog).toHaveLength(1);
+    expect(reducerCallbackLog[0]["identity"]).toEqual(
+      Uint8Array.from([0, 255, 1])
+    );
   });
 
   test("it calls onUpdate callback when a record is added with a subscription update and then with a transaction update", () => {
