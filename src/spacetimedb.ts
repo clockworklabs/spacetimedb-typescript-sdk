@@ -8,6 +8,10 @@ import {
   AlgebraicValue,
   BinaryAdapter,
   JSONAdapter,
+  ValueAdapter,
+  ReducerArgsAdapter,
+  JSONReducerArgsAdapter,
+  BinaryReducerArgsAdapter,
 } from "./algebraic_value";
 import {
   AlgebraicType,
@@ -34,6 +38,8 @@ export {
   SumType,
   SumTypeVariant,
   BuiltinType,
+  ValueAdapter,
+  ReducerArgsAdapter,
 };
 
 const g = (typeof window === "undefined" ? global : window)!;
@@ -185,9 +191,8 @@ class Table {
   };
 
   delete = (dbOp) => {
-    const oldInstance = this.instances.get(dbOp.rowPk);
     this.instances.delete(dbOp.rowPk);
-    this.emitter.emit("delete", oldInstance, dbOp.instance);
+    this.emitter.emit("delete", dbOp.instance);
   };
 
   /**
@@ -314,13 +319,13 @@ class SubscriptionUpdateMessage {
 class TransactionUpdateEvent {
   public identity: string;
   public reducerName: string;
-  public args: any[];
+  public args: any[] | Uint8Array;
   public status: string;
 
   constructor(
     identity: string,
     reducerName: string,
-    args: any[],
+    args: any[] | Uint8Array,
     status: string
   ) {
     this.identity = identity;
@@ -554,7 +559,18 @@ export class SpacetimeDBClient {
             : undefined;
 
           if (reducer) {
-            const reducerArgs = reducer.deserializeArgs(message.event.args);
+            let adapter: ReducerArgsAdapter;
+            if (this.protocol === "binary") {
+              adapter = new BinaryReducerArgsAdapter(
+                new BinaryAdapter(
+                  new BinaryReader(message.event.args as Uint8Array)
+                )
+              );
+            } else {
+              adapter = new JSONReducerArgsAdapter(message.event.args as any[]);
+            }
+
+            const reducerArgs = reducer.deserializeArgs(adapter);
             this.emitter.emit(
               "reducer:" + reducerName,
               message.event.status,
@@ -607,7 +623,9 @@ export class SpacetimeDBClient {
           );
           callback(subscriptionUpdate);
         } else if (message["transactionUpdate"]) {
-          let txUpdate = message["transactionUpdate"] as any;
+          let txUpdate = (message["transactionUpdate"] as any)[
+            "subscriptionUpdate"
+          ];
           const tableUpdates: TableUpdate[] = [];
           for (const rawTableUpdate of txUpdate["tableUpdates"]) {
             const tableName = rawTableUpdate["tableName"];
@@ -631,11 +649,11 @@ export class SpacetimeDBClient {
             tableUpdates.push(tableUpdate);
           }
 
-          const event = txUpdate["event"] as any;
+          const event = message["transactionUpdate"]["event"] as any;
           const functionCall = event["functionCall"] as any;
           const identity: string = event["callerIdentity"];
           const reducerName: string = toPascalCase(functionCall["reducer"]);
-          const args = JSON.parse(functionCall["args"]);
+          const args = functionCall["argBytes"];
           const status: string = event_StatusToJSON(event["status"]);
 
           const transactionUpdateEvent: TransactionUpdateEvent =

@@ -8,6 +8,41 @@ import {
 } from "./algebraic_type";
 import BinaryReader from "./binary_reader";
 
+export interface ReducerArgsAdapter {
+  next: () => ValueAdapter;
+}
+
+export class JSONReducerArgsAdapter {
+  args: any[];
+  index: number = 0;
+
+  constructor(args: any[]) {
+    this.args = args;
+  }
+
+  next(): ValueAdapter {
+    if (this.index >= this.args.length) {
+      throw "Number of arguments in the reducer is larger than what we got from the server";
+    }
+
+    const adapter = new JSONAdapter(this.args[this.index]);
+    this.index += 1;
+    return adapter;
+  }
+}
+
+export class BinaryReducerArgsAdapter {
+  adapter: BinaryAdapter;
+
+  constructor(adapter: BinaryAdapter) {
+    this.adapter = adapter;
+  }
+
+  next() {
+    return this.adapter;
+  }
+}
+
 export interface ValueAdapter {
   readUInt8Array: () => Uint8Array;
   readArray: (type: AlgebraicType) => AlgebraicValue[];
