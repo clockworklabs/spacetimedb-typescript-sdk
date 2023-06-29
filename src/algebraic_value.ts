@@ -8,6 +8,253 @@ import {
 } from "./algebraic_type";
 import BinaryReader from "./binary_reader";
 
+export interface ValueAdapter {
+  readUInt8Array: () => Uint8Array;
+  readArray: (type: AlgebraicType) => AlgebraicValue[];
+  readMap: (
+    keyType: AlgebraicType,
+    valueType: AlgebraicType
+  ) => Map<AlgebraicValue, AlgebraicValue>;
+  readString: () => string;
+  readSum: (type: SumType) => SumValue;
+  readProduct: (type: ProductType) => ProductValue;
+
+  readBool: () => boolean;
+  readByte: () => number;
+  readI8: () => number;
+  readU8: () => number;
+  readI16: () => number;
+  readU16: () => number;
+  readI32: () => number;
+  readU32: () => number;
+  readI64: () => BigInt;
+  readU64: () => BigInt;
+  readU128: () => BigInt;
+  readI128: () => BigInt;
+  readF32: () => number;
+  readF64: () => number;
+}
+
+export class BinaryAdapter implements ValueAdapter {
+  private reader: BinaryReader;
+
+  constructor(reader: BinaryReader) {
+    this.reader = reader;
+  }
+
+  readUInt8Array(): Uint8Array {
+    const length = this.reader.readU32();
+    return this.reader.readUInt8Array(length);
+  }
+
+  readArray(type: AlgebraicType): AlgebraicValue[] {
+    const length = this.reader.readU32();
+    let result: AlgebraicValue[] = [];
+    for (let i = 0; i < length; i++) {
+      result.push(AlgebraicValue.deserialize(type, this));
+    }
+
+    return result;
+  }
+
+  readMap(
+    keyType: AlgebraicType,
+    valueType: AlgebraicType
+  ): Map<AlgebraicValue, AlgebraicValue> {
+    const mapLength = this.reader.readU32();
+    let result: Map<AlgebraicValue, AlgebraicValue> = new Map();
+    for (let i = 0; i < mapLength; i++) {
+      const key = AlgebraicValue.deserialize(keyType, this);
+      const value = AlgebraicValue.deserialize(valueType, this);
+      result.set(key, value);
+    }
+
+    return result;
+  }
+
+  readString(): string {
+    const strLength = this.reader.readU32();
+    return this.reader.readString(strLength);
+  }
+
+  readSum(type: SumType): SumValue {
+    let tag = this.reader.readByte();
+    let sumValue = AlgebraicValue.deserialize(
+      type.variants[tag].algebraicType,
+      this
+    );
+    return new SumValue(tag, sumValue);
+  }
+
+  readProduct(type: ProductType): ProductValue {
+    let elements: AlgebraicValue[] = [];
+
+    for (let element of type.elements) {
+      elements.push(AlgebraicValue.deserialize(element.algebraicType, this));
+    }
+    return new ProductValue(elements);
+  }
+
+  readBool(): boolean {
+    return this.reader.readBool();
+  }
+  readByte(): number {
+    return this.reader.readByte();
+  }
+  readI8(): number {
+    return this.reader.readI8();
+  }
+  readU8(): number {
+    return this.reader.readU8();
+  }
+  readI16(): number {
+    return this.reader.readI16();
+  }
+  readU16(): number {
+    return this.reader.readU16();
+  }
+  readI32(): number {
+    return this.reader.readI32();
+  }
+  readU32(): number {
+    return this.reader.readU32();
+  }
+  readI64(): BigInt {
+    return this.reader.readI64();
+  }
+  readU64(): BigInt {
+    return this.reader.readU64();
+  }
+  readU128(): BigInt {
+    return this.reader.readU128();
+  }
+  readI128(): BigInt {
+    return this.reader.readI128();
+  }
+  readF32(): number {
+    return this.reader.readF32();
+  }
+  readF64(): number {
+    return this.reader.readF64();
+  }
+}
+
+export class JSONAdapter implements ValueAdapter {
+  private value: any;
+
+  constructor(value: any) {
+    this.value = value;
+  }
+
+  readUInt8Array(): Uint8Array {
+    return Uint8Array.from(
+      this.value.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
+  }
+
+  readArray(type: AlgebraicType): AlgebraicValue[] {
+    let result: AlgebraicValue[] = [];
+    for (let el of this.value) {
+      result.push(AlgebraicValue.deserialize(type, new JSONAdapter(el)));
+    }
+
+    return result;
+  }
+
+  readMap(
+    keyType: AlgebraicType,
+    valueType: AlgebraicType
+  ): Map<AlgebraicValue, AlgebraicValue> {
+    let result: Map<AlgebraicValue, AlgebraicValue> = new Map();
+    // for (let i = 0; i < this.value.length; i++) {
+    //   const key = AlgebraicValue.deserialize(
+    //     keyType,
+    //     new JSONAdapter()
+    //   );
+    //   const value = AlgebraicValue.deserialize(
+    //     valueType,
+    //     this
+    //   );
+    //   result.set(key, value);
+    // }
+    //
+    return result;
+  }
+
+  readString(): string {
+    return this.value;
+  }
+
+  readSum(type: SumType): SumValue {
+    let tag = parseInt(Object.keys(this.value)[0]);
+    let variant = type.variants[tag];
+    let enumValue = Object.values(this.value)[0];
+    let sumValue = AlgebraicValue.deserialize(
+      type.variants[tag].algebraicType,
+      new JSONAdapter(enumValue)
+    );
+    return new SumValue(tag, sumValue);
+  }
+
+  readProduct(type: ProductType): ProductValue {
+    let elements: AlgebraicValue[] = [];
+
+    for (let i in type.elements) {
+      let element = type.elements[i];
+      elements.push(
+        AlgebraicValue.deserialize(
+          element.algebraicType,
+          new JSONAdapter(this.value[i])
+        )
+      );
+    }
+    return new ProductValue(elements);
+  }
+
+  readBool(): boolean {
+    return this.value;
+  }
+  readByte(): number {
+    return this.value;
+  }
+  readI8(): number {
+    return this.value;
+  }
+  readU8(): number {
+    return this.value;
+  }
+  readI16(): number {
+    return this.value;
+  }
+  readU16(): number {
+    return this.value;
+  }
+  readI32(): number {
+    return this.value;
+  }
+  readU32(): number {
+    return this.value;
+  }
+  readI64(): BigInt {
+    return this.value;
+  }
+  readU64(): BigInt {
+    return this.value;
+  }
+  readU128(): BigInt {
+    return this.value;
+  }
+  readI128(): BigInt {
+    return this.value;
+  }
+  readF32(): number {
+    return this.value;
+  }
+  readF64(): number {
+    return this.value;
+  }
+}
+
 export class SumValue {
   public tag: number;
   public value: AlgebraicValue;
@@ -19,21 +266,14 @@ export class SumValue {
 
   public static deserialize(
     type: SumType | undefined,
-    reader: BinaryReader
+    adapter: ValueAdapter
   ): SumValue {
     if (type === undefined) {
       // TODO: get rid of undefined here
       throw "sum type is undefined";
     }
 
-    let tag = reader.readByte();
-    let variant = type.variants[tag];
-    let at = variant.algebraicType;
-    let sumValue = AlgebraicValue.deserialize(
-      type.variants[tag].algebraicType,
-      reader
-    );
-    return new SumValue(tag, sumValue);
+    return adapter.readSum(type);
   }
 }
 
@@ -46,18 +286,13 @@ export class ProductValue {
 
   public static deserialize(
     type: ProductType | undefined,
-    reader: BinaryReader
+    adapter: ValueAdapter
   ): ProductValue {
     if (type === undefined) {
       throw "type is undefined";
     }
 
-    let elements: AlgebraicValue[] = [];
-
-    for (let element of type.elements) {
-      elements.push(AlgebraicValue.deserialize(element.algebraicType, reader));
-    }
-    return new ProductValue(elements);
+    return adapter.readProduct(type);
   }
 }
 
@@ -79,7 +314,7 @@ export class BuiltinValue {
 
   public static deserialize(
     type: BuiltinType,
-    reader: BinaryReader
+    adapter: ValueAdapter
   ): BuiltinValue {
     switch (type.type) {
       case BuiltinType.Type.Array:
@@ -92,42 +327,24 @@ export class BuiltinValue {
           arrayBuiltinType !== undefined &&
           arrayBuiltinType === BuiltinType.Type.U8
         ) {
-          const length = reader.readU32();
-          const value = reader.readUInt8Array(length);
+          const value = adapter.readUInt8Array();
           return new this(value);
         } else {
-          const length = reader.readU32();
-          let result: AlgebraicValue[] = [];
-          for (let i = 0; i < length; i++) {
-            result.push(
-              AlgebraicValue.deserialize(
-                type.arrayType as AlgebraicType,
-                reader
-              )
-            );
-          }
-          return new this(result);
+          const arrayResult = adapter.readArray(
+            type.arrayType as AlgebraicType
+          );
+          return new this(arrayResult);
         }
       case BuiltinType.Type.Map:
-        const mapLength = reader.readU32();
-        let result: Map<AlgebraicValue, AlgebraicValue> = new Map();
-        for (let i = 0; i < mapLength; i++) {
-          const key = AlgebraicValue.deserialize(
-            (type.mapType as MapType).keyType,
-            reader
-          );
-          const value = AlgebraicValue.deserialize(
-            (type.mapType as MapType).valueType,
-            reader
-          );
-          result.set(key, value);
-        }
-        return new this(result);
+        let keyType: AlgebraicType = (type.mapType as MapType).keyType;
+        let valueType: AlgebraicType = (type.mapType as MapType).valueType;
+        const mapResult = adapter.readMap(keyType, valueType);
+        return new this(mapResult);
       case BuiltinType.Type.String:
-        const strLength = reader.readU32();
-        return new this(reader.readString(strLength));
+        const result = adapter.readString();
+        return new this(result);
       default:
-        return new this(reader["read" + type.type]());
+        return new this(adapter["read" + type.type]());
     }
   }
 
@@ -189,14 +406,14 @@ export class AlgebraicValue {
     }
   }
 
-  public static deserialize(type: AlgebraicType, reader: BinaryReader) {
+  public static deserialize(type: AlgebraicType, adapter: ValueAdapter) {
     switch (type.type) {
       case AlgebraicType.Type.ProductType:
-        return new this(ProductValue.deserialize(type.product, reader));
+        return new this(ProductValue.deserialize(type.product, adapter));
       case AlgebraicType.Type.SumType:
-        return new this(SumValue.deserialize(type.sum, reader));
+        return new this(SumValue.deserialize(type.sum, adapter));
       case AlgebraicType.Type.BuiltinType:
-        return new this(BuiltinValue.deserialize(type.builtin, reader));
+        return new this(BuiltinValue.deserialize(type.builtin, adapter));
       default:
         throw new Error("not implemented");
     }

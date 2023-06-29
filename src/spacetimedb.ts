@@ -3,7 +3,12 @@ import { EventEmitter } from "events";
 import WS from "websocket";
 import type { WebsocketTestAdapter } from "./websocket_test_adapter";
 
-import { ProductValue, AlgebraicValue } from "./algebraic_value";
+import {
+  ProductValue,
+  AlgebraicValue,
+  BinaryAdapter,
+  JSONAdapter,
+} from "./algebraic_value";
 import {
   AlgebraicType,
   ProductType,
@@ -14,7 +19,7 @@ import {
 } from "./algebraic_type";
 import { EventType } from "./types";
 import {
-  Message,
+  Message as ProtobufMessage,
   event_StatusToJSON,
   TableRowOperation_OperationType,
 } from "./client_api";
@@ -68,20 +73,14 @@ export type SpacetimeDBEvent = {
   };
 };
 
-type DBOpType = "insert" | "update" | "delete";
-
 class DBOp {
-  public type: TableRowOperation_OperationType;
+  public type: "insert" | "delete";
   public instance: any;
   public rowPk: string;
 
-  constructor(
-    type: TableRowOperation_OperationType,
-    rowPk: Uint8Array,
-    instance: any
-  ) {
+  constructor(type: "insert" | "delete", rowPk: string, instance: any) {
     this.type = type;
-    this.rowPk = new TextDecoder().decode(rowPk);
+    this.rowPk = rowPk;
     this.instance = instance;
   }
 }
@@ -117,22 +116,23 @@ class Table {
   }
 
   applyOperations = (
-    operations: {
-      op: TableRowOperation_OperationType;
-      row: Uint8Array;
-      rowPk: Uint8Array;
-    }[]
+    protocol: "binary" | "json",
+    operations: TableOperation[]
   ) => {
     let dbOps: DBOp[] = [];
     for (let operation of operations) {
-      const pk = operation.rowPk;
+      const pk: string = operation.rowPk;
+      const adapter =
+        protocol === "binary"
+          ? new BinaryAdapter(new BinaryReader(operation.row))
+          : new JSONAdapter(operation.row);
       const entry = AlgebraicValue.deserialize(
         this.entityClass.getAlgebraicType(),
-        new BinaryReader(operation.row)
+        adapter
       );
       const instance = this.entityClass.fromValue(entry);
 
-      dbOps.push(new DBOp(operation.op, pk, instance));
+      dbOps.push(new DBOp(operation.type, pk, instance));
     }
 
     if (this.entityClass.primaryKey !== undefined) {
@@ -140,7 +140,7 @@ class Table {
       const inserts: any[] = [];
       const deleteMap = new Map();
       for (const dbOp of dbOps) {
-        if (dbOp.type === TableRowOperation_OperationType.INSERT) {
+        if (dbOp.type === "insert") {
           inserts.push(dbOp);
         } else {
           deleteMap.set(dbOp.instance[pkName], dbOp);
@@ -162,7 +162,7 @@ class Table {
       }
     } else {
       for (const dbOp of dbOps) {
-        if (dbOp.type === TableRowOperation_OperationType.INSERT) {
+        if (dbOp.type === "insert") {
           this.insert(dbOp);
         } else {
           this.delete(dbOp);
@@ -281,6 +281,79 @@ export class ClientDB {
   };
 }
 
+class TableOperation {
+  public type: "insert" | "delete";
+  public rowPk: string;
+  public row: Uint8Array | any;
+
+  constructor(type: "insert" | "delete", rowPk: string, row: Uint8Array | any) {
+    this.type = type;
+    this.rowPk = rowPk;
+    this.row = row;
+  }
+}
+
+class TableUpdate {
+  public tableName: string;
+  public operations: TableOperation[];
+
+  constructor(tableName: string, operations: TableOperation[]) {
+    this.tableName = tableName;
+    this.operations = operations;
+  }
+}
+
+class SubscriptionUpdateMessage {
+  public tableUpdates: TableUpdate[];
+
+  constructor(tableUpdates: TableUpdate[]) {
+    this.tableUpdates = tableUpdates;
+  }
+}
+
+class TransactionUpdateEvent {
+  public identity: string;
+  public reducerName: string;
+  public args: any[];
+  public status: string;
+
+  constructor(
+    identity: string,
+    reducerName: string,
+    args: any[],
+    status: string
+  ) {
+    this.identity = identity;
+    this.reducerName = reducerName;
+    this.args = args;
+    this.status = status;
+  }
+}
+
+class TransactionUpdateMessage {
+  public tableUpdates: TableUpdate[];
+  public event: TransactionUpdateEvent;
+
+  constructor(tableUpdates: TableUpdate[], event: TransactionUpdateEvent) {
+    this.tableUpdates = tableUpdates;
+    this.event = event;
+  }
+}
+
+class IdentityTokenMessage {
+  public identity: Uint8Array;
+  public token: string;
+
+  constructor(identity: Uint8Array, token: string) {
+    this.identity = identity;
+    this.token = token;
+  }
+}
+type Message =
+  | SubscriptionUpdateMessage
+  | TransactionUpdateMessage
+  | IdentityTokenMessage;
+
 type CreateWSFnType = (
   url: string,
   headers: { [key: string]: string },
@@ -326,8 +399,15 @@ export class SpacetimeDBClient {
     global: SpacetimeDBGlobals;
   };
   private createWSFn: CreateWSFnType;
+  private protocol: "binary" | "json";
 
-  constructor(host: string, name_or_address: string, auth_token?: string) {
+  constructor(
+    host: string,
+    name_or_address: string,
+    auth_token?: string,
+    protocol?: "binary" | "json"
+  ) {
+    this.protocol = protocol || "binary";
     const global = g.__SPACETIMEDB__;
     this.db = global.clientDB;
     // I don't really like it, but it seems like the only way to
@@ -410,7 +490,8 @@ export class SpacetimeDBClient {
       url = "ws://" + url;
     }
 
-    this.ws = this.createWSFn(url, headers, "v1.bin.spacetimedb");
+    const stdbProtocol = this.protocol === "binary" ? "bin" : "text";
+    this.ws = this.createWSFn(url, headers, `v1.${stdbProtocol}.spacetimedb`);
 
     // Create a timeout for the connection to be established
     var connectionTimeout = setTimeout(() => {
@@ -444,82 +525,204 @@ export class SpacetimeDBClient {
     };
 
     this.ws.onmessage = (wsMessage: any) => {
-      wsMessage.data.arrayBuffer().then((data) => {
-        const message: Message = Message.decode(new Uint8Array(data));
+      this.processMessage(wsMessage, (message: Message) => {
+        if (
+          message instanceof SubscriptionUpdateMessage ||
+          message instanceof TransactionUpdateMessage
+        ) {
+          for (let tableUpdate of message.tableUpdates) {
+            const tableName = tableUpdate.tableName;
+            const entityClass = this.runtime.global.components.get(tableName);
+            const table = this.db.getOrCreateTable(
+              tableUpdate.tableName,
+              undefined,
+              entityClass
+            );
 
-        if (message) {
-          if (message["subscriptionUpdate"]) {
-            let subUpdate = message["subscriptionUpdate"] as any;
-            const tableUpdates = subUpdate["tableUpdates"];
-            for (const tableUpdate of tableUpdates) {
-              const tableName = tableUpdate["tableName"];
-              const entityClass = this.runtime.global.components.get(tableName);
-              const table = this.db.getOrCreateTable(
-                tableName,
-                undefined,
-                entityClass
-              );
-              table.applyOperations(tableUpdate["tableRowOperations"]);
-            }
-
-            if (this.emitter) {
-              this.emitter.emit("initialStateSync");
-            }
-          } else if (message["transactionUpdate"]) {
-            const txUpdate = message["transactionUpdate"];
-            const subUpdate = txUpdate["subscriptionUpdate"] as any;
-            const tableUpdates = subUpdate["tableUpdates"];
-            for (const tableUpdate of tableUpdates) {
-              const tableName = tableUpdate["tableName"];
-              const entityClass = this.runtime.global.components.get(tableName);
-              const table = this.db.getOrCreateTable(
-                tableName,
-                undefined,
-                entityClass
-              );
-              table.applyOperations(tableUpdate["tableRowOperations"]);
-            }
-
-            const event = txUpdate["event"];
-            if (event) {
-              const functionCall = event["functionCall"];
-              const identity = event["callerIdentity"];
-              const reducerName: string | undefined =
-                functionCall && functionCall["reducer"]
-                  ? toPascalCase(functionCall["reducer"])
-                  : undefined;
-              const args: string | undefined = functionCall?.["args"];
-              const status: string | undefined = event_StatusToJSON(
-                event["status"]
-              );
-              const reducer: any | undefined = reducerName
-                ? this.reducers.get(reducerName)
-                : undefined;
-
-              if (reducerName && args && identity && status && reducer) {
-                const jsonArray = JSON.parse(args);
-                const reducerArgs = reducer.deserializeArgs(jsonArray);
-                this.emitter.emit(
-                  "reducer:" + reducerName,
-                  status,
-                  identity,
-                  reducerArgs
-                );
-              }
-            }
-
-            // this.emitter.emit("event", txUpdate['event']);
-          } else if (message["identityToken"]) {
-            const identityToken = message["identityToken"];
-            const identity = identityToken["identity"];
-            const token = identityToken["token"];
-            this.identity = identity;
-            this.token = token;
-            this.emitter.emit("connected", token, identity);
+            table.applyOperations(this.protocol, tableUpdate.operations);
           }
+        }
+
+        if (message instanceof SubscriptionUpdateMessage) {
+          if (this.emitter) {
+            this.emitter.emit("initialStateSync");
+          }
+        } else if (message instanceof TransactionUpdateMessage) {
+          const reducerName = message.event.reducerName;
+          const reducer: any | undefined = reducerName
+            ? this.reducers.get(reducerName)
+            : undefined;
+
+          if (reducer) {
+            const reducerArgs = reducer.deserializeArgs(message.event.args);
+            this.emitter.emit(
+              "reducer:" + reducerName,
+              message.event.status,
+              message.event.identity,
+              reducerArgs
+            );
+          }
+        } else if (message instanceof IdentityTokenMessage) {
+          this.identity = message.identity;
+          this.token = message.token;
+          this.emitter.emit("connected", this.token, this.identity);
         }
       });
     };
+  }
+
+  private processMessage(wsMessage: any, callback: (message: Message) => void) {
+    if (this.protocol === "binary") {
+      wsMessage.data.arrayBuffer().then((data: any) => {
+        const message: ProtobufMessage = ProtobufMessage.decode(
+          new Uint8Array(data)
+        );
+        if (message["subscriptionUpdate"]) {
+          let subUpdate = message["subscriptionUpdate"] as any;
+          const tableUpdates: TableUpdate[] = [];
+          for (const rawTableUpdate of subUpdate["tableUpdates"]) {
+            const tableName = rawTableUpdate["tableName"];
+            const operations: TableOperation[] = [];
+            for (const rawTableOperation of rawTableUpdate[
+              "tableRowOperations"
+            ]) {
+              const type =
+                rawTableOperation["op"] ===
+                TableRowOperation_OperationType.INSERT
+                  ? "insert"
+                  : "delete";
+              const rowPk = new TextDecoder().decode(
+                rawTableOperation["rowPk"]
+              );
+              operations.push(
+                new TableOperation(type, rowPk, rawTableOperation.row)
+              );
+            }
+            const tableUpdate = new TableUpdate(tableName, operations);
+            tableUpdates.push(tableUpdate);
+          }
+
+          const subscriptionUpdate = new SubscriptionUpdateMessage(
+            tableUpdates
+          );
+          callback(subscriptionUpdate);
+        } else if (message["transactionUpdate"]) {
+          let txUpdate = message["transactionUpdate"] as any;
+          const tableUpdates: TableUpdate[] = [];
+          for (const rawTableUpdate of txUpdate["tableUpdates"]) {
+            const tableName = rawTableUpdate["tableName"];
+            const operations: TableOperation[] = [];
+            for (const rawTableOperation of rawTableUpdate[
+              "tableRowOperations"
+            ]) {
+              const type =
+                rawTableOperation["op"] ===
+                TableRowOperation_OperationType.INSERT
+                  ? "insert"
+                  : "delete";
+              const rowPk = new TextDecoder().decode(
+                rawTableOperation["rowPk"]
+              );
+              operations.push(
+                new TableOperation(type, rowPk, rawTableOperation.row)
+              );
+            }
+            const tableUpdate = new TableUpdate(tableName, operations);
+            tableUpdates.push(tableUpdate);
+          }
+
+          const event = txUpdate["event"] as any;
+          const functionCall = event["functionCall"] as any;
+          const identity: string = event["callerIdentity"];
+          const reducerName: string = toPascalCase(functionCall["reducer"]);
+          const args = JSON.parse(functionCall["args"]);
+          const status: string = event_StatusToJSON(event["status"]);
+
+          const transactionUpdateEvent: TransactionUpdateEvent =
+            new TransactionUpdateEvent(identity, reducerName, args, status);
+
+          const transactionUpdate = new TransactionUpdateMessage(
+            tableUpdates,
+            transactionUpdateEvent
+          );
+          callback(transactionUpdate);
+        } else if (message["identityToken"]) {
+          const identityToken = message["identityToken"] as any;
+          const identity = identityToken["identity"];
+          const token = identityToken["token"];
+          const identityTokenMessage: IdentityTokenMessage =
+            new IdentityTokenMessage(identity, token);
+          callback(identityTokenMessage);
+        }
+      });
+    } else {
+      const data = JSON.parse(wsMessage.data);
+      if (data["SubscriptionUpdate"]) {
+        let subUpdate = data["SubscriptionUpdate"];
+        const tableUpdates: TableUpdate[] = [];
+        for (const rawTableUpdate of subUpdate["table_updates"]) {
+          const tableName = rawTableUpdate["table_name"];
+          const operations: TableOperation[] = [];
+          for (const rawTableOperation of rawTableUpdate[
+            "table_row_operations"
+          ]) {
+            const type = rawTableOperation["op"];
+            const rowPk = rawTableOperation["rowPk"];
+            operations.push(
+              new TableOperation(type, rowPk, rawTableOperation.row)
+            );
+          }
+          const tableUpdate = new TableUpdate(tableName, operations);
+          tableUpdates.push(tableUpdate);
+        }
+
+        const subscriptionUpdate = new SubscriptionUpdateMessage(tableUpdates);
+        callback(subscriptionUpdate);
+      } else if (data["TransactionUpdate"]) {
+        const txUpdate = data["TransactionUpdate"];
+        const tableUpdates: TableUpdate[] = [];
+        for (const rawTableUpdate of txUpdate["subscription_update"][
+          "table_updates"
+        ]) {
+          const tableName = rawTableUpdate["table_name"];
+          const operations: TableOperation[] = [];
+          for (const rawTableOperation of rawTableUpdate[
+            "table_row_operations"
+          ]) {
+            const type = rawTableOperation["op"];
+            const rowPk = rawTableOperation["rowPk"];
+            operations.push(
+              new TableOperation(type, rowPk, rawTableOperation.row)
+            );
+          }
+          const tableUpdate = new TableUpdate(tableName, operations);
+          tableUpdates.push(tableUpdate);
+        }
+
+        const event = txUpdate["event"] as any;
+        const functionCall = event["function_call"] as any;
+        const identity: string = event["caller_identity"];
+        const reducerName: string = toPascalCase(functionCall["reducer"]);
+        const args = JSON.parse(functionCall["args"]);
+        const status: string = event["status"];
+
+        const transactionUpdateEvent: TransactionUpdateEvent =
+          new TransactionUpdateEvent(identity, reducerName, args, status);
+
+        const transactionUpdate = new TransactionUpdateMessage(
+          tableUpdates,
+          transactionUpdateEvent
+        );
+        callback(transactionUpdate);
+      } else if (data["IdentityToken"]) {
+        const identityToken = data["IdentityToken"];
+        const identity = identityToken["identity"];
+        const token = identityToken["token"];
+        const identityTokenMessage: IdentityTokenMessage =
+          new IdentityTokenMessage(identity, token);
+        callback(identityTokenMessage);
+      }
+    }
   }
 
   /**
