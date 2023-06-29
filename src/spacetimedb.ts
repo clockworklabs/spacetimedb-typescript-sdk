@@ -78,30 +78,6 @@ type DBOpType = "insert" | "update" | "delete";
 class DBOp {
   public type: DBOpType;
   public instance: any;
-  public oldInstance: any;
-  public rowPk: string;
-  public entry: any;
-
-  constructor(
-    type: DBOpType,
-    rowPk: string,
-    instance: any,
-    entry: any,
-    oldInstance: any
-  ) {
-    this.type = type;
-    this.rowPk = rowPk;
-    this.instance = instance;
-    this.oldInstance = oldInstance;
-    this.entry = entry;
-  }
-}
-
-type DBOpType = "insert" | "update" | "delete";
-
-class DBOp {
-  public type: DBOpType;
-  public instance: any;
   public rowPk: string;
 
   constructor(type: DBOpType, rowPk: string, instance: any) {
@@ -175,7 +151,7 @@ class Table {
           this.update(dbOp, deleteOp, reducerEvent);
           deleteMap.delete(dbOp.instance[pkName]);
         } else {
-          this.insert(dbOp);
+          this.insert(dbOp, reducerEvent);
         }
       }
       for (const dbOp of deleteMap.values()) {
@@ -207,7 +183,7 @@ class Table {
 
   delete = (dbOp, reducerEvent: ReducerEvent | undefined) => {
     this.instances.delete(dbOp.rowPk);
-    this.emitter.emit("delete", oldInstance, dbOp.instance, reducerEvent);
+    this.emitter.emit("delete", dbOp.instance, reducerEvent);
   };
 
   /**
@@ -224,7 +200,9 @@ class Table {
    * Called when a row is deleted
    * @param cb Callback to be called when a row is deleted
    */
-  onDelete = (cb: (value: any, reducerEvent: ReducerEvent | undefined) => void) => {
+  onDelete = (
+    cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
+  ) => {
     this.emitter.on("delete", cb);
   };
 
@@ -256,7 +234,9 @@ class Table {
    * Removes the event listener for when a row is deleted
    * @param cb Callback to be called when the event listener is removed
    */
-  removeOnDelete = (cb: (value: any, reducerEvent: ReducerEvent | undefined) => void) => {
+  removeOnDelete = (
+    cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
+  ) => {
     this.emitter.off("delete", cb);
   };
 
