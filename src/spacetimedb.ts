@@ -97,10 +97,23 @@ class DBOp {
   }
 }
 
+type DBOpType = "insert" | "update" | "delete";
+
+class DBOp {
+  public type: DBOpType;
+  public instance: any;
+  public rowPk: string;
+
+  constructor(type: DBOpType, rowPk: string, instance: any) {
+    this.type = type;
+    this.rowPk = rowPk;
+    this.instance = instance;
+  }
+}
+
 class Table {
   // TODO: most of this stuff should be probably private
   public name: string;
-  public entries: Map<string, AlgebraicValue>;
   public instances: Map<string, IDatabaseTable>;
   public emitter: EventEmitter;
   private entityClass: any;
@@ -108,8 +121,6 @@ class Table {
 
   constructor(name: string, pkCol: number | undefined, entityClass: any) {
     this.name = name;
-    // TODO: not sure if it's worth it to keep both rows and entries here 🤔
-    this.entries = new Map();
     this.instances = new Map();
     this.emitter = new EventEmitter();
     this.pkCol = pkCol;
@@ -120,16 +131,12 @@ class Table {
    * @returns number of entries in the table
    */
   public count(): number {
-    return this.entries.size;
+    return this.instances.size;
   }
 
   /**
    * @returns The values of the entries in the table
    */
-  public getEntries(): IterableIterator<AlgebraicValue> {
-    return this.entries.values();
-  }
-
   public getInstances(): IterableIterator<any> {
     return this.instances.values();
   }
@@ -146,11 +153,7 @@ class Table {
         operation.row
       );
       const instance = this.entityClass.fromValue(entry);
-      const oldInstance = this.instances.get(pk);
-
-      dbOps.push(
-        new DBOp(operation.op as DBOpType, pk, instance, entry, oldInstance)
-      );
+      dbOps.push(new DBOp(operation.op as DBOpType, pk, instance));
     }
 
     if (this.entityClass.primaryKey !== undefined) {
@@ -167,10 +170,12 @@ class Table {
       for (const dbOp of inserts) {
         const deleteOp = deleteMap.get(dbOp.instance[pkName]);
         if (deleteOp) {
-          this.update(dbOp, reducerEvent);
+          // the pk for updates will differ between insert/delete, so we have to
+          // use the instance from delete
+          this.update(dbOp, deleteOp, reducerEvent);
           deleteMap.delete(dbOp.instance[pkName]);
         } else {
-          this.insert(dbOp, reducerEvent);
+          this.insert(dbOp);
         }
       }
       for (const dbOp of deleteMap.values()) {
@@ -187,23 +192,22 @@ class Table {
     }
   };
 
-  update = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
-    this.entries.set(dbOp.rowPk, dbOp.entry);
-    this.instances.set(dbOp.rowPk, dbOp.instance);
-    const oldInstance = dbOp.oldInstance;
-    this.emitter.emit("update", dbOp.instance, oldInstance, reducerEvent);
+  update = (newDbOp, oldDbOp, reducerEvent: ReducerEvent | undefined) => {
+    const newInstance = newDbOp.instance;
+    const oldInstance = oldDbOp.instance;
+    this.instances.delete(oldDbOp.rowPk);
+    this.instances.set(newDbOp.rowPk, newInstance);
+    this.emitter.emit("update", oldInstance, newInstance, reducerEvent);
   };
 
-  insert = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
+  insert = (dbOp, reducerEvent: ReducerEvent | undefined) => {
     this.instances.set(dbOp.rowPk, dbOp.instance);
-    this.entries.set(dbOp.rowPk, dbOp.entry);
     this.emitter.emit("insert", dbOp.instance, reducerEvent);
   };
 
-  delete = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
+  delete = (dbOp, reducerEvent: ReducerEvent | undefined) => {
     this.instances.delete(dbOp.rowPk);
-    this.entries.delete(dbOp.rowPk);
-    this.emitter.emit("delete", dbOp.instance, dbOp.oldInstance, reducerEvent);
+    this.emitter.emit("delete", oldInstance, dbOp.instance, reducerEvent);
   };
 
   /**
@@ -220,13 +224,7 @@ class Table {
    * Called when a row is deleted
    * @param cb Callback to be called when a row is deleted
    */
-  onDelete = (
-    cb: (
-      value: any,
-      oldValue: any,
-      reducerEvent: ReducerEvent | undefined
-    ) => void
-  ) => {
+  onDelete = (cb: (value: any, reducerEvent: ReducerEvent | undefined) => void) => {
     this.emitter.on("delete", cb);
   };
 
@@ -258,13 +256,7 @@ class Table {
    * Removes the event listener for when a row is deleted
    * @param cb Callback to be called when the event listener is removed
    */
-  removeOnDelete = (
-    cb: (
-      value: any,
-      oldValue: any,
-      reducerEvent: ReducerEvent | undefined
-    ) => void
-  ) => {
+  removeOnDelete = (cb: (value: any, reducerEvent: ReducerEvent | undefined) => void) => {
     this.emitter.off("delete", cb);
   };
 
