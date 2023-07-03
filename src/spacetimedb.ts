@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 
-import WS from "websocket";
+import WebSocket from "isomorphic-ws";
+
 import type { WebsocketTestAdapter } from "./websocket_test_adapter";
 
 import {
@@ -13,6 +14,7 @@ import {
   JSONReducerArgsAdapter,
   BinaryReducerArgsAdapter,
 } from "./algebraic_value";
+import { Serializer, BinarySerializer } from "./serializer";
 import {
   AlgebraicType,
   ProductType,
@@ -40,6 +42,9 @@ export {
   BuiltinType,
   ValueAdapter,
   ReducerArgsAdapter,
+  ProtobufMessage,
+  Serializer,
+  BinarySerializer,
 };
 
 const g = (typeof window === "undefined" ? global : window)!;
@@ -403,9 +408,8 @@ type Message =
 
 type CreateWSFnType = (
   url: string,
-  headers: { [key: string]: string },
   protocol: string
-) => WS.w3cwebsocket | WebsocketTestAdapter;
+) => WebSocket | WebsocketTestAdapter;
 
 let toPascalCase = function (s: string): string {
   const str = s.replace(/([-_][a-z])/gi, ($1) => {
@@ -435,7 +439,7 @@ export class SpacetimeDBClient {
    */
   public live: boolean;
 
-  private ws!: WS.w3cwebsocket | WebsocketTestAdapter;
+  private ws!: WebSocket | WebsocketTestAdapter;
   private reducers: Map<string, any>;
   private components: Map<string, any>;
   private queriesQueue: string[];
@@ -447,6 +451,7 @@ export class SpacetimeDBClient {
   };
   private createWSFn: CreateWSFnType;
   private protocol: "binary" | "json";
+  private ssl: boolean = false;
 
   constructor(
     host: string,
@@ -480,16 +485,158 @@ export class SpacetimeDBClient {
       global,
     };
 
-    this.createWSFn = (
-      url: string,
-      headers: { [key: string]: string },
-      protocol: string
-    ) => {
-      return new WS.w3cwebsocket(url, protocol, undefined, headers, undefined, {
+    this.createWSFn = this.defaultCreateWebSocketFn;
+  }
+
+  private async defaultCreateWebSocketFn(
+    url: string,
+    protocol: string
+  ): Promise<WebSocket | WebsocketTestAdapter> {
+    const headers = {};
+    if (this.runtime.auth_token) {
+      headers["Authorization"] = `Basic ${btoa(
+        "token:" + this.runtime.auth_token
+      )}`;
+    }
+
+    if (typeof window === "undefined" || !this.runtime.auth_token) {
+      // NodeJS environment
+      const ws = new WebSocket(url, protocol, {
         maxReceivedFrameSize: 100000000,
         maxReceivedMessageSize: 100000000,
+        headers,
       });
-    };
+      return ws;
+    } else {
+      // In the browser we first have to get a short lived token and only then connect to the websocket
+      let httpProtocol = this.ssl ? "https://" : "http://";
+      let tokenUrl = `${httpProtocol}${this.runtime.host}/identity/websocket_token`;
+
+      const response = await fetch(tokenUrl, { method: "POST", headers });
+      if (response.ok) {
+        const { token } = await response.json();
+        url += "?token=" + btoa("token:" + token);
+      }
+      return new WebSocket(url, protocol);
+    }
+  }
+
+  /**
+   * Handles WebSocket onClose event.
+   * @param event CloseEvent object.
+   */
+  private handleOnClose(event: CloseEvent) {
+    console.error("Closed: ", event);
+    this.emitter.emit("disconnected");
+    this.emitter.emit("client_error", event);
+  }
+
+  /**
+   * Handles WebSocket onError event.
+   * @param event ErrorEvent object.
+   */
+  private handleOnError(event: ErrorEvent) {
+    console.error("Error: ", event);
+    this.emitter.emit("disconnected");
+    this.emitter.emit("client_error", event);
+  }
+
+  /**
+   * Handles WebSocket onOpen event.
+   */
+  private handleOnOpen() {
+    this.live = true;
+
+    if (this.queriesQueue.length > 0) {
+      this.subscribe(this.queriesQueue);
+      this.queriesQueue = [];
+    }
+  }
+
+  /**
+   * Handles WebSocket onMessage event.
+   * @param wsMessage MessageEvent object.
+   */
+  private handleOnMessage(wsMessage: MessageEvent) {
+    this.emitter.emit("receiveWSMessage", wsMessage);
+
+    this.processMessage(wsMessage, (message: Message) => {
+      if (message instanceof SubscriptionUpdateMessage) {
+        for (let tableUpdate of message.tableUpdates) {
+          const tableName = tableUpdate.tableName;
+          const entityClass = this.runtime.global.components.get(tableName);
+          const table = this.db.getOrCreateTable(
+            tableUpdate.tableName,
+            undefined,
+            entityClass
+          );
+
+          table.applyOperations(this.protocol, tableUpdate.operations);
+        }
+
+        if (this.emitter) {
+          this.emitter.emit("initialStateSync");
+        }
+      } else if (message instanceof TransactionUpdateMessage) {
+        const reducerName = message.event.reducerName;
+        const reducer: any | undefined = reducerName
+          ? this.reducers.get(reducerName)
+          : undefined;
+
+        let reducerEvent: ReducerEvent | undefined;
+        let reducerArgs: any;
+        if (reducer) {
+          let adapter: ReducerArgsAdapter;
+          if (this.protocol === "binary") {
+            adapter = new BinaryReducerArgsAdapter(
+              new BinaryAdapter(
+                new BinaryReader(message.event.args as Uint8Array)
+              )
+            );
+          } else {
+            adapter = new JSONReducerArgsAdapter(message.event.args as any[]);
+          }
+
+          reducerArgs = reducer.deserializeArgs(adapter);
+          reducerEvent = new ReducerEvent(
+            message.event.identity,
+            message.event.originalReducerName,
+            message.event.status,
+            message.event.message,
+            reducerArgs
+          );
+        }
+
+        for (let tableUpdate of message.tableUpdates) {
+          const tableName = tableUpdate.tableName;
+          const entityClass = this.runtime.global.components.get(tableName);
+          const table = this.db.getOrCreateTable(
+            tableUpdate.tableName,
+            undefined,
+            entityClass
+          );
+
+          table.applyOperations(
+            this.protocol,
+            tableUpdate.operations,
+            reducerEvent
+          );
+        }
+
+        if (reducer) {
+          this.emitter.emit(
+            "reducer:" + reducerName,
+            message.event.status,
+            message.event.identity,
+            reducerArgs
+          );
+        }
+      } else if (message instanceof IdentityTokenMessage) {
+        this.identity = message.identity;
+        this.token = message.token;
+        this.emitter.emit("connected", this.token, this.identity);
+      }
+    });
   }
 
   /**
@@ -505,7 +652,11 @@ export class SpacetimeDBClient {
    * @param name_or_address The name or address of the spacetimeDB module
    * @param credentials The credentials to use to connect to the spacetimeDB module
    */
-  public connect(host?: string, name_or_address?: string, auth_token?: string) {
+  public async connect(
+    host?: string,
+    name_or_address?: string,
+    auth_token?: string
+  ) {
     if (this.live) {
       return;
     }
@@ -521,14 +672,13 @@ export class SpacetimeDBClient {
     }
 
     if (auth_token) {
+      // TODO: do we need both of these
       this.runtime.auth_token = auth_token;
+      this.token = auth_token;
     }
 
-    let headers: { [key: string]: string } = {};
-    if (this.runtime.auth_token) {
-      this.token = this.runtime.auth_token;
-      headers["Authorization"] = `Basic ${btoa("token:" + this.token)}`;
-    }
+    // TODO: we should probably just accept a host and an ssl boolean flag in stead of this
+    // whole dance
     let url = `${this.runtime.host}/database/subscribe/${this.runtime.name_or_address}`;
     if (
       !this.runtime.host.startsWith("ws://") &&
@@ -537,119 +687,18 @@ export class SpacetimeDBClient {
       url = "ws://" + url;
     }
 
+    this.ssl = url.startsWith("wss");
+    this.runtime.host = this.runtime.host
+      .replace("ws://", "")
+      .replace("wss://", "");
+
     const stdbProtocol = this.protocol === "binary" ? "bin" : "text";
-    this.ws = this.createWSFn(url, headers, `v1.${stdbProtocol}.spacetimedb`);
+    this.ws = await this.createWSFn(url, `v1.${stdbProtocol}.spacetimedb`);
 
-    // Create a timeout for the connection to be established
-    var connectionTimeout = setTimeout(() => {
-      this.ws.close();
-      console.error("Connect failed: timeout");
-      this.emitter.emit("disconnected");
-      this.emitter.emit("client_error", event);
-    }, 5000); // 5000 ms = 5 seconds
-
-    this.ws.onclose = (event) => {
-      console.error("Closed: ", event);
-      this.emitter.emit("disconnected");
-      this.emitter.emit("client_error", event);
-    };
-
-    this.ws.onerror = (event) => {
-      console.error("Error: ", event);
-      this.emitter.emit("disconnected");
-      this.emitter.emit("client_error", event);
-    };
-
-    this.ws.onopen = () => {
-      clearTimeout(connectionTimeout);
-
-      this.live = true;
-
-      if (this.queriesQueue.length > 0) {
-        this.subscribe(this.queriesQueue);
-        this.queriesQueue = [];
-      }
-    };
-
-    this.ws.onmessage = (wsMessage: any) => {
-      this.processMessage(wsMessage, (message: Message) => {
-        if (message instanceof SubscriptionUpdateMessage) {
-          for (let tableUpdate of message.tableUpdates) {
-            const tableName = tableUpdate.tableName;
-            const entityClass = this.runtime.global.components.get(tableName);
-            const table = this.db.getOrCreateTable(
-              tableUpdate.tableName,
-              undefined,
-              entityClass
-            );
-
-            table.applyOperations(this.protocol, tableUpdate.operations);
-          }
-
-          if (this.emitter) {
-            this.emitter.emit("initialStateSync");
-          }
-        } else if (message instanceof TransactionUpdateMessage) {
-          const reducerName = message.event.reducerName;
-          const reducer: any | undefined = reducerName
-            ? this.reducers.get(reducerName)
-            : undefined;
-
-          let reducerEvent: ReducerEvent | undefined;
-          let reducerArgs: any;
-          if (reducer) {
-            let adapter: ReducerArgsAdapter;
-            if (this.protocol === "binary") {
-              adapter = new BinaryReducerArgsAdapter(
-                new BinaryAdapter(
-                  new BinaryReader(message.event.args as Uint8Array)
-                )
-              );
-            } else {
-              adapter = new JSONReducerArgsAdapter(message.event.args as any[]);
-            }
-
-            reducerArgs = reducer.deserializeArgs(adapter);
-            reducerEvent = new ReducerEvent(
-              message.event.identity,
-              message.event.originalReducerName,
-              message.event.status,
-              message.event.message,
-              reducerArgs
-            );
-          }
-
-          for (let tableUpdate of message.tableUpdates) {
-            const tableName = tableUpdate.tableName;
-            const entityClass = this.runtime.global.components.get(tableName);
-            const table = this.db.getOrCreateTable(
-              tableUpdate.tableName,
-              undefined,
-              entityClass
-            );
-
-            table.applyOperations(
-              this.protocol,
-              tableUpdate.operations,
-              reducerEvent
-            );
-          }
-
-          if (reducer) {
-            this.emitter.emit(
-              "reducer:" + reducerName,
-              message.event.status,
-              message.event.identity,
-              reducerArgs
-            );
-          }
-        } else if (message instanceof IdentityTokenMessage) {
-          this.identity = message.identity;
-          this.token = message.token;
-          this.emitter.emit("connected", this.token, this.identity);
-        }
-      });
-    };
+    this.ws.onclose = this.handleOnClose.bind(this);
+    this.ws.onerror = this.handleOnError.bind(this);
+    this.ws.onopen = this.handleOnOpen.bind(this);
+    this.ws.onmessage = this.handleOnMessage.bind(this);
   }
 
   private processMessage(wsMessage: any, callback: (message: Message) => void) {
@@ -871,7 +920,9 @@ export class SpacetimeDBClient {
       typeof queryOrQueries === "string" ? [queryOrQueries] : queryOrQueries;
 
     if (this.live) {
-      this.ws.send(JSON.stringify({ subscribe: { query_strings: queries } }));
+      const message = { subscribe: { query_strings: queries } };
+      this.emitter.emit("sendWSMessage", message);
+      this.ws.send(JSON.stringify(message));
     } else {
       this.queriesQueue = this.queriesQueue.concat(queries);
     }
@@ -882,14 +933,29 @@ export class SpacetimeDBClient {
    * @param reducerName The name of the reducer to call
    * @param args The arguments to pass to the reducer
    */
-  public call(reducerName: String, args: Array<any>) {
-    const msg = `{
-    "call": {
-      "fn": "${reducerName}",
-      "args": ${JSON.stringify(args)}
+  public call(reducerName: String, serializer: Serializer) {
+    let message: any;
+    if (this.protocol === "binary") {
+      const pmessage: ProtobufMessage = {
+        functionCall: {
+          reducer: "create_player",
+          argBytes: serializer.args(),
+        },
+      };
+
+      message = ProtobufMessage.encode(pmessage).finish();
+    } else {
+      message = JSON.stringify({
+        call: {
+          fn: reducerName,
+          args: serializer.args(),
+        },
+      });
     }
-}`;
-    this.ws.send(msg);
+
+    this.emitter.emit("sendWSMessage", message);
+
+    this.ws.send(message);
   }
 
   on(eventName: EventType | string, callback: (...args: any[]) => void) {
@@ -910,6 +976,14 @@ export class SpacetimeDBClient {
 
   _setCreateWSFn(fn: CreateWSFnType) {
     this.createWSFn = fn;
+  }
+
+  getSerializer(): Serializer {
+    if (this.protocol === "binary") {
+      return new BinarySerializer();
+    } else {
+      throw "serializing in JSON is not supported at the moment";
+    }
   }
 }
 

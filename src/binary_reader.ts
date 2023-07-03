@@ -1,11 +1,9 @@
 export default class BinaryReader {
   private buffer: DataView;
   private offset: number = 0;
-  private byteLength: number = 0;
 
   constructor(input: Uint8Array) {
     this.buffer = new DataView(input.buffer);
-    this.byteLength = input.byteLength;
     this.offset = input.byteOffset;
   }
 
