@@ -16,14 +16,7 @@ import {
 import { Point } from "./point";
 
 export class CreatePlayerReducer {
-  public static call(name: string, location: Point) {
-    if (__SPACETIMEDB__.spacetimeDBClient) {
-      __SPACETIMEDB__.spacetimeDBClient.call("create_player", [
-        name,
-        Point.serialize(location),
-      ]);
-    }
-  }
+  public static call(name: string, location: Point) {}
 
   public static deserializeArgs(adapter: ReducerArgsAdapter): any[] {
     let nameType = AlgebraicType.createPrimitiveType(BuiltinType.Type.String);

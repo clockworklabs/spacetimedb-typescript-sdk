@@ -15,20 +15,14 @@ describe("SpacetimeDBClient", () => {
       "json"
     );
     const wsAdapter = new WebsocketTestAdapter();
-    client._setCreateWSFn(
-      (
-        _url: string,
-        _headers: { [key: string]: string },
-        _protocol: string
-      ) => {
-        return wsAdapter;
-      }
-    );
+    client._setCreateWSFn((_url: string, _protocol: string) => {
+      return wsAdapter;
+    });
 
     client.subscribe("SELECT * FROM Player");
     client.subscribe(["SELECT * FROM Position", "SELECT * FROM Coin"]);
 
-    client.connect();
+    await client.connect();
 
     wsAdapter.acceptConnection();
 
@@ -54,22 +48,16 @@ describe("SpacetimeDBClient", () => {
       "json"
     );
     const wsAdapter = new WebsocketTestAdapter();
-    client._setCreateWSFn(
-      (
-        _url: string,
-        _headers: { [key: string]: string },
-        _protocol: string
-      ) => {
-        return wsAdapter;
-      }
-    );
+    client._setCreateWSFn((_url: string, _protocol: string) => {
+      return wsAdapter;
+    });
 
     let called = false;
     client.onConnect(() => {
       called = true;
     });
 
-    client.connect();
+    await client.connect();
 
     wsAdapter.acceptConnection();
     const tokenMessage = {
@@ -85,7 +73,7 @@ describe("SpacetimeDBClient", () => {
     expect(called).toBeTruthy();
   });
 
-  test("it calls onInsert callback when a record is added with a subscription update and then with a transaction update", () => {
+  test("it calls onInsert callback when a record is added with a subscription update and then with a transaction update", async () => {
     const client = new SpacetimeDBClient(
       "ws://127.0.0.1:1234",
       "db",
@@ -93,22 +81,16 @@ describe("SpacetimeDBClient", () => {
       "json"
     );
     const wsAdapter = new WebsocketTestAdapter();
-    client._setCreateWSFn(
-      (
-        _url: string,
-        _headers: { [key: string]: string },
-        _protocol: string
-      ) => {
-        return wsAdapter;
-      }
-    );
+    client._setCreateWSFn((_url: string, _protocol: string) => {
+      return wsAdapter;
+    });
 
     let called = false;
     client.onConnect(() => {
       called = true;
     });
 
-    client.connect();
+    await client.connect();
     wsAdapter.acceptConnection();
 
     const tokenMessage = {
@@ -214,7 +196,7 @@ describe("SpacetimeDBClient", () => {
     );
   });
 
-  test("it calls onUpdate callback when a record is added with a subscription update and then with a transaction update", () => {
+  test("it calls onUpdate callback when a record is added with a subscription update and then with a transaction update", async () => {
     const client = new SpacetimeDBClient(
       "ws://127.0.0.1:1234",
       "db",
@@ -222,22 +204,16 @@ describe("SpacetimeDBClient", () => {
       "json"
     );
     const wsAdapter = new WebsocketTestAdapter();
-    client._setCreateWSFn(
-      (
-        _url: string,
-        _headers: { [key: string]: string },
-        _protocol: string
-      ) => {
-        return wsAdapter;
-      }
-    );
+    client._setCreateWSFn((_url: string, _protocol: string) => {
+      return wsAdapter;
+    });
 
     let called = false;
     client.onConnect(() => {
       called = true;
     });
 
-    client.connect();
+    await client.connect();
     wsAdapter.acceptConnection();
 
     const tokenMessage = {
@@ -328,7 +304,7 @@ describe("SpacetimeDBClient", () => {
     expect(updates[1]["newPlayer"].name).toBe("Kingslayer");
   });
 
-  test("a reducer callback should be called after the database callbacks", () => {
+  test("a reducer callback should be called after the database callbacks", async () => {
     const client = new SpacetimeDBClient(
       "ws://127.0.0.1:1234",
       "db",
@@ -336,17 +312,11 @@ describe("SpacetimeDBClient", () => {
       "json"
     );
     const wsAdapter = new WebsocketTestAdapter();
-    client._setCreateWSFn(
-      (
-        _url: string,
-        _headers: { [key: string]: string },
-        _protocol: string
-      ) => {
-        return wsAdapter;
-      }
-    );
+    client._setCreateWSFn((_url: string, _protocol: string) => {
+      return wsAdapter;
+    });
 
-    client.connect();
+    await client.connect();
     wsAdapter.acceptConnection();
 
     let callbackLog: string[] = [];
