@@ -500,6 +500,7 @@ export class SpacetimeDBClient {
     }
 
     if (typeof window === "undefined" || !this.runtime.auth_token) {
+      console.log("NODEJS", headers);
       // NodeJS environment
       const ws = new WebSocket(url, protocol, {
         maxReceivedFrameSize: 100000000,
@@ -557,7 +558,8 @@ export class SpacetimeDBClient {
    * Handles WebSocket onMessage event.
    * @param wsMessage MessageEvent object.
    */
-  private handleOnMessage(wsMessage: MessageEvent) {
+  private handleOnMessage(wsMessage) {
+    console.log("wsMessage", wsMessage.data);
     this.emitter.emit("receiveWSMessage", wsMessage);
 
     this.processMessage(wsMessage, (message: Message) => {
@@ -699,11 +701,29 @@ export class SpacetimeDBClient {
     this.ws.onerror = this.handleOnError.bind(this);
     this.ws.onopen = this.handleOnOpen.bind(this);
     this.ws.onmessage = this.handleOnMessage.bind(this);
+    // this.ws.on('message', function(message, isBinary) {
+    // console.log('on message', message, 'isBinary', isBinary);
+    // });
   }
 
   private processMessage(wsMessage: any, callback: (message: Message) => void) {
+    console.log("wsmessage in processMessage", wsMessage.data);
+    console.log(
+      Object.getOwnPropertyNames(wsMessage.data).filter(function (p) {
+        return typeof wsMessage.data[p] === "function";
+      })
+    );
+
     if (this.protocol === "binary") {
-      wsMessage.data.arrayBuffer().then((data: any) => {
+      let data = wsMessage.data;
+
+      console.log("fpo", data.arrayBuffer);
+      if (typeof data.arrayBuffer === "undefined") {
+        console.log("data has no arrayBuffer");
+        data = new Blob([data]);
+        console.log(data.arrayBuffer);
+      }
+      data.arrayBuffer().then((data: any) => {
         const message: ProtobufMessage = ProtobufMessage.decode(
           new Uint8Array(data)
         );
