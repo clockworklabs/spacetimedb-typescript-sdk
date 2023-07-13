@@ -35,7 +35,7 @@ export class JSONSerializer {
     }
   }
 
-  serializeType(type: AlgebraicType, value: any) {
+  serializeType(type: AlgebraicType, value: any): any {
     switch (type.type) {
       case AlgebraicType.Type.BuiltinType:
         return this.serializeBuiltinType(type.builtin, value);
@@ -132,15 +132,55 @@ export class BinarySerializer {
   writeBuiltinType(type: BuiltinType, value: any) {
     switch (type.type) {
       case BuiltinType.Type.Array:
-        this.writer.writeUInt8Array(value);
+        const array = value as any[];
+        this.writer.writeU32(array.length);
+        for (const element of array) {
+          this.write(type.arrayType as AlgebraicType, element);
+        }
         break;
       case BuiltinType.Type.Map:
         break;
       case BuiltinType.Type.String:
         this.writer.writeString(value);
         break;
-      default:
-        this.writer["write" + type.type](value);
+      case BuiltinType.Type.Bool:
+        this.writer.writeBool(value);
+        break;
+      case BuiltinType.Type.I8:
+        this.writer.writeI8(value);
+        break;
+      case BuiltinType.Type.U8:
+        this.writer.writeU8(value);
+        break;
+      case BuiltinType.Type.I16:
+        this.writer.writeI16(value);
+        break;
+      case BuiltinType.Type.U16:
+        this.writer.writeU16(value);
+        break;
+      case BuiltinType.Type.I32:
+        this.writer.writeI32(value);
+        break;
+      case BuiltinType.Type.U32:
+        this.writer.writeU32(value);
+        break;
+      case BuiltinType.Type.I64:
+        this.writer.writeI64(value);
+        break;
+      case BuiltinType.Type.U64:
+        this.writer.writeU64(value);
+        break;
+      case BuiltinType.Type.I128:
+        this.writer.writeI128(value);
+        break;
+      case BuiltinType.Type.U128:
+        this.writer.writeU128(value);
+        break;
+      case BuiltinType.Type.F32:
+        this.writer.writeF32(value);
+        break;
+      case BuiltinType.Type.F64:
+        this.writer.writeF64(value);
         break;
     }
   }

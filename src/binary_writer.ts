@@ -2,12 +2,10 @@ export default class BinaryWriter {
   private buffer: Uint8Array;
   private view: DataView;
   private offset: number = 0;
-  private size: number = 0;
 
   constructor(size: number) {
     this.buffer = new Uint8Array(size);
     this.view = new DataView(this.buffer.buffer);
-    this.size = size;
   }
 
   private expandBuffer(additionalCapacity: number): void {

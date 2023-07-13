@@ -40,12 +40,11 @@ export {
   SumType,
   SumTypeVariant,
   BuiltinType,
-  ValueAdapter,
-  ReducerArgsAdapter,
   ProtobufMessage,
-  Serializer,
   BinarySerializer,
 };
+
+export type { ValueAdapter, ReducerArgsAdapter, Serializer };
 
 const g = (typeof window === "undefined" ? global : window)!;
 
@@ -440,6 +439,7 @@ export class SpacetimeDBClient {
   public live: boolean;
 
   private ws!: WebSocket | WebsocketTestAdapter;
+  private manualTableSubscriptions: string[] = [];
   private reducers: Map<string, any>;
   private components: Map<string, any>;
   private queriesQueue: string[];
@@ -492,7 +492,7 @@ export class SpacetimeDBClient {
     url: string,
     protocol: string
   ): Promise<WebSocket | WebsocketTestAdapter> {
-    const headers = {};
+    const headers: { [key: string]: string } = {};
     if (this.runtime.auth_token) {
       headers["Authorization"] = `Basic ${btoa(
         "token:" + this.runtime.auth_token
@@ -500,7 +500,6 @@ export class SpacetimeDBClient {
     }
 
     if (typeof window === "undefined" || !this.runtime.auth_token) {
-      console.log("NODEJS", headers);
       // NodeJS environment
       const ws = new WebSocket(url, protocol, {
         maxReceivedFrameSize: 100000000,
@@ -558,8 +557,7 @@ export class SpacetimeDBClient {
    * Handles WebSocket onMessage event.
    * @param wsMessage MessageEvent object.
    */
-  private handleOnMessage(wsMessage) {
-    console.log("wsMessage", wsMessage.data);
+  private handleOnMessage(wsMessage: any) {
     this.emitter.emit("receiveWSMessage", wsMessage);
 
     this.processMessage(wsMessage, (message: Message) => {
@@ -573,7 +571,11 @@ export class SpacetimeDBClient {
             entityClass
           );
 
-          table.applyOperations(this.protocol, tableUpdate.operations);
+          table.applyOperations(
+            this.protocol,
+            tableUpdate.operations,
+            undefined
+          );
         }
 
         if (this.emitter) {
@@ -587,7 +589,7 @@ export class SpacetimeDBClient {
 
         let reducerEvent: ReducerEvent | undefined;
         let reducerArgs: any;
-        if (reducer) {
+        if (reducer && message.event.status === "committed") {
           let adapter: ReducerArgsAdapter;
           if (this.protocol === "binary") {
             adapter = new BinaryReducerArgsAdapter(
@@ -639,6 +641,45 @@ export class SpacetimeDBClient {
         this.emitter.emit("connected", this.token, this.identity);
       }
     });
+  }
+
+  /**
+   * Subscribes to a table without registering it as a component.
+   * @param table The table to subscribe to
+   * @param query The query to subscribe to. If not provided, the default is `SELECT * FROM {table}`
+   */
+  public registerManualTable(table: string, query?: string) {
+    this.manualTableSubscriptions.push(
+      query ? query : `SELECT * FROM ${table}`
+    );
+
+    this.ws.send(
+      JSON.stringify({
+        subscribe: {
+          query_strings: [...this.manualTableSubscriptions],
+        },
+      })
+    );
+  }
+
+  /**
+   * Unsubscribes from a table without unregistering it as a component.
+   * @param table The table to unsubscribe from
+   */
+  public removeManualTable(table: string) {
+    this.manualTableSubscriptions = this.manualTableSubscriptions.filter(
+      (val) => val !== table
+    );
+
+    this.ws.send(
+      JSON.stringify({
+        subscribe: {
+          query_strings: this.manualTableSubscriptions.map(
+            (val) => `SELECT * FROM ${val}`
+          ),
+        },
+      })
+    );
   }
 
   /**
@@ -701,27 +742,14 @@ export class SpacetimeDBClient {
     this.ws.onerror = this.handleOnError.bind(this);
     this.ws.onopen = this.handleOnOpen.bind(this);
     this.ws.onmessage = this.handleOnMessage.bind(this);
-    // this.ws.on('message', function(message, isBinary) {
-    // console.log('on message', message, 'isBinary', isBinary);
-    // });
   }
 
   private processMessage(wsMessage: any, callback: (message: Message) => void) {
-    console.log("wsmessage in processMessage", wsMessage.data);
-    console.log(
-      Object.getOwnPropertyNames(wsMessage.data).filter(function (p) {
-        return typeof wsMessage.data[p] === "function";
-      })
-    );
-
     if (this.protocol === "binary") {
       let data = wsMessage.data;
 
-      console.log("fpo", data.arrayBuffer);
       if (typeof data.arrayBuffer === "undefined") {
-        console.log("data has no arrayBuffer");
         data = new Blob([data]);
-        console.log(data.arrayBuffer);
       }
       data.arrayBuffer().then((data: any) => {
         const message: ProtobufMessage = ProtobufMessage.decode(

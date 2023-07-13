@@ -3,7 +3,7 @@ import {
   SumType,
   AlgebraicType,
   BuiltinType,
-  EnumLabel,
+  // EnumLabel,
   MapType,
 } from "./algebraic_type";
 import BinaryReader from "./binary_reader";
@@ -68,6 +68,8 @@ export interface ValueAdapter {
   readI128: () => BigInt;
   readF32: () => number;
   readF64: () => number;
+
+  callMethod<K extends keyof ValueAdapter>(methodName: K): any;
 }
 
 export class BinaryAdapter implements ValueAdapter {
@@ -75,6 +77,10 @@ export class BinaryAdapter implements ValueAdapter {
 
   constructor(reader: BinaryReader) {
     this.reader = reader;
+  }
+
+  callMethod<K extends keyof ValueAdapter>(methodName: K): any {
+    return (this[methodName] as Function)();
   }
 
   readUInt8Array(): Uint8Array {
@@ -181,9 +187,13 @@ export class JSONAdapter implements ValueAdapter {
     this.value = value;
   }
 
+  callMethod<K extends keyof ValueAdapter>(methodName: K): any {
+    return (this[methodName] as Function)();
+  }
+
   readUInt8Array(): Uint8Array {
     return Uint8Array.from(
-      this.value.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+      this.value.match(/.{1,2}/g).map((byte: string) => parseInt(byte, 16))
     );
   }
 
@@ -197,8 +207,8 @@ export class JSONAdapter implements ValueAdapter {
   }
 
   readMap(
-    keyType: AlgebraicType,
-    valueType: AlgebraicType
+    _keyType: AlgebraicType,
+    _valueType: AlgebraicType
   ): Map<AlgebraicValue, AlgebraicValue> {
     let result: Map<AlgebraicValue, AlgebraicValue> = new Map();
     // for (let i = 0; i < this.value.length; i++) {
@@ -225,7 +235,7 @@ export class JSONAdapter implements ValueAdapter {
     let variant = type.variants[tag];
     let enumValue = Object.values(this.value)[0];
     let sumValue = AlgebraicValue.deserialize(
-      type.variants[tag].algebraicType,
+      variant.algebraicType,
       new JSONAdapter(enumValue)
     );
     return new SumValue(tag, sumValue);
@@ -379,7 +389,8 @@ export class BuiltinValue {
         const result = adapter.readString();
         return new this(result);
       default:
-        return new this(adapter["read" + type.type]());
+        const methodName: string = "read" + type.type;
+        return new this(adapter.callMethod(methodName as keyof ValueAdapter));
     }
   }
 
@@ -392,7 +403,9 @@ export class BuiltinValue {
   }
 
   public asJsArray(type: string): any[] {
-    return this.asArray().map((el) => el["as" + type]());
+    return this.asArray().map((el) =>
+      el.callMethod(("as" + type) as keyof AlgebraicValue)
+    );
   }
 
   public asNumber(): number {
@@ -439,6 +452,10 @@ export class AlgebraicValue {
         this.builtin = value as BuiltinValue;
         break;
     }
+  }
+
+  callMethod<K extends keyof AlgebraicValue>(methodName: K): any {
+    return (this[methodName] as Function)();
   }
 
   public static deserialize(type: AlgebraicType, adapter: ValueAdapter) {
