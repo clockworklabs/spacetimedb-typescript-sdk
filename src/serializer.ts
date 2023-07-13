@@ -2,9 +2,77 @@ import { AlgebraicType, BuiltinType } from "./algebraic_type";
 import BinaryWriter from "./binary_writer";
 
 export interface Serializer {
-  write(type: AlgebraicType, value: any);
-  writeByte(byte: number);
+  write(type: AlgebraicType, value: any): any;
   args(): any;
+}
+
+export class JSONSerializer {
+  private content: any[];
+  private index: number = 0;
+
+  constructor() {
+    this.content = [];
+  }
+
+  args(): any {
+    return this.content;
+  }
+
+  serializeBuiltinType(type: BuiltinType, value: any): any {
+    switch (type.type) {
+      case BuiltinType.Type.Array:
+        const returnArray: any[] = [];
+        for (const element of value) {
+          returnArray.push(
+            this.serializeType(type.arrayType as AlgebraicType, element)
+          );
+        }
+        return returnArray;
+      case BuiltinType.Type.Map:
+        break;
+      default:
+        return value;
+    }
+  }
+
+  serializeType(type: AlgebraicType, value: any) {
+    switch (type.type) {
+      case AlgebraicType.Type.BuiltinType:
+        return this.serializeBuiltinType(type.builtin, value);
+      case AlgebraicType.Type.ProductType:
+        let serializedArray: any[] = [];
+        for (const element of type.product.elements) {
+          const serialized = this.serializeType(
+            element.algebraicType,
+            value[element.name]
+          );
+          serializedArray.push(serialized);
+        }
+        return serializedArray;
+      case AlgebraicType.Type.SumType:
+        if (
+          type.sum.variants.length == 2 &&
+          type.sum.variants[0].name === "some" &&
+          type.sum.variants[1].name === "none"
+        ) {
+          return value;
+        } else {
+          const variant = type.sum.variants.find((v) => v.name === value.tag);
+          if (!variant) {
+            throw `Can't serialize a sum type, couldn't find ${value.tag} tag`;
+          }
+
+          return this.serializeType(variant.algebraicType, value.value);
+        }
+      default:
+        break;
+    }
+  }
+
+  write(type: AlgebraicType, value: any) {
+    this.content[this.index] = this.serializeType(type, value);
+    this.index += 1;
+  }
 }
 
 export class BinarySerializer {

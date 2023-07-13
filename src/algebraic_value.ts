@@ -38,7 +38,7 @@ export class BinaryReducerArgsAdapter {
     this.adapter = adapter;
   }
 
-  next() {
+  next(): ValueAdapter {
     return this.adapter;
   }
 }

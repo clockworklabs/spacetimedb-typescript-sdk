@@ -14,7 +14,7 @@ import {
   JSONReducerArgsAdapter,
   BinaryReducerArgsAdapter,
 } from "./algebraic_value";
-import { Serializer, BinarySerializer } from "./serializer";
+import { Serializer, BinarySerializer, JSONSerializer } from "./serializer";
 import {
   AlgebraicType,
   ProductType,
@@ -1002,7 +1002,7 @@ export class SpacetimeDBClient {
     if (this.protocol === "binary") {
       return new BinarySerializer();
     } else {
-      throw "serializing in JSON is not supported at the moment";
+      return new JSONSerializer();
     }
   }
 }
