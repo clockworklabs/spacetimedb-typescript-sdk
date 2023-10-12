@@ -13,7 +13,7 @@ function uint8ArrayToHexString(array: Uint8Array): string {
 }
 
 /**
- * A unique public identifier for a client connected to a database.
+ * A unique public identifier for a user connected to a database.
  */
 export class Identity {
   private data: string;
