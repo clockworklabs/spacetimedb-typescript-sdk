@@ -989,9 +989,7 @@ export class SpacetimeDBClient {
 
         const event = txUpdate["event"] as any;
         const functionCall = event["function_call"] as any;
-        const identity: Identity = Identity.fromString(
-          event["caller_identity"]
-        );
+        const identity: Identity = new Identity(event["caller_identity"]);
         const originalReducerName: string = functionCall["reducer"];
         const reducerName: string = toPascalCase(originalReducerName);
         const args = JSON.parse(functionCall["args"]);
