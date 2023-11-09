@@ -8,7 +8,6 @@ import {
   ProductValue,
   AlgebraicValue,
   BinaryAdapter,
-  JSONAdapter,
   ValueAdapter,
   ReducerArgsAdapter,
   JSONReducerArgsAdapter,
@@ -26,13 +25,14 @@ import {
 import { EventType } from "./types";
 import { Identity } from "./identity";
 import { Address } from "./address";
+import { ReducerEvent } from "./reducer_event";
 import {
   Message as ProtobufMessage,
   event_StatusToJSON,
   TableRowOperation_OperationType,
 } from "./client_api";
 import BinaryReader from "./binary_reader";
-import OperationsMap from "./operations_map";
+import { Table, TableUpdate, TableOperation } from "./table";
 
 export {
   ProductValue,
@@ -45,6 +45,7 @@ export {
   BuiltinType,
   ProtobufMessage,
   BinarySerializer,
+  ReducerEvent,
 };
 
 export type { ValueAdapter, ReducerArgsAdapter, Serializer };
@@ -54,14 +55,6 @@ const g = (typeof window === "undefined" ? global : window)!;
 type SpacetimeDBGlobals = {
   clientDB: ClientDB;
   spacetimeDBClient: SpacetimeDBClient | undefined;
-  // TODO: it would be better to use a "family of classes" instead of any
-  // in components and reducers, but I didn't have time to research
-  // how to do it in TS
-  reducers: Map<string, any>;
-  components: Map<string, any>;
-
-  registerReducer: (name: string, reducer: any) => void;
-  registerComponent: (name: string, component: any) => void;
 };
 
 declare global {
@@ -71,264 +64,18 @@ declare global {
   var __SPACETIMEDB__: SpacetimeDBGlobals;
 }
 
-export class Reducer {}
-
-export class IDatabaseTable {}
-
-export class ReducerEvent {
-  public callerIdentity: Identity;
-  public callerAddress: Address | null;
-  public reducerName: string;
-  public status: string;
-  public message: string;
-  public args: any;
-
-  constructor(
-    callerIdentity: Identity,
-    callerAddress: Address | null,
-    reducerName: string,
-    status: string,
-    message: string,
-    args: any
-  ) {
-    this.callerIdentity = callerIdentity;
-    this.callerAddress = callerAddress;
-    this.reducerName = reducerName;
-    this.status = status;
-    this.message = message;
-    this.args = args;
-  }
+export type ReducerClass = { new (...args: any[]): Reducer };
+export abstract class Reducer {
+  public abstract call(...args: any[]): void;
+  public abstract on(...args: any[]): void;
 }
 
-class DBOp {
-  public type: "insert" | "delete";
-  public instance: any;
-  public rowPk: string;
-
-  constructor(type: "insert" | "delete", rowPk: string, instance: any) {
-    this.type = type;
-    this.rowPk = rowPk;
-    this.instance = instance;
-  }
-}
-
-/**
- * Builder to generate calls to query a `table` in the database
- */
-class Table {
-  // TODO: most of this stuff should be probably private
-  public name: string;
-  public instances: Map<string, IDatabaseTable>;
-  public emitter: EventEmitter;
-  private entityClass: any;
-  pkCol?: number;
-
-  /**
-   * @param name the table name
-   * @param pkCol column designated as `#[primarykey]`
-   * @param entityClass the entityClass
-   */
-  constructor(name: string, pkCol: number | undefined, entityClass: any) {
-    this.name = name;
-    this.instances = new Map();
-    this.emitter = new EventEmitter();
-    this.pkCol = pkCol;
-    this.entityClass = entityClass;
-  }
-
-  /**
-   * @returns number of entries in the table
-   */
-  public count(): number {
-    return this.instances.size;
-  }
-
-  /**
-   * @returns The values of the entries in the table
-   */
-  public getInstances(): IterableIterator<any> {
-    return this.instances.values();
-  }
-
-  applyOperations = (
-    protocol: "binary" | "json",
-    operations: TableOperation[],
-    reducerEvent: ReducerEvent | undefined
-  ) => {
-    let dbOps: DBOp[] = [];
-    for (let operation of operations) {
-      const pk: string = operation.rowPk;
-      const adapter =
-        protocol === "binary"
-          ? new BinaryAdapter(new BinaryReader(operation.row))
-          : new JSONAdapter(operation.row);
-      const entry = AlgebraicValue.deserialize(
-        this.entityClass.getAlgebraicType(),
-        adapter
-      );
-      const instance = this.entityClass.fromValue(entry);
-
-      dbOps.push(new DBOp(operation.type, pk, instance));
-    }
-
-    if (this.entityClass.primaryKey !== undefined) {
-      const pkName = this.entityClass.primaryKey;
-      const inserts: any[] = [];
-      const deleteMap = new OperationsMap<any, DBOp>();
-      for (const dbOp of dbOps) {
-        if (dbOp.type === "insert") {
-          inserts.push(dbOp);
-        } else {
-          deleteMap.set(dbOp.instance[pkName], dbOp);
-        }
-      }
-      for (const dbOp of inserts) {
-        const deleteOp = deleteMap.get(dbOp.instance[pkName]);
-        if (deleteOp) {
-          // the pk for updates will differ between insert/delete, so we have to
-          // use the instance from delete
-          this.update(dbOp, deleteOp, reducerEvent);
-          deleteMap.delete(dbOp.instance[pkName]);
-        } else {
-          this.insert(dbOp, reducerEvent);
-        }
-      }
-      for (const dbOp of deleteMap.values()) {
-        this.delete(dbOp, reducerEvent);
-      }
-    } else {
-      for (const dbOp of dbOps) {
-        if (dbOp.type === "insert") {
-          this.insert(dbOp, reducerEvent);
-        } else {
-          this.delete(dbOp, reducerEvent);
-        }
-      }
-    }
-  };
-
-  update = (
-    newDbOp: DBOp,
-    oldDbOp: DBOp,
-    reducerEvent: ReducerEvent | undefined
-  ) => {
-    const newInstance = newDbOp.instance;
-    const oldInstance = oldDbOp.instance;
-    this.instances.delete(oldDbOp.rowPk);
-    this.instances.set(newDbOp.rowPk, newInstance);
-    this.emitter.emit("update", oldInstance, newInstance, reducerEvent);
-  };
-
-  insert = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
-    this.instances.set(dbOp.rowPk, dbOp.instance);
-    this.emitter.emit("insert", dbOp.instance, reducerEvent);
-  };
-
-  delete = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
-    this.instances.delete(dbOp.rowPk);
-    this.emitter.emit("delete", dbOp.instance, reducerEvent);
-  };
-
-  /**
-   * Register a callback for when a row is newly inserted into the database.
-   *
-   * ```ts
-   * User.onInsert((user, reducerEvent) => {
-   *   if (reducerEvent) {
-   *      console.log("New user on reducer", reducerEvent, user);
-   *   } else {
-   *      console.log("New user received during subscription update on insert", user);
-   *  }
-   * });
-   * ```
-   *
-   * @param cb Callback to be called when a new row is inserted
-   */
-  onInsert = (
-    cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
-    this.emitter.on("insert", cb);
-  };
-
-  /**
-   * Register a callback for when a row is deleted from the database.
-   *
-   * ```ts
-   * User.onDelete((user, reducerEvent) => {
-   *   if (reducerEvent) {
-   *      console.log("Deleted user on reducer", reducerEvent, user);
-   *   } else {
-   *      console.log("Deleted user received during subscription update on update", user);
-   *  }
-   * });
-   * ```
-   *
-   * @param cb Callback to be called when a new row is inserted
-   */
-  onDelete = (
-    cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
-    this.emitter.on("delete", cb);
-  };
-
-  /**
-   * Register a callback for when a row is updated into the database.
-   *
-   * ```ts
-   * User.onInsert((user, reducerEvent) => {
-   *   if (reducerEvent) {
-   *      console.log("Updated user on reducer", reducerEvent, user);
-   *   } else {
-   *      console.log("Updated user received during subscription update on delete", user);
-   *  }
-   * });
-   * ```
-   *
-   * @param cb Callback to be called when a new row is inserted
-   */
-  onUpdate = (
-    cb: (
-      value: any,
-      oldValue: any,
-      reducerEvent: ReducerEvent | undefined
-    ) => void
-  ) => {
-    this.emitter.on("update", cb);
-  };
-
-  /**
-   * Removes the event listener for when a new row is inserted
-   * @param cb Callback to be called when the event listener is removed
-   */
-  removeOnInsert = (
-    cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
-    this.emitter.off("insert", cb);
-  };
-
-  /**
-   * Removes the event listener for when a row is deleted
-   * @param cb Callback to be called when the event listener is removed
-   */
-  removeOnDelete = (
-    cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
-    this.emitter.off("delete", cb);
-  };
-
-  /**
-   * Removes the event listener for when a row is updated
-   * @param cb Callback to be called when the event listener is removed
-   */
-  removeOnUpdate = (
-    cb: (
-      value: any,
-      oldValue: any,
-      reducerEvent: ReducerEvent | undefined
-    ) => void
-  ) => {
-    this.emitter.off("update", cb);
-  };
+export type DatabaseTableClass = {
+  new (...args: any[]): IDatabaseTable;
+  db?: ClientDB;
+};
+export abstract class IDatabaseTable {
+  public static db?: ClientDB;
 }
 
 export class ClientDB {
@@ -360,9 +107,9 @@ export class ClientDB {
   getOrCreateTable = (
     tableName: string,
     pkCol: number | undefined,
-    entityClass: any
+    entityClass: DatabaseTableClass
   ) => {
-    let table;
+    let table: Table;
     if (!this.tables.has(tableName)) {
       table = new Table(tableName, pkCol, entityClass);
       this.tables.set(tableName, table);
@@ -371,33 +118,6 @@ export class ClientDB {
     }
     return table;
   };
-}
-
-class TableOperation {
-  /**
-   * The type of CRUD operation.
-   *
-   * NOTE: An update is a `delete` followed by a 'insert' internally.
-   */
-  public type: "insert" | "delete";
-  public rowPk: string;
-  public row: Uint8Array | any;
-
-  constructor(type: "insert" | "delete", rowPk: string, row: Uint8Array | any) {
-    this.type = type;
-    this.rowPk = rowPk;
-    this.row = row;
-  }
-}
-
-class TableUpdate {
-  public tableName: string;
-  public operations: TableOperation[];
-
-  constructor(tableName: string, operations: TableOperation[]) {
-    this.tableName = tableName;
-    this.operations = operations;
-  }
 }
 
 class SubscriptionUpdateMessage {
@@ -501,8 +221,6 @@ export class SpacetimeDBClient {
 
   private ws!: WebSocket | WebsocketTestAdapter;
   private manualTableSubscriptions: string[] = [];
-  private reducers: Map<string, any>;
-  private components: Map<string, any>;
   private queriesQueue: string[];
   private runtime: {
     host: string;
@@ -514,6 +232,34 @@ export class SpacetimeDBClient {
   private protocol: "binary" | "json";
   private ssl: boolean = false;
   private clientAddress: Address = Address.random();
+
+  private static tableClasses: Map<string, DatabaseTableClass> = new Map();
+  private static reducerClasses: Map<string, ReducerClass> = new Map();
+
+  public reducers: Record<string, Reducer> = {};
+  // unfortunately I couldn't find any good way to allow using types here. Each of the database
+  // tables can have custom methods like `filterByName` so it's hard to dynamically define anything
+  // that will allow to strongly type it
+  public tables: Record<string, any> = {};
+
+  private static getTableClass(name: string): DatabaseTableClass {
+    const tableClass = this.tableClasses.get(name);
+    if (!tableClass) {
+      throw `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerTable() first`;
+    }
+
+    return tableClass;
+  }
+
+  private static getReducerClass(name: string): ReducerClass {
+    const reducerName = `${name}Reducer`;
+    const reducerClass = this.reducerClasses.get(reducerName);
+    if (!reducerClass) {
+      throw `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerReducer() first`;
+    }
+
+    return reducerClass;
+  }
 
   /**
    * Creates a new `SpacetimeDBClient` database client and set the initial parameters.
@@ -538,23 +284,24 @@ export class SpacetimeDBClient {
     host: string,
     name_or_address: string,
     auth_token?: string,
-    protocol?: "binary" | "json"
+    protocol?: "binary" | "json",
+    clientDB?: ClientDB
   ) {
     this.protocol = protocol || "binary";
     const global = g.__SPACETIMEDB__;
-    this.db = global.clientDB;
+    this.db = clientDB || global.clientDB;
     // I don't really like it, but it seems like the only way to
     // make reducers work like they do in C#
     global.spacetimeDBClient = this;
-    // register any reducers added before creating a client
-    this.reducers = new Map();
-    for (const [name, reducer] of global.reducers) {
-      this.reducers.set(name, reducer);
+
+    for (const [_name, reducer] of SpacetimeDBClient.reducerClasses) {
+      this.registerReducer(reducer);
     }
-    this.components = new Map();
-    for (const [name, component] of global.components) {
-      this.registerComponent(name, component);
+
+    for (const [_name, table] of SpacetimeDBClient.tableClasses) {
+      this.registerTable(table);
     }
+
     this.live = false;
     this.emitter = new EventEmitter();
     this.queriesQueue = [];
@@ -645,7 +392,7 @@ export class SpacetimeDBClient {
       if (message instanceof SubscriptionUpdateMessage) {
         for (let tableUpdate of message.tableUpdates) {
           const tableName = tableUpdate.tableName;
-          const entityClass = this.runtime.global.components.get(tableName);
+          const entityClass = SpacetimeDBClient.getTableClass(tableName);
           const table = this.db.getOrCreateTable(
             tableUpdate.tableName,
             undefined,
@@ -665,7 +412,7 @@ export class SpacetimeDBClient {
       } else if (message instanceof TransactionUpdateMessage) {
         const reducerName = message.event.reducerName;
         const reducer: any | undefined = reducerName
-          ? this.reducers.get(reducerName)
+          ? SpacetimeDBClient.getReducerClass(reducerName)
           : undefined;
 
         let reducerEvent: ReducerEvent | undefined;
@@ -696,7 +443,7 @@ export class SpacetimeDBClient {
 
         for (let tableUpdate of message.tableUpdates) {
           const tableName = tableUpdate.tableName;
-          const entityClass = this.runtime.global.components.get(tableName);
+          const entityClass = SpacetimeDBClient.getTableClass(tableName);
           const table = this.db.getOrCreateTable(
             tableUpdate.tableName,
             undefined,
@@ -1055,8 +802,8 @@ export class SpacetimeDBClient {
    * @param name The name of the reducer to register
    * @param reducer The reducer to register
    */
-  public registerReducer(name: string, reducer: any) {
-    this.reducers.set(name, reducer);
+  private registerReducer(reducer: ReducerClass) {
+    this.reducers[reducer.name] = new reducer(this);
   }
 
   /**
@@ -1065,24 +812,57 @@ export class SpacetimeDBClient {
    * @param name The name of the component to register
    * @param component The component to register
    */
-  public registerComponent(name: string, component: any) {
-    this.components.set(name, component);
-    this.db.getOrCreateTable(name, undefined, component);
+  private registerTable(tableClass: DatabaseTableClass) {
+    this.db.getOrCreateTable(tableClass.name, undefined, tableClass);
+    this.tables[tableClass.name] = new Proxy(tableClass, {
+      get: (target, prop: keyof typeof tableClass) => {
+        if (typeof tableClass[prop] === "function") {
+          return (...args: any[]) => {
+            const originalDb = tableClass.db;
+            tableClass.db = this.db;
+            const result = (tableClass[prop] as unknown as Function)(...args);
+            tableClass.db = originalDb;
+            return result;
+          };
+        } else {
+          return tableClass[prop];
+        }
+      },
+    });
+    tableClass.db = this.db;
   }
 
   /**
-   * @deprecated
-   * Adds a component to the list of components to subscribe to in your websocket connection
-   * @param element The component to subscribe to
+   * Register a component to be used with any SpacetimeDB client. The component will be automatically registered to any
+   * new clients
+   *
+   * @param component Component to be registered
    */
-  public subscribeComponent(element: any) {
-    if (element.tableName) {
-      this.ws.send(
-        JSON.stringify({ subscribe: { query_strings: [element.tableName] } })
-      );
+  public static registerTable(table: DatabaseTableClass) {
+    this.tableClasses.set(table.name, table);
+  }
+
+  public static registerTables(...tables: DatabaseTableClass[]) {
+    for (const table of tables) {
+      this.tableClasses.set(table.name, table);
     }
   }
 
+  /**
+   * Register a reducer to be used with any SpacetimeDB client. The reducer will be automatically registered to any
+   * new clients
+   *
+   * @param reducer Reducer to be registered
+   */
+  public static registerReducer(reducer: ReducerClass) {
+    this.reducerClasses.set(reducer.name, reducer);
+  }
+
+  public static registerReducers(...reducers: ReducerClass[]) {
+    for (const reducer of reducers) {
+      this.reducerClasses.set(reducer.name, reducer);
+    }
+  }
   /**
    * Subscribe to a set of queries, to be notified when rows which match those queries are altered.
    *
@@ -1118,7 +898,7 @@ export class SpacetimeDBClient {
    * @param reducerName The name of the reducer to call
    * @param args The arguments to pass to the reducer
    */
-  public call(reducerName: string, serializer: Serializer) {
+  public async call(reducerName: string, serializer: Serializer) {
     let message: any;
     if (this.protocol === "binary") {
       const pmessage: ProtobufMessage = {
@@ -1210,27 +990,7 @@ export class SpacetimeDBClient {
 }
 
 g.__SPACETIMEDB__ = {
-  components: new Map(),
   clientDB: new ClientDB(),
-  reducers: new Map(),
-
-  registerReducer: function (name: string, reducer: any) {
-    let global = g.__SPACETIMEDB__;
-    global.reducers.set(name, reducer);
-
-    if (global.spacetimeDBClient) {
-      global.spacetimeDBClient.registerReducer(name, reducer);
-    }
-  },
-
-  registerComponent: function (name: string, component: any) {
-    let global = g.__SPACETIMEDB__;
-    global.components.set(name, component);
-
-    if (global.spacetimeDBClient) {
-      global.spacetimeDBClient.registerComponent(name, component);
-    }
-  },
   spacetimeDBClient: undefined,
 };
 
