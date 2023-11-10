@@ -829,7 +829,6 @@ export class SpacetimeDBClient {
         }
       },
     });
-    tableClass.db = this.db;
   }
 
   /**
