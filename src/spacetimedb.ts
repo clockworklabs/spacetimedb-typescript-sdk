@@ -236,12 +236,6 @@ export class SpacetimeDBClient {
   private static tableClasses: Map<string, DatabaseTableClass> = new Map();
   private static reducerClasses: Map<string, ReducerClass> = new Map();
 
-  public reducers: Record<string, Reducer> = {};
-  // unfortunately I couldn't find any good way to allow using types here. Each of the database
-  // tables can have custom methods like `filterByName` so it's hard to dynamically define anything
-  // that will allow to strongly type it
-  public tables: Record<string, any> = {};
-
   private static getTableClass(name: string): DatabaseTableClass {
     const tableClass = this.tableClasses.get(name);
     if (!tableClass) {
@@ -726,7 +720,7 @@ export class SpacetimeDBClient {
             "table_row_operations"
           ]) {
             const type = rawTableOperation["op"];
-            const rowPk = rawTableOperation["rowPk"];
+            const rowPk = rawTableOperation["row_pk"];
             operations.push(
               new TableOperation(type, rowPk, rawTableOperation.row)
             );
@@ -802,8 +796,8 @@ export class SpacetimeDBClient {
    * @param name The name of the reducer to register
    * @param reducer The reducer to register
    */
-  private registerReducer(reducer: ReducerClass) {
-    this.reducers[reducer.name] = new reducer(this);
+  private registerReducer(_reducer: ReducerClass) {
+    // this.reducers[reducer.name] = new reducer(this);
   }
 
   /**
@@ -814,21 +808,21 @@ export class SpacetimeDBClient {
    */
   private registerTable(tableClass: DatabaseTableClass) {
     this.db.getOrCreateTable(tableClass.name, undefined, tableClass);
-    this.tables[tableClass.name] = new Proxy(tableClass, {
-      get: (target, prop: keyof typeof tableClass) => {
-        if (typeof tableClass[prop] === "function") {
-          return (...args: any[]) => {
-            const originalDb = tableClass.db;
-            tableClass.db = this.db;
-            const result = (tableClass[prop] as unknown as Function)(...args);
-            tableClass.db = originalDb;
-            return result;
-          };
-        } else {
-          return tableClass[prop];
-        }
-      },
-    });
+    // this.tables[tableClass.name] = new Proxy(tableClass, {
+    //   get: (target, prop: keyof typeof tableClass) => {
+    //     if (typeof tableClass[prop] === "function") {
+    //       return (...args: any[]) => {
+    //         const originalDb = tableClass.db;
+    //         tableClass.db = this.db;
+    //         const result = (tableClass[prop] as unknown as Function)(...args);
+    //         tableClass.db = originalDb;
+    //         return result;
+    //       };
+    //     } else {
+    //       return tableClass[prop];
+    //     }
+    //   },
+    // });
   }
 
   /**
@@ -897,7 +891,7 @@ export class SpacetimeDBClient {
    * @param reducerName The name of the reducer to call
    * @param args The arguments to pass to the reducer
    */
-  public async call(reducerName: string, serializer: Serializer) {
+  public call(reducerName: string, serializer: Serializer) {
     let message: any;
     if (this.protocol === "binary") {
       const pmessage: ProtobufMessage = {
