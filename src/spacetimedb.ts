@@ -33,6 +33,7 @@ import {
 } from "./client_api";
 import BinaryReader from "./binary_reader";
 import { Table, TableUpdate, TableOperation } from "./table";
+import { _tableProxy } from "./utils";
 
 export {
   ProductValue,
@@ -46,6 +47,7 @@ export {
   ProtobufMessage,
   BinarySerializer,
   ReducerEvent,
+  _tableProxy,
 };
 
 export type { ValueAdapter, ReducerArgsAdapter, Serializer };
@@ -245,11 +247,14 @@ export class SpacetimeDBClient {
     return tableClass;
   }
 
-  private static getReducerClass(name: string): ReducerClass {
+  private static getReducerClass(name: string): ReducerClass | undefined {
     const reducerName = `${name}Reducer`;
     const reducerClass = this.reducerClasses.get(reducerName);
     if (!reducerClass) {
-      throw `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerReducer() first`;
+      console.warn(
+        `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerReducer() first`
+      );
+      return;
     }
 
     return reducerClass;
@@ -383,6 +388,7 @@ export class SpacetimeDBClient {
     this.emitter.emit("receiveWSMessage", wsMessage);
 
     this.processMessage(wsMessage, (message: Message) => {
+      console.log("processMessage", message);
       if (message instanceof SubscriptionUpdateMessage) {
         for (let tableUpdate of message.tableUpdates) {
           const tableName = tableUpdate.tableName;
@@ -455,7 +461,7 @@ export class SpacetimeDBClient {
           this.emitter.emit(
             "reducer:" + reducerName,
             reducerEvent,
-            reducerArgs
+            ...reducerArgs
           );
         }
       } else if (message instanceof IdentityTokenMessage) {
@@ -877,6 +883,7 @@ export class SpacetimeDBClient {
       typeof queryOrQueries === "string" ? [queryOrQueries] : queryOrQueries;
 
     if (this.live) {
+      console.log("subscribe", queries);
       const message = { subscribe: { query_strings: queries } };
       this.emitter.emit("sendWSMessage", message);
       this.ws.send(JSON.stringify(message));
@@ -901,6 +908,7 @@ export class SpacetimeDBClient {
         },
       };
 
+      console.log("send message: ", reducerName);
       message = ProtobufMessage.encode(pmessage).finish();
     } else {
       message = JSON.stringify({
