@@ -461,7 +461,7 @@ export class SpacetimeDBClient {
           this.emitter.emit(
             "reducer:" + reducerName,
             reducerEvent,
-            ...reducerArgs
+            ...(reducerArgs || [])
           );
         }
       } else if (message instanceof IdentityTokenMessage) {
