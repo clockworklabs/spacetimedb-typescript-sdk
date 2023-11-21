@@ -78,8 +78,8 @@ export class Table {
   /**
    * @returns The values of the entries in the table
    */
-  public getInstances(): IterableIterator<any> {
-    return this.instances.values();
+  public getInstances(): any[] {
+    return Array.from(this.instances.values());
   }
 
   applyOperations = (
