@@ -34,6 +34,8 @@ import {
 import BinaryReader from "./binary_reader";
 import { Table, TableUpdate, TableOperation } from "./table";
 import { _tableProxy } from "./utils";
+import { DatabaseTable, DatabaseTableClass } from "./database_table";
+import { Reducer, ReducerClass } from "./reducer";
 
 export {
   ProductValue,
@@ -48,6 +50,10 @@ export {
   BinarySerializer,
   ReducerEvent,
   _tableProxy,
+  Reducer,
+  ReducerClass,
+  DatabaseTable,
+  DatabaseTableClass,
 };
 
 export type { ValueAdapter, ReducerArgsAdapter, Serializer };
@@ -64,20 +70,6 @@ declare global {
     __SPACETIMEDB__: SpacetimeDBGlobals;
   }
   var __SPACETIMEDB__: SpacetimeDBGlobals;
-}
-
-export type ReducerClass = { new (...args: any[]): Reducer };
-export abstract class Reducer {
-  public abstract call(...args: any[]): void;
-  public abstract on(...args: any[]): void;
-}
-
-export type DatabaseTableClass = {
-  new (...args: any[]): IDatabaseTable;
-  db?: ClientDB;
-};
-export abstract class IDatabaseTable {
-  public static db?: ClientDB;
 }
 
 export class ClientDB {
@@ -293,9 +285,9 @@ export class SpacetimeDBClient {
     // make reducers work like they do in C#
     global.spacetimeDBClient = this;
 
-    for (const [_name, reducer] of SpacetimeDBClient.reducerClasses) {
-      this.registerReducer(reducer);
-    }
+    // for (const [_name, reducer] of SpacetimeDBClient.reducerClasses) {
+    //   this.registerReducer(reducer);
+    // }
 
     for (const [_name, table] of SpacetimeDBClient.tableClasses) {
       this.registerTable(table);
@@ -796,15 +788,14 @@ export class SpacetimeDBClient {
     }
   }
 
-  /**
-   * Register a reducer to be used with your SpacetimeDB module.
-   *
-   * @param name The name of the reducer to register
-   * @param reducer The reducer to register
-   */
-  private registerReducer(_reducer: ReducerClass) {
-    // this.reducers[reducer.name] = new reducer(this);
-  }
+  // /**
+  //  * Register a reducer to be used with your SpacetimeDB module.
+  //  *
+  //  * @param name The name of the reducer to register
+  //  * @param reducer The reducer to register
+  //  */
+  // private registerReducer(reducer: ReducerClass) {
+  // }
 
   /**
    * Register a component to be used with your SpacetimeDB module. If the websocket is already connected it will add it to the list of subscribed components
@@ -813,7 +804,7 @@ export class SpacetimeDBClient {
    * @param component The component to register
    */
   private registerTable(tableClass: DatabaseTableClass) {
-    this.db.getOrCreateTable(tableClass.name, undefined, tableClass);
+    this.db.getOrCreateTable(tableClass.tableName, undefined, tableClass);
     // this.tables[tableClass.name] = new Proxy(tableClass, {
     //   get: (target, prop: keyof typeof tableClass) => {
     //     if (typeof tableClass[prop] === "function") {

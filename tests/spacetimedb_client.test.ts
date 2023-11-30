@@ -6,10 +6,11 @@ import User from "./types/user";
 import Point from "./types/point";
 import CreatePlayerReducer from "./types/create_player_reducer";
 
+SpacetimeDBClient.registerTables(Player, User);
+SpacetimeDBClient.registerReducers(CreatePlayerReducer);
+
 describe("SpacetimeDBClient", () => {
   test("auto subscribe on connect", async () => {
-    // so that TS doesn't remove the reducer import
-    const _foo = CreatePlayerReducer;
     const client = new SpacetimeDBClient(
       "ws://127.0.0.1:1234",
       "db",
@@ -119,9 +120,14 @@ describe("SpacetimeDBClient", () => {
       reducerEvent: ReducerEvent;
       reducerArgs: any[];
     }[] = [];
-    CreatePlayerReducer.on((reducerEvent: ReducerEvent, reducerArgs: any[]) => {
-      reducerCallbackLog.push({ reducerEvent, reducerArgs });
-    });
+    CreatePlayerReducer.on(
+      (reducerEvent: ReducerEvent, name: string, location: Point) => {
+        reducerCallbackLog.push({
+          reducerEvent,
+          reducerArgs: [name, location],
+        });
+      }
+    );
 
     const subscriptionMessage = {
       SubscriptionUpdate: {
