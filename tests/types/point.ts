@@ -17,7 +17,6 @@ import {
   Address,
   ClientDB,
   SpacetimeDBClient,
-  _tableProxy,
 } from "../../src/index";
 
 export class Point extends DatabaseTable {

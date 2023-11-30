@@ -1,13 +1,22 @@
-import { SpacetimeDBClient, ReducerEvent } from "../src/spacetimedb";
+import { SpacetimeDBClient, ReducerEvent, ClientDB } from "../src/spacetimedb";
 import { Identity } from "../src/identity";
 import WebsocketTestAdapter from "../src/websocket_test_adapter";
 import Player from "./types/player";
 import User from "./types/user";
 import Point from "./types/point";
 import CreatePlayerReducer from "./types/create_player_reducer";
+import { __SPACETIMEDB__ } from "../src/spacetimedb";
 
 SpacetimeDBClient.registerTables(Player, User);
 SpacetimeDBClient.registerReducers(CreatePlayerReducer);
+
+beforeEach(() => {
+  (CreatePlayerReducer as any).reducer = undefined;
+  (Player as any).db = undefined;
+  (User as any).db = undefined;
+  __SPACETIMEDB__.clientDB = new ClientDB();
+  __SPACETIMEDB__.spacetimeDBClient = undefined;
+});
 
 describe("SpacetimeDBClient", () => {
   test("auto subscribe on connect", async () => {
@@ -379,6 +388,7 @@ describe("SpacetimeDBClient", () => {
   });
 
   test("it calls onUpdate callback when a record is added with a subscription update and then with a transaction update when the PK is of type Identity", async () => {
+    console.log("-----------------------------------------------");
     const client = new SpacetimeDBClient(
       "ws://127.0.0.1:1234",
       "db",

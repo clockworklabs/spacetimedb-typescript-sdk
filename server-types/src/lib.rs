@@ -2,6 +2,7 @@ use spacetimedb::{spacetimedb, ReducerContext, SpacetimeType, Identity};
 
 #[spacetimedb(table)]
 pub struct Player {
+    #[primarykey]
     owner_id: String,
     name: String,
     location: Point,
@@ -15,6 +16,7 @@ pub struct Point {
 
 #[spacetimedb(table)]
 pub struct User {
+    #[primarykey]
     pub identity: Identity,
     pub username: String,
 }

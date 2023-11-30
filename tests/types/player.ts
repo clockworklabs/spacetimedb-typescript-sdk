@@ -17,7 +17,6 @@ import {
   Address,
   ClientDB,
   SpacetimeDBClient,
-  _tableProxy,
 } from "../../src/index";
 // @ts-ignore
 import { Point } from "./point";
@@ -28,6 +27,8 @@ export class Player extends DatabaseTable {
   public ownerId: string;
   public name: string;
   public location: Point;
+
+  public static primaryKey: string | undefined = "ownerId";
 
   constructor(ownerId: string, name: string, location: Point) {
     super();
@@ -62,14 +63,13 @@ export class Player extends DatabaseTable {
     return new this(__owner_id, __name, __location);
   }
 
-  public static filterByOwnerId(value: string): Player[] {
-    let result: Player[] = [];
+  public static filterByOwnerId(value: string): Player | null {
     for (let instance of this.db.getTable("Player").getInstances()) {
       if (instance.ownerId === value) {
-        result.push(instance);
+        return instance;
       }
     }
-    return result;
+    return null;
   }
 
   public static filterByName(value: string): Player[] {

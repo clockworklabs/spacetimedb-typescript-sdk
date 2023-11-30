@@ -49,7 +49,6 @@ export {
   ProtobufMessage,
   BinarySerializer,
   ReducerEvent,
-  _tableProxy,
   Reducer,
   ReducerClass,
   DatabaseTable,
@@ -805,6 +804,10 @@ export class SpacetimeDBClient {
    */
   private registerTable(tableClass: DatabaseTableClass) {
     this.db.getOrCreateTable(tableClass.tableName, undefined, tableClass);
+    if (!tableClass.db) {
+      console.log("Setting db on ", tableClass);
+      tableClass.db = this.db;
+    }
     // this.tables[tableClass.name] = new Proxy(tableClass, {
     //   get: (target, prop: keyof typeof tableClass) => {
     //     if (typeof tableClass[prop] === "function") {

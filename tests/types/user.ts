@@ -17,7 +17,6 @@ import {
   Address,
   ClientDB,
   SpacetimeDBClient,
-  _tableProxy,
 } from "../../src/index";
 
 export class User extends DatabaseTable {
@@ -25,6 +24,8 @@ export class User extends DatabaseTable {
   public static tableName = "User";
   public identity: Identity;
   public username: string;
+
+  public static primaryKey: string | undefined = "identity";
 
   constructor(identity: Identity, username: string) {
     super();
