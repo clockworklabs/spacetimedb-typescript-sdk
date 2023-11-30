@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { AlgebraicValue, IDatabaseTable } from "./spacetimedb";
+import { AlgebraicValue, DatabaseTable } from "./spacetimedb";
 import OperationsMap from "./operations_map";
 import { ReducerEvent } from "./reducer_event";
 import { BinaryAdapter, JSONAdapter } from "./algebraic_value";
@@ -50,7 +50,7 @@ export class TableUpdate {
 export class Table {
   // TODO: most of this stuff should be probably private
   public name: string;
-  public instances: Map<string, IDatabaseTable>;
+  public instances: Map<string, DatabaseTable>;
   public emitter: EventEmitter;
   private entityClass: any;
   pkCol?: number;
