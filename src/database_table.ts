@@ -3,12 +3,12 @@ import { ClientDB, SpacetimeDBClient } from "./spacetimedb";
 import { _tableProxy } from "./utils";
 
 export type DatabaseTableClass = {
-  new (...args: any[]): DatabaseTable;
+  new (...args: any[]): any;
   db?: ClientDB;
   tableName: string;
 };
 
-type ThisDatabaseType<T> = {
+type ThisDatabaseType<T extends DatabaseTable> = {
   new (...args: any): T;
   tableName: string;
   getDB: () => ClientDB;
@@ -36,10 +36,10 @@ export class DatabaseTable {
     return this.getDB().getTable(this.tableName).count();
   }
 
-  public static all<T extends typeof DatabaseTable>(): InstanceType<T>[] {
+  public static all<T extends DatabaseTable>(this: ThisDatabaseType<T>): T[] {
     return this.getDB()
       .getTable(this.tableName)
-      .getInstances() as unknown as InstanceType<T>[];
+      .getInstances() as unknown as T[];
   }
 
   public static onInsert<T extends DatabaseTable>(

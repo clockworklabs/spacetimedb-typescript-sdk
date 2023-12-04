@@ -97,11 +97,11 @@ export class ClientDB {
     return table;
   }
 
-  getOrCreateTable = (
+  getOrCreateTable(
     tableName: string,
     pkCol: number | undefined,
     entityClass: DatabaseTableClass
-  ) => {
+  ) {
     let table: Table;
     if (!this.tables.has(tableName)) {
       table = new Table(tableName, pkCol, entityClass);
@@ -110,7 +110,7 @@ export class ClientDB {
       table = this.tables.get(tableName)!;
     }
     return table;
-  };
+  }
 }
 
 class SubscriptionUpdateMessage {
