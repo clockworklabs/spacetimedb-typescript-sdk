@@ -388,7 +388,6 @@ describe("SpacetimeDBClient", () => {
   });
 
   test("it calls onUpdate callback when a record is added with a subscription update and then with a transaction update when the PK is of type Identity", async () => {
-    console.log("-----------------------------------------------");
     const client = new SpacetimeDBClient(
       "ws://127.0.0.1:1234",
       "db",
