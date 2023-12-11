@@ -469,7 +469,7 @@ describe("SpacetimeDBClient", () => {
           caller_identity: "00FF01",
           caller_address: "00FF00",
           function_call: {
-            reducer: "create_user",
+            reducer: "create_player",
             args: '["A User",[0.2, 0.3]]',
           },
           energy_quanta_used: 33841000,

@@ -274,15 +274,22 @@ export class SpacetimeDBClient {
     host: string,
     name_or_address: string,
     auth_token?: string,
-    protocol?: "binary" | "json",
-    clientDB?: ClientDB
+    protocol?: "binary" | "json"
   ) {
     this.protocol = protocol || "binary";
     const global = g.__SPACETIMEDB__;
-    this.db = clientDB || global.clientDB;
-    // I don't really like it, but it seems like the only way to
-    // make reducers work like they do in C#
-    global.spacetimeDBClient = this;
+
+    if (global.spacetimeDBClient) {
+      // If a client has been already created earlier it means the developer
+      // wants to create multiple clients and thus let's create a new ClientDB.
+      // The global ClientDB will be onl shared with the first created client
+      this.db = new ClientDB();
+    } else {
+      // if this is the first client let's use the global ClientDB and set this instance
+      // as the global instance
+      this.db = global.clientDB;
+      global.spacetimeDBClient = this;
+    }
 
     // for (const [_name, reducer] of SpacetimeDBClient.reducerClasses) {
     //   this.registerReducer(reducer);
@@ -379,7 +386,6 @@ export class SpacetimeDBClient {
     this.emitter.emit("receiveWSMessage", wsMessage);
 
     this.processMessage(wsMessage, (message: Message) => {
-      console.log("processMessage", message);
       if (message instanceof SubscriptionUpdateMessage) {
         for (let tableUpdate of message.tableUpdates) {
           const tableName = tableUpdate.tableName;
@@ -787,15 +793,6 @@ export class SpacetimeDBClient {
     }
   }
 
-  // /**
-  //  * Register a reducer to be used with your SpacetimeDB module.
-  //  *
-  //  * @param name The name of the reducer to register
-  //  * @param reducer The reducer to register
-  //  */
-  // private registerReducer(reducer: ReducerClass) {
-  // }
-
   /**
    * Register a component to be used with your SpacetimeDB module. If the websocket is already connected it will add it to the list of subscribed components
    *
@@ -804,25 +801,11 @@ export class SpacetimeDBClient {
    */
   private registerTable(tableClass: DatabaseTableClass) {
     this.db.getOrCreateTable(tableClass.tableName, undefined, tableClass);
+    // only set a default ClientDB on a table class if it's not set yet. This means
+    // that only the first created client will be usable without the `with` method
     if (!tableClass.db) {
-      console.log("Setting db on ", tableClass);
       tableClass.db = this.db;
     }
-    // this.tables[tableClass.name] = new Proxy(tableClass, {
-    //   get: (target, prop: keyof typeof tableClass) => {
-    //     if (typeof tableClass[prop] === "function") {
-    //       return (...args: any[]) => {
-    //         const originalDb = tableClass.db;
-    //         tableClass.db = this.db;
-    //         const result = (tableClass[prop] as unknown as Function)(...args);
-    //         tableClass.db = originalDb;
-    //         return result;
-    //       };
-    //     } else {
-    //       return tableClass[prop];
-    //     }
-    //   },
-    // });
   }
 
   /**
@@ -877,7 +860,6 @@ export class SpacetimeDBClient {
       typeof queryOrQueries === "string" ? [queryOrQueries] : queryOrQueries;
 
     if (this.live) {
-      console.log("subscribe", queries);
       const message = { subscribe: { query_strings: queries } };
       this.emitter.emit("sendWSMessage", message);
       this.ws.send(JSON.stringify(message));
@@ -902,7 +884,6 @@ export class SpacetimeDBClient {
         },
       };
 
-      console.log("send message: ", reducerName);
       message = ProtobufMessage.encode(pmessage).finish();
     } else {
       message = JSON.stringify({
