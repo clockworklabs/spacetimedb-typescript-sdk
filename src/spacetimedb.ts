@@ -45,6 +45,7 @@ import {
   TransactionUpdateMessage,
 } from "./message_types";
 import { SpacetimeDBGlobals } from "./global";
+import { stdbLogger } from "./logger";
 
 export {
   ProductValue,
@@ -127,7 +128,8 @@ export class SpacetimeDBClient {
     const reducerName = `${name}Reducer`;
     const reducerClass = this.reducerClasses.get(reducerName);
     if (!reducerClass) {
-      console.warn(
+      stdbLogger(
+        "warn",
         `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerReducer() first`
       );
       return;
@@ -181,7 +183,8 @@ export class SpacetimeDBClient {
     // }
 
     if (SpacetimeDBClient.tableClasses.size === 0) {
-      console.warn(
+      stdbLogger(
+        "warn",
         "No tables were automatically registered globally, if you want to automatically register tables, you need to register them with SpacetimeDBClient.registerTable() first"
       );
     }
@@ -242,7 +245,7 @@ export class SpacetimeDBClient {
    * @param event CloseEvent object.
    */
   private handleOnClose(event: CloseEvent) {
-    console.error("Closed: ", event);
+    stdbLogger("warn", "Closed: " + event);
     this.emitter.emit("disconnected");
     this.emitter.emit("client_error", event);
   }
@@ -252,7 +255,7 @@ export class SpacetimeDBClient {
    * @param event ErrorEvent object.
    */
   private handleOnError(event: ErrorEvent) {
-    console.error("Error: ", event);
+    stdbLogger("warn", "Error: " + event);
     this.emitter.emit("disconnected");
     this.emitter.emit("client_error", event);
   }
@@ -456,7 +459,7 @@ export class SpacetimeDBClient {
       return;
     }
 
-    console.info("Connecting to SpacetimeDB WS...");
+    stdbLogger("info", "Connecting to SpacetimeDB WS...");
 
     if (host) {
       this.runtime.host = host;
@@ -841,7 +844,7 @@ export class SpacetimeDBClient {
    *
    * ```ts
    * spacetimeDBClient.onError((...args: any[]) => {
-   *  console.error("ERROR", args);
+   *  stdbLogger("warn","ERROR", args);
    * });
    * ```
    */
