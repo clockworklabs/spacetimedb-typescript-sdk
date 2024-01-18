@@ -255,7 +255,7 @@ export class SpacetimeDBClient {
    * @param event ErrorEvent object.
    */
   private handleOnError(event: ErrorEvent) {
-    stdbLogger("warn", "Error: " + event);
+    stdbLogger("warn", "WS Error: " + event);
     this.emitter.emit("disconnected");
     this.emitter.emit("client_error", event);
   }
