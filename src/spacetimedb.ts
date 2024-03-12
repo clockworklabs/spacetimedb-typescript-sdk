@@ -820,12 +820,12 @@ export class SpacetimeDBClient {
    * @param component Component to be registered
    */
   public static registerTable(table: DatabaseTableClass) {
-    this.tableClasses.set(table.name, table);
+    this.tableClasses.set(table.tableName, table);
   }
 
   public static registerTables(...tables: DatabaseTableClass[]) {
     for (const table of tables) {
-      this.tableClasses.set(table.name, table);
+      this.registerTable(table);
     }
   }
 
@@ -836,14 +836,15 @@ export class SpacetimeDBClient {
    * @param reducer Reducer to be registered
    */
   public static registerReducer(reducer: ReducerClass) {
-    this.reducerClasses.set(reducer.name, reducer);
+    this.reducerClasses.set(reducer.reducerName + "Reducer", reducer);
   }
 
   public static registerReducers(...reducers: ReducerClass[]) {
     for (const reducer of reducers) {
-      this.reducerClasses.set(reducer.name, reducer);
+      this.registerReducer(reducer);
     }
   }
+
   /**
    * Subscribe to a set of queries, to be notified when rows which match those queries are altered.
    *
