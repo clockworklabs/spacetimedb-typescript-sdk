@@ -5,4 +5,6 @@ export type EventType =
   | "initialStateSync"
   | "connected"
   | "disconnected"
-  | "client_error";
+  | "client_error"
+  | "receiveWSMessage"
+  | "sendWSMessage";
