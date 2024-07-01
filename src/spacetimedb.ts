@@ -1,65 +1,65 @@
 import { EventEmitter } from "events";
 
-import type { WebsocketTestAdapter } from "./websocket_test_adapter";
 import { WebsocketDecompressAdapter } from "./websocket_decompress_adapter";
+import type { WebsocketTestAdapter } from "./websocket_test_adapter";
 
-import {
-  ProductValue,
-  AlgebraicValue,
-  BinaryAdapter,
-  ValueAdapter,
-  ReducerArgsAdapter,
-  BinaryReducerArgsAdapter,
-  parseValue,
-} from "./algebraic_value";
-import { Serializer, BinarySerializer } from "./serializer";
+import { Address } from "./address";
 import {
   AlgebraicType,
+  BuiltinType,
   ProductType,
   ProductTypeElement,
   SumType,
   SumTypeVariant,
-  BuiltinType,
 } from "./algebraic_type";
-import { EventType } from "./types";
-import { Identity } from "./identity";
-import { Address } from "./address";
-import { ReducerEvent } from "./reducer_event";
-import * as ws from "./client_api";
+import {
+  AlgebraicValue,
+  BinaryAdapter,
+  BinaryReducerArgsAdapter,
+  ProductValue,
+  parseValue,
+  type ReducerArgsAdapter,
+  type ValueAdapter,
+} from "./algebraic_value";
 import BinaryReader from "./binary_reader";
-import { TableUpdate, TableOperation } from "./table";
-import { _tableProxy, toPascalCase } from "./utils";
-import { DatabaseTable, DatabaseTableClass } from "./database_table";
-import { Reducer, ReducerClass } from "./reducer";
+import * as ws from "./client_api";
 import { ClientDB } from "./client_db";
+import { DatabaseTable, type DatabaseTableClass } from "./database_table";
+import { type SpacetimeDBGlobals } from "./global";
+import { Identity } from "./identity";
+import { stdbLogger } from "./logger";
 import {
   IdentityTokenMessage,
-  Message,
   SubscriptionUpdateMessage,
   TransactionUpdateEvent,
   TransactionUpdateMessage,
+  type Message,
 } from "./message_types";
-import { SpacetimeDBGlobals } from "./global";
-import { stdbLogger } from "./logger";
+import { Reducer, type ReducerClass } from "./reducer";
+import { ReducerEvent } from "./reducer_event";
+import { BinarySerializer, type Serializer } from "./serializer";
+import { TableOperation, TableUpdate } from "./table";
+import { type EventType } from "./types";
+import { toPascalCase } from "./utils";
 
 export {
-  ProductValue,
-  AlgebraicValue,
   AlgebraicType,
+  AlgebraicValue,
+  BinarySerializer,
+  BuiltinType,
+  DatabaseTable,
   ProductType,
   ProductTypeElement,
+  ProductValue,
+  Reducer,
+  ReducerEvent,
   SumType,
   SumTypeVariant,
-  BuiltinType,
-  BinarySerializer,
-  ReducerEvent,
-  Reducer,
-  ReducerClass,
-  DatabaseTable,
-  DatabaseTableClass,
+  type DatabaseTableClass,
+  type ReducerClass,
 };
 
-export type { ValueAdapter, ReducerArgsAdapter, Serializer };
+export type { ReducerArgsAdapter, Serializer, ValueAdapter };
 
 const g = (typeof window === "undefined" ? global : window)!;
 

@@ -64,14 +64,20 @@ export namespace ServerMessage {
   };
   export const InitialSubscription = (
     value: __InitialSubscription
-  ): InitialSubscription => ({ tag: "InitialSubscription", value });
+  ): InitialSubscription => ({
+    tag: "InitialSubscription",
+    value,
+  });
   export type TransactionUpdate = {
     tag: "TransactionUpdate";
     value: __TransactionUpdate;
   };
   export const TransactionUpdate = (
     value: __TransactionUpdate
-  ): TransactionUpdate => ({ tag: "TransactionUpdate", value });
+  ): TransactionUpdate => ({
+    tag: "TransactionUpdate",
+    value,
+  });
   export type IdentityToken = { tag: "IdentityToken"; value: __IdentityToken };
   export const IdentityToken = (value: __IdentityToken): IdentityToken => ({
     tag: "IdentityToken",
@@ -83,7 +89,10 @@ export namespace ServerMessage {
   };
   export const OneOffQueryResponse = (
     value: __OneOffQueryResponse
-  ): OneOffQueryResponse => ({ tag: "OneOffQueryResponse", value });
+  ): OneOffQueryResponse => ({
+    tag: "OneOffQueryResponse",
+    value,
+  });
 
   export function fromValue(value: AlgebraicValue): ServerMessage {
     let sumValue = value.asSumValue();

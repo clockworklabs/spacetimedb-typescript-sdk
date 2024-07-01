@@ -108,9 +108,7 @@ function App() {
 
     if (user.name !== oldUser.name) {
       appendToSystemMessage(
-        `User ${userNameOrIdentity(oldUser)} renamed to ${userNameOrIdentity(
-          user
-        )}.`
+        `User ${userNameOrIdentity(oldUser)} renamed to ${userNameOrIdentity(user)}.`
       );
     }
   });
