@@ -1,6 +1,6 @@
-import WebSocket from "isomorphic-ws";
 import decompress from "brotli/decompress";
 import { Buffer } from "buffer";
+import WebSocket from "isomorphic-ws";
 
 export class WebsocketDecompressAdapter {
   public onclose: Function | undefined;

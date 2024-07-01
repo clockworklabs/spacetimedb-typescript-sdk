@@ -14,8 +14,12 @@ export default defineConfig([
     },
     sourcemap: true,
     clean: true,
-    external: ["brotli"],
+    bundle: true,
+    cjsInterop: true,
+    platform: "neutral",
+    noExternal: ["buffer", "isomorphic-ws", "brotli"],
     treeshake: "smallest",
+    // esbuildPlugins: [forceBundleBufferPlugin],
   },
   {
     entryPoints: {
@@ -29,8 +33,10 @@ export default defineConfig([
     dts: false,
     sourcemap: true,
     clean: true,
-    // noExternal: [/.+/],
+    noExternal: ["buffer", "isomorphic-ws", "brotli"],
     treeshake: "smallest",
     minify: "terser",
+    platform: "neutral",
+    // esbuildPlugins: [forceBundleBufferPlugin],
   },
 ]);

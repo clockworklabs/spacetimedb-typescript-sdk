@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "eventemitter3";
 
 import { WebsocketDecompressAdapter } from "./websocket_decompress_adapter";
 import type { WebsocketTestAdapter } from "./websocket_test_adapter";
