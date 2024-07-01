@@ -26,9 +26,7 @@ export default defineConfig([
     target: "es2022",
     outDir: "dist/min",
     legacyOutput: false,
-    dts: {
-      resolve: false,
-    },
+    dts: false,
     sourcemap: true,
     clean: true,
     // noExternal: [/.+/],
