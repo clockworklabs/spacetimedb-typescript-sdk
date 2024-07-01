@@ -17,10 +17,10 @@ jobs:
         with:
           node-version: 18
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: true
 
       - name: Get pnpm store directory
         shell: bash
@@ -34,11 +34,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: true
 
       - name: Lint
         run: pnpm lint
