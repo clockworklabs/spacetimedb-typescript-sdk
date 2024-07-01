@@ -1,13 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
-import logo from "./logo.svg";
+import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-import { SpacetimeDBClient, Identity } from "@clockworklabs/spacetimedb-sdk";
+import { Identity, SpacetimeDBClient } from "@clockworklabs/spacetimedb-sdk";
 
 import Message from "./module_bindings/message";
-import User from "./module_bindings/user";
 import SendMessageReducer from "./module_bindings/send_message_reducer";
 import SetNameReducer from "./module_bindings/set_name_reducer";
+import User from "./module_bindings/user";
 
 SpacetimeDBClient.registerTables(Message, User);
 SpacetimeDBClient.registerReducers(SendMessageReducer, SetNameReducer);
