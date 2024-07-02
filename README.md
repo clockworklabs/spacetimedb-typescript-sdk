@@ -6,10 +6,10 @@ This repository contains the TypeScript SDK for SpacetimeDB. The SDK allows to i
 
 ### Installation
 
-The SDK is an NPM package, thus you can use your package manager of choice like NPM or Yarn, for example:
+The SDK is an NPM package, thus you can use your package manager of choice like NPM or PNPM, for example:
 
 ```
-npm install --save @clockworklabs/spacetimedb-sdk
+pnpm add @clockworklabs/spacetimedb-sdk
 ```
 
 You can use the package in the browser, using a bundler like webpack of vite, and in terminal applications

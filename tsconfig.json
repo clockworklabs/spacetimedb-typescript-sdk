@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
-    "incremental": true,
     "target": "ESNext",
-    "module": "CommonJS",
+    "module": "ESNext",
     "declaration": true,
+    "emitDeclarationOnly": true,
     "outDir": "dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
     "strict": true,
     "noImplicitAny": false,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true
   },
   "include": ["src"],

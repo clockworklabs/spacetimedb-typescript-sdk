@@ -6,11 +6,26 @@
     "name": "Clockwork Labs",
     "email": "no-reply@clockworklabs.io"
   },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "production": "./dist/min/index.js",
+        "development": "./dist/index.js"
+      },
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "clean": "rimraf dist",
-    "build": "tsc",
-    "test": "jest",
-    "prepare": "husky install"
+    "build": "tsup",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "lint": "prettier . --check"
   },
   "repository": {
     "type": "git",
@@ -19,38 +34,27 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/clockworklabs"
   },
-  "types": "./dist/index.d.ts",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "devDependencies": {
     "@types/brotli": "1.3.3",
-    "@types/jest": "^29.4.0",
     "@types/node": "^18.14.6",
     "@types/websocket": "^1.0.5",
-    "husky": ">=6",
-    "jest": "^29.5.0",
-    "lint-staged": ">=10",
-    "prettier": "2.8.7",
-    "prettier-eslint": "^15.0.1",
-    "pretty-quick": "^3.1.3",
-    "rimraf": "^3.0.2",
-    "ts-jest": "^29.0.5",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
-  },
-  "dependencies": {
     "brotli": "1.3.3",
     "buffer": "^6.0.3",
-    "events": "^3.3.0",
+    "eventemitter3": "^5.0.1",
     "isomorphic-ws": "^5.0.0",
     "long": "^5.2.3",
+    "prettier": "3.3.2",
+    "prettier-eslint": "^15.0.1",
+    "pretty-quick": "^3.1.3",
+    "terser": "^5.31.1",
+    "ts-node": "^10.9.1",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.2",
+    "vitest": "^1.6.0",
     "websocket": "^1.0.34",
     "ws": "^8.13.0"
   },
   "files": [
     "/dist"
-  ],
-  "lint-staged": {
-    "*.{js,css,md}": "prettier --write"
-  }
+  ]
 }

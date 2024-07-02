@@ -1,15 +1,11 @@
+import { describe, expect, test } from "vitest";
+import { AlgebraicType, BuiltinType } from "../src/algebraic_type";
 import {
-  AlgebraicType,
-  ProductType,
-  ProductTypeElement,
-  BuiltinType,
-} from "../src/algebraic_type";
-import {
-  ProductValue,
   AlgebraicValue,
-  SumValue,
-  BuiltinValue,
   BinaryAdapter,
+  BuiltinValue,
+  ProductValue,
+  SumValue,
 } from "../src/algebraic_value";
 import BinaryReader from "../src/binary_reader";
 
