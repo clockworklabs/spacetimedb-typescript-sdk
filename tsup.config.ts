@@ -9,13 +9,12 @@ export default defineConfig([
     target: "es2022",
     legacyOutput: false,
     dts: {
-      resolve: false,
+      resolve: true,
     },
     clean: true,
     platform: "browser",
-    noExternal: [/.+/],
+    noExternal: [/.+/, "ws"],
     treeshake: "smallest",
-    // esbuildPlugins: [forceBundleBufferPlugin],
   },
   {
     entryPoints: {
@@ -30,6 +29,5 @@ export default defineConfig([
     treeshake: "smallest",
     minify: "terser",
     platform: "browser",
-    // esbuildPlugins: [forceBundleBufferPlugin],
   },
 ]);
