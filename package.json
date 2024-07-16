@@ -10,7 +10,8 @@
     "clean": "rimraf dist",
     "build": "tsc",
     "test": "jest",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "prettier . --check"
   },
   "repository": {
     "type": "git",
