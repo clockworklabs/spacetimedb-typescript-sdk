@@ -1,10 +1,10 @@
 import {
-  ProductType,
-  SumType,
   AlgebraicType,
   BuiltinType,
   // EnumLabel,
   MapType,
+  ProductType,
+  SumType,
 } from "./algebraic_type";
 import BinaryReader from "./binary_reader";
 
@@ -55,10 +55,10 @@ export interface ValueAdapter {
 }
 
 export class BinaryAdapter implements ValueAdapter {
-  private reader: BinaryReader;
+  #reader: BinaryReader;
 
   constructor(reader: BinaryReader) {
-    this.reader = reader;
+    this.#reader = reader;
   }
 
   callMethod<K extends keyof ValueAdapter>(methodName: K): any {
@@ -66,12 +66,12 @@ export class BinaryAdapter implements ValueAdapter {
   }
 
   readUInt8Array(): Uint8Array {
-    const length = this.reader.readU32();
-    return this.reader.readUInt8Array(length);
+    const length = this.#reader.readU32();
+    return this.#reader.readUInt8Array(length);
   }
 
   readArray(type: AlgebraicType): AlgebraicValue[] {
-    const length = this.reader.readU32();
+    const length = this.#reader.readU32();
     let result: AlgebraicValue[] = [];
     for (let i = 0; i < length; i++) {
       result.push(AlgebraicValue.deserialize(type, this));
@@ -84,7 +84,7 @@ export class BinaryAdapter implements ValueAdapter {
     keyType: AlgebraicType,
     valueType: AlgebraicType
   ): Map<AlgebraicValue, AlgebraicValue> {
-    const mapLength = this.reader.readU32();
+    const mapLength = this.#reader.readU32();
     let result: Map<AlgebraicValue, AlgebraicValue> = new Map();
     for (let i = 0; i < mapLength; i++) {
       const key = AlgebraicValue.deserialize(keyType, this);
@@ -96,12 +96,12 @@ export class BinaryAdapter implements ValueAdapter {
   }
 
   readString(): string {
-    const strLength = this.reader.readU32();
-    return this.reader.readString(strLength);
+    const strLength = this.#reader.readU32();
+    return this.#reader.readString(strLength);
   }
 
   readSum(type: SumType): SumValue {
-    let tag = this.reader.readByte();
+    let tag = this.#reader.readByte();
     let sumValue = AlgebraicValue.deserialize(
       type.variants[tag].algebraicType,
       this
@@ -119,65 +119,65 @@ export class BinaryAdapter implements ValueAdapter {
   }
 
   readBool(): boolean {
-    return this.reader.readBool();
+    return this.#reader.readBool();
   }
   readByte(): number {
-    return this.reader.readByte();
+    return this.#reader.readByte();
   }
   readI8(): number {
-    return this.reader.readI8();
+    return this.#reader.readI8();
   }
   readU8(): number {
-    return this.reader.readU8();
+    return this.#reader.readU8();
   }
   readI16(): number {
-    return this.reader.readI16();
+    return this.#reader.readI16();
   }
   readU16(): number {
-    return this.reader.readU16();
+    return this.#reader.readU16();
   }
   readI32(): number {
-    return this.reader.readI32();
+    return this.#reader.readI32();
   }
   readU32(): number {
-    return this.reader.readU32();
+    return this.#reader.readU32();
   }
   readI64(): bigint {
-    return this.reader.readI64();
+    return this.#reader.readI64();
   }
   readU64(): bigint {
-    return this.reader.readU64();
+    return this.#reader.readU64();
   }
   readU128(): bigint {
-    return this.reader.readU128();
+    return this.#reader.readU128();
   }
   readI128(): bigint {
-    return this.reader.readI128();
+    return this.#reader.readI128();
   }
   readF32(): number {
-    return this.reader.readF32();
+    return this.#reader.readF32();
   }
   readF64(): number {
-    return this.reader.readF64();
+    return this.#reader.readF64();
   }
 }
 
 /** A value of a sum type choosing a specific variant of the type. */
 export class SumValue {
   /** A tag representing the choice of one variant of the sum type's variants. */
-  public tag: number;
+  tag: number;
   /**
    * Given a variant `Var(Ty)` in a sum type `{ Var(Ty), ... }`,
    * this provides the `value` for `Ty`.
    */
-  public value: AlgebraicValue;
+  value: AlgebraicValue;
 
   constructor(tag: number, value: AlgebraicValue) {
     this.tag = tag;
     this.value = value;
   }
 
-  public static deserialize(
+  static deserialize(
     type: SumType | undefined,
     adapter: ValueAdapter
   ): SumValue {
@@ -203,7 +203,7 @@ export class ProductValue {
     this.elements = elements;
   }
 
-  public static deserialize(
+  static deserialize(
     type: ProductType | undefined,
     adapter: ValueAdapter
   ): ProductValue {
@@ -232,10 +232,7 @@ export class BuiltinValue {
     this.value = value;
   }
 
-  public static deserialize(
-    type: BuiltinType,
-    adapter: ValueAdapter
-  ): BuiltinValue {
+  static deserialize(type: BuiltinType, adapter: ValueAdapter): BuiltinValue {
     switch (type.type) {
       case BuiltinType.Type.Array:
         let arrayBuiltinType: BuiltinType.Type | undefined =
@@ -269,37 +266,37 @@ export class BuiltinValue {
     }
   }
 
-  public asString(): string {
+  asString(): string {
     return this.value as string;
   }
 
-  public asArray(): AlgebraicValue[] {
+  asArray(): AlgebraicValue[] {
     return this.value as AlgebraicValue[];
   }
 
-  public asJsArray(type: string): any[] {
+  asJsArray(type: string): any[] {
     return this.asArray().map((el) =>
       el.callMethod(("as" + type) as keyof AlgebraicValue)
     );
   }
 
-  public asNumber(): number {
+  asNumber(): number {
     return this.value as number;
   }
 
-  public asBool(): boolean {
+  asBool(): boolean {
     return this.value as boolean;
   }
 
-  public asBigInt(): bigint {
+  asBigInt(): bigint {
     return this.value as bigint;
   }
 
-  public asBoolean(): boolean {
+  asBoolean(): boolean {
     return this.value as boolean;
   }
 
-  public asBytes(): Uint8Array {
+  asBytes(): Uint8Array {
     return this.value as Uint8Array;
   }
 }
@@ -337,7 +334,7 @@ export class AlgebraicValue {
     return (this[methodName] as Function)();
   }
 
-  public static deserialize(type: AlgebraicType, adapter: ValueAdapter) {
+  static deserialize(type: AlgebraicType, adapter: ValueAdapter) {
     switch (type.type) {
       case AlgebraicType.Type.ProductType:
         return new this(ProductValue.deserialize(type.product, adapter));
@@ -350,19 +347,19 @@ export class AlgebraicValue {
     }
   }
 
-  public asProductValue(): ProductValue {
+  asProductValue(): ProductValue {
     if (!this.product) {
       throw "AlgebraicValue is not a ProductValue and product was requested";
     }
     return this.product as ProductValue;
   }
 
-  public asBuiltinValue(): BuiltinValue {
-    this.assertBuiltin();
+  asBuiltinValue(): BuiltinValue {
+    this.#assertBuiltin();
     return this.builtin as BuiltinValue;
   }
 
-  public asSumValue(): SumValue {
+  asSumValue(): SumValue {
     if (!this.sum) {
       throw "AlgebraicValue is not a SumValue and a sum value was requested";
     }
@@ -370,42 +367,42 @@ export class AlgebraicValue {
     return this.sum as SumValue;
   }
 
-  public asArray(): AlgebraicValue[] {
-    this.assertBuiltin();
+  asArray(): AlgebraicValue[] {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asArray();
   }
 
-  public asString(): string {
-    this.assertBuiltin();
+  asString(): string {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asString();
   }
 
-  public asNumber(): number {
-    this.assertBuiltin();
+  asNumber(): number {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asNumber();
   }
 
-  public asBool(): boolean {
-    this.assertBuiltin();
+  asBool(): boolean {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asBool();
   }
 
-  public asBigInt(): bigint {
-    this.assertBuiltin();
+  asBigInt(): bigint {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asBigInt();
   }
 
-  public asBoolean(): boolean {
-    this.assertBuiltin();
+  asBoolean(): boolean {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asBool();
   }
 
-  public asBytes(): Uint8Array {
-    this.assertBuiltin();
+  asBytes(): Uint8Array {
+    this.#assertBuiltin();
     return (this.builtin as BuiltinValue).asBytes();
   }
 
-  private assertBuiltin() {
+  #assertBuiltin() {
     if (!this.builtin) {
       throw "AlgebraicValue is not a BuiltinValue and a string was requested";
     }

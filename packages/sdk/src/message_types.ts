@@ -2,7 +2,7 @@ import { Address, Identity } from ".";
 import { TableUpdate } from "./table";
 
 export class SubscriptionUpdateMessage {
-  public tableUpdates: TableUpdate[];
+  tableUpdates: TableUpdate[];
 
   constructor(tableUpdates: TableUpdate[]) {
     this.tableUpdates = tableUpdates;
@@ -10,13 +10,13 @@ export class SubscriptionUpdateMessage {
 }
 
 export class TransactionUpdateEvent {
-  public identity: Identity;
-  public address: Address | null;
-  public originalReducerName: string;
-  public reducerName: string;
-  public args: Uint8Array;
-  public status: string;
-  public message: string;
+  identity: Identity;
+  address: Address | null;
+  originalReducerName: string;
+  reducerName: string;
+  args: Uint8Array;
+  status: string;
+  message: string;
 
   constructor(
     identity: Identity,
@@ -38,8 +38,8 @@ export class TransactionUpdateEvent {
 }
 
 export class TransactionUpdateMessage {
-  public tableUpdates: TableUpdate[];
-  public event: TransactionUpdateEvent;
+  tableUpdates: TableUpdate[];
+  event: TransactionUpdateEvent;
 
   constructor(tableUpdates: TableUpdate[], event: TransactionUpdateEvent) {
     this.tableUpdates = tableUpdates;
@@ -48,9 +48,9 @@ export class TransactionUpdateMessage {
 }
 
 export class IdentityTokenMessage {
-  public identity: Identity;
-  public token: string;
-  public address: Address;
+  identity: Identity;
+  token: string;
+  address: Address;
 
   constructor(identity: Identity, token: string, address: Address) {
     this.identity = identity;

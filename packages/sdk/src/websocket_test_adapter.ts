@@ -1,34 +1,33 @@
-import { BinarySerializer } from "./serializer";
 import { ServerMessage } from "./client_api";
-import type { CreateWSFnType } from "./spacetimedb";
+import { BinarySerializer } from "./serializer";
 
 class WebsocketTestAdapter {
-  public onclose: any;
-  public onopen!: Function;
-  public onmessage: any;
-  public onerror: any;
+  onclose: any;
+  onopen!: Function;
+  onmessage: any;
+  onerror: any;
 
-  public messageQueue: any[];
-  public closed: boolean;
+  messageQueue: any[];
+  closed: boolean;
 
   constructor() {
     this.messageQueue = [];
     this.closed = false;
   }
 
-  public send(message: any) {
+  send(message: any) {
     this.messageQueue.push(message);
   }
 
-  public close() {
+  close() {
     this.closed = true;
   }
 
-  public acceptConnection() {
+  acceptConnection() {
     this.onopen();
   }
 
-  public sendToClient(message: ServerMessage) {
+  sendToClient(message: ServerMessage) {
     const serializer = new BinarySerializer();
     serializer.write(ServerMessage.getAlgebraicType(), message);
     const rawBytes = serializer.args();
@@ -40,7 +39,7 @@ class WebsocketTestAdapter {
     this.onmessage({ data: rawBytes });
   }
 
-  public async createWebSocketFn(
+  async createWebSocketFn(
     _url,
     _protocol,
     _params

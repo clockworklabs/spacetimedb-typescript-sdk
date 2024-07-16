@@ -1,14 +1,14 @@
 import { EventEmitter } from "events";
-import { AlgebraicValue, DatabaseTable } from "./spacetimedb";
-import OperationsMap from "./operations_map";
-import { ReducerEvent } from "./reducer_event";
 import { BinaryAdapter } from "./algebraic_value";
 import BinaryReader from "./binary_reader";
+import OperationsMap from "./operations_map";
+import { ReducerEvent } from "./reducer_event";
+import { AlgebraicValue, DatabaseTable } from "./spacetimedb";
 
 class DBOp {
-  public type: "insert" | "delete";
-  public instance: any;
-  public rowPk: string;
+  type: "insert" | "delete";
+  instance: any;
+  rowPk: string;
 
   constructor(type: "insert" | "delete", rowPk: string, instance: any) {
     this.type = type;
@@ -23,9 +23,9 @@ export class TableOperation {
    *
    * NOTE: An update is a `delete` followed by a 'insert' internally.
    */
-  public type: "insert" | "delete";
-  public rowPk: string;
-  public row: Uint8Array;
+  type: "insert" | "delete";
+  rowPk: string;
+  row: Uint8Array;
 
   constructor(type: "insert" | "delete", rowPk: string, row: Uint8Array | any) {
     this.type = type;
@@ -35,8 +35,8 @@ export class TableOperation {
 }
 
 export class TableUpdate {
-  public tableName: string;
-  public operations: TableOperation[];
+  tableName: string;
+  operations: TableOperation[];
 
   constructor(tableName: string, operations: TableOperation[]) {
     this.tableName = tableName;
@@ -49,10 +49,10 @@ export class TableUpdate {
  */
 export class Table {
   // TODO: most of this stuff should be probably private
-  public name: string;
-  public instances: Map<string, DatabaseTable>;
-  public emitter: EventEmitter;
-  private entityClass: any;
+  name: string;
+  instances: Map<string, DatabaseTable>;
+  emitter: EventEmitter;
+  #entityClass: any;
   pkCol?: number;
 
   /**
@@ -65,20 +65,20 @@ export class Table {
     this.instances = new Map();
     this.emitter = new EventEmitter();
     this.pkCol = pkCol;
-    this.entityClass = entityClass;
+    this.#entityClass = entityClass;
   }
 
   /**
    * @returns number of entries in the table
    */
-  public count(): number {
+  count(): number {
     return this.instances.size;
   }
 
   /**
    * @returns The values of the entries in the table
    */
-  public getInstances(): any[] {
+  getInstances(): any[] {
     return Array.from(this.instances.values());
   }
 
@@ -91,16 +91,16 @@ export class Table {
       const pk: string = operation.rowPk;
       const adapter = new BinaryAdapter(new BinaryReader(operation.row));
       const entry = AlgebraicValue.deserialize(
-        this.entityClass.getAlgebraicType(),
+        this.#entityClass.getAlgebraicType(),
         adapter
       );
-      const instance = this.entityClass.fromValue(entry);
+      const instance = this.#entityClass.fromValue(entry);
 
       dbOps.push(new DBOp(operation.type, pk, instance));
     }
 
-    if (this.entityClass.primaryKey !== undefined) {
-      const pkName = this.entityClass.primaryKey;
+    if (this.#entityClass.primaryKey !== undefined) {
+      const pkName = this.#entityClass.primaryKey;
       const inserts: any[] = [];
       const deleteMap = new OperationsMap<any, DBOp>();
       for (const dbOp of dbOps) {

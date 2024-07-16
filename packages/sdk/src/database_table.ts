@@ -16,17 +16,14 @@ type ThisDatabaseType<T extends DatabaseTable> = {
 };
 
 export class DatabaseTable {
-  public static db?: ClientDB;
-  public static tableName: string;
+  static db?: ClientDB;
+  static tableName: string;
 
-  public static with<T extends DatabaseTable>(
-    this: T,
-    client: SpacetimeDBClient
-  ): T {
+  static with<T extends DatabaseTable>(this: T, client: SpacetimeDBClient): T {
     return _tableProxy<T>(this, client) as unknown as T;
   }
 
-  public static getDB(): ClientDB {
+  static getDB(): ClientDB {
     if (!this.db) {
       throw "You can't query the database without creating a client first";
     }
@@ -34,24 +31,24 @@ export class DatabaseTable {
     return this.db;
   }
 
-  public static count(): number {
+  static count(): number {
     return this.getDB().getTable(this.tableName).count();
   }
 
-  public static all<T extends DatabaseTable>(this: ThisDatabaseType<T>): T[] {
+  static all<T extends DatabaseTable>(this: ThisDatabaseType<T>): T[] {
     return this.getDB()
       .getTable(this.tableName)
       .getInstances() as unknown as T[];
   }
 
-  public static onInsert<T extends DatabaseTable>(
+  static onInsert<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
   ) {
     this.getDB().getTable(this.tableName).onInsert(callback);
   }
 
-  public static onUpdate<T extends DatabaseTable>(
+  static onUpdate<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (
       oldValue: T,
@@ -62,21 +59,21 @@ export class DatabaseTable {
     this.getDB().getTable(this.tableName).onUpdate(callback);
   }
 
-  public static onDelete<T extends DatabaseTable>(
+  static onDelete<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
   ) {
     this.getDB().getTable(this.tableName).onDelete(callback);
   }
 
-  public static removeOnInsert<T extends DatabaseTable>(
+  static removeOnInsert<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
   ) {
     this.getDB().getTable(this.tableName).removeOnInsert(callback);
   }
 
-  public static removeOnUpdate<T extends DatabaseTable>(
+  static removeOnUpdate<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (
       oldValue: T,
@@ -87,7 +84,7 @@ export class DatabaseTable {
     this.getDB().getTable(this.tableName).removeOnUpdate(callback);
   }
 
-  public static removeOnDelete<T extends DatabaseTable>(
+  static removeOnDelete<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
   ) {

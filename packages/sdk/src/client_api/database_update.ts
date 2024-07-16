@@ -2,40 +2,25 @@
 // WILL NOT BE SAVED. MODIFY TABLES IN RUST INSTEAD.
 
 // @ts-ignore
-import {
-  __SPACETIMEDB__,
-  AlgebraicType,
-  ProductType,
-  BuiltinType,
-  ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
-} from "../index";
+import { AlgebraicType, AlgebraicValue, ProductTypeElement } from "../index";
 // @ts-ignore
 import { TableUpdate } from "./table_update";
 
 export class DatabaseUpdate {
-  public static tableName = "DatabaseUpdate";
-  public tables: TableUpdate[];
+  static tableName = "DatabaseUpdate";
+  tables: TableUpdate[];
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(tables: TableUpdate[]) {
     this.tables = tables;
   }
 
-  public static serialize(value: DatabaseUpdate): object {
+  static serialize(value: DatabaseUpdate): object {
     return [value.tables.map((el) => TableUpdate.serialize(el))];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "tables",
@@ -44,7 +29,7 @@ export class DatabaseUpdate {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): DatabaseUpdate {
+  static fromValue(value: AlgebraicValue): DatabaseUpdate {
     let productValue = value.asProductValue();
     let __tables = productValue.elements[0]
       .asArray()

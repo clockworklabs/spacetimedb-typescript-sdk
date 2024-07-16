@@ -1,13 +1,13 @@
-import { Identity } from "./identity";
 import { Address } from "./address";
+import { Identity } from "./identity";
 
 export class ReducerEvent {
-  public callerIdentity: Identity;
-  public callerAddress: Address | null;
-  public reducerName: string;
-  public status: string;
-  public message: string;
-  public args: any;
+  callerIdentity: Identity;
+  callerAddress: Address | null;
+  reducerName: string;
+  status: string;
+  message: string;
+  args: any;
 
   constructor(
     callerIdentity: Identity,

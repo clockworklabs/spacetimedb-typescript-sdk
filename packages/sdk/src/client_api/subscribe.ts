@@ -3,39 +3,29 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 
 export class Subscribe {
-  public static tableName = "Subscribe";
-  public queryStrings: string[];
-  public requestId: number;
+  static tableName = "Subscribe";
+  queryStrings: string[];
+  requestId: number;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(queryStrings: string[], requestId: number) {
     this.queryStrings = queryStrings;
     this.requestId = requestId;
   }
 
-  public static serialize(value: Subscribe): object {
+  static serialize(value: Subscribe): object {
     return [value.queryStrings, value.requestId];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "queryStrings",
@@ -50,7 +40,7 @@ export class Subscribe {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): Subscribe {
+  static fromValue(value: AlgebraicValue): Subscribe {
     let productValue = value.asProductValue();
     let __query_strings = productValue.elements[0]
       .asArray()

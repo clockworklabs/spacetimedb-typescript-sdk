@@ -3,37 +3,27 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 
 export class Timestamp {
-  public static tableName = "Timestamp";
-  public microseconds: BigInt;
+  static tableName = "Timestamp";
+  microseconds: BigInt;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(microseconds: BigInt) {
     this.microseconds = microseconds;
   }
 
-  public static serialize(value: Timestamp): object {
+  static serialize(value: Timestamp): object {
     return [value.microseconds];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "microseconds",
@@ -42,7 +32,7 @@ export class Timestamp {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): Timestamp {
+  static fromValue(value: AlgebraicValue): Timestamp {
     let productValue = value.asProductValue();
     let __microseconds = productValue.elements[0].asBigInt();
     return new this(__microseconds);
