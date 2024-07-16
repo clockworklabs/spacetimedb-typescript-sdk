@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, test } from "vitest";
 import { Address } from "../src/address";
 import { AlgebraicType, BuiltinType } from "../src/algebraic_type";
 import { parseValue } from "../src/algebraic_value";

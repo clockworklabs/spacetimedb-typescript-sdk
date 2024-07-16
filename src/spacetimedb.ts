@@ -1,4 +1,4 @@
-import { EventEmitter } from "eventemitter3";
+import { EventEmitter } from "events";
 
 import { WebsocketDecompressAdapter } from "./websocket_decompress_adapter";
 import type { WebsocketTestAdapter } from "./websocket_test_adapter";
@@ -16,10 +16,10 @@ import {
   AlgebraicValue,
   BinaryAdapter,
   BinaryReducerArgsAdapter,
-  ProductValue,
   parseValue,
-  type ReducerArgsAdapter,
-  type ValueAdapter,
+  ProductValue,
+  ReducerArgsAdapter,
+  ValueAdapter,
 } from "./algebraic_value";
 import BinaryReader from "./binary_reader";
 import * as ws from "./client_api";
@@ -35,12 +35,9 @@ import {
   TransactionUpdateMessage,
   type Message,
 } from "./message_types";
-import { Reducer, type ReducerClass } from "./reducer";
 import { ReducerEvent } from "./reducer_event";
-import { BinarySerializer, type Serializer } from "./serializer";
-import { TableOperation, TableUpdate } from "./table";
-import { type EventType } from "./types";
-import { toPascalCase } from "./utils";
+import { BinarySerializer, Serializer } from "./serializer";
+import { EventType } from "./types";
 
 export {
   AlgebraicType,

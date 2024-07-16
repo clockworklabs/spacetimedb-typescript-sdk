@@ -1,9 +1,9 @@
 import { EventEmitter } from "eventemitter3";
-import { BinaryAdapter } from "./algebraic_value";
+import { AlgebraicValue, BinaryAdapter } from "./algebraic_value";
 import BinaryReader from "./binary_reader";
+import type { DatabaseTable } from "./database_table";
 import OperationsMap from "./operations_map";
 import { ReducerEvent } from "./reducer_event";
-import { AlgebraicValue, DatabaseTable } from "./spacetimedb";
 
 class DBOp {
   public type: "insert" | "delete";
