@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "jest",
     "format": "prettier --write .",
     "lint": "prettier . --check"
   },
