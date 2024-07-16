@@ -76,6 +76,7 @@ export class WebsocketDecompressAdapter {
     if (typeof window === "undefined" || !params.auth_token) {
       // NodeJS environment
       const ws = new WebSocket(url, protocol, {
+        // @ts-ignore
         maxReceivedFrameSize: 100000000,
         maxReceivedMessageSize: 100000000,
         headers,

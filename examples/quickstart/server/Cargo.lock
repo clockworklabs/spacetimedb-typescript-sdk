@@ -63,12 +63,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bytes"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -430,7 +424,6 @@ version = "0.10.0"
 dependencies = [
  "arrayvec",
  "bitflags",
- "bytes",
  "decorum",
  "derive_more",
  "enum-as-inner",
