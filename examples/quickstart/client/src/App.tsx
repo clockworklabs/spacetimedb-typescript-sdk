@@ -1,77 +1,144 @@
-import React, { useEffect, useState, useRef } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 
-import { SpacetimeDBClient, Identity } from "@clockworklabs/spacetimedb-sdk";
-
+// Bindings
 import Message from "./module_bindings/message";
-import User from "./module_bindings/user";
 import SendMessageReducer from "./module_bindings/send_message_reducer";
 import SetNameReducer from "./module_bindings/set_name_reducer";
+import User from "./module_bindings/user";
 
-SpacetimeDBClient.registerTables(Message, User);
-SpacetimeDBClient.registerReducers(SendMessageReducer, SetNameReducer);
+import { Identity, SpacetimeDBClient } from "@clockworklabs/spacetimedb-sdk";
+import React, { useEffect, useRef, useState } from "react";
 
 export type MessageType = {
   name: string;
   message: string;
 };
 
-let token = localStorage.getItem("auth_token") || undefined;
-var spacetimeDBClient = new SpacetimeDBClient(
-  "ws://localhost:3000",
-  "chat",
-  token
-);
+// Register the tables and reducers before creating the SpacetimeDBClient
+SpacetimeDBClient.registerTables(Message, User);
+SpacetimeDBClient.registerReducers(SendMessageReducer, SetNameReducer);
+
+const token = localStorage.getItem("auth_token") || undefined;
+const client = new SpacetimeDBClient("ws://localhost:3000", "chat", token);
 
 function App() {
   const [newName, setNewName] = useState("");
   const [settingName, setSettingName] = useState(false);
   const [name, setName] = useState("");
-  const [systemMessage, setSystemMessage] = useState("");
+
+  // Store all system messages as a Set, to avoid duplication
+  const [systemMessages, setSystemMessages] = useState(
+    () => new Set<string>([])
+  );
   const [messages, setMessages] = useState<MessageType[]>([]);
 
   const [newMessage, setNewMessage] = useState("");
 
-  let local_identity = useRef<Identity | undefined>(undefined);
-  let initialized = useRef<boolean>(false);
+  const local_identity = useRef<Identity | undefined>(undefined);
+  const initialized = useRef<boolean>(false);
 
-  const client = useRef<SpacetimeDBClient>(spacetimeDBClient);
-  client.current.on("disconnected", () => {
-    console.log("disconnected");
-  });
-  client.current.on("client_error", () => {
-    console.log("client_error");
-  });
+  useEffect(() => {
+    if (!initialized.current) {
+      client.connect();
+      initialized.current = true;
+    }
+  }, []);
 
-  client.current.onConnect((token: string, identity: Identity) => {
-    console.log("Connected to SpacetimeDB");
+  // All the event listeners are set up in the useEffect hook
+  useEffect(() => {
+    client.on("disconnected", () => {
+      console.log("disconnected");
+    });
 
-    local_identity.current = identity;
+    client.on("client_error", () => {
+      console.log("client_error");
+    });
 
-    localStorage.setItem("auth_token", token);
+    client.onConnect((token: string, identity: Identity) => {
+      console.log("Connected to SpacetimeDB");
 
-    client.current.subscribe(["SELECT * FROM User", "SELECT * FROM Message"]);
-  });
+      local_identity.current = identity;
+
+      localStorage.setItem("auth_token", token);
+
+      client.subscribe(["SELECT * FROM User", "SELECT * FROM Message"]);
+    });
+
+    client.on("initialStateSync", () => {
+      setAllMessagesInOrder();
+      const user = User.findByIdentity(local_identity?.current!);
+      setName(userNameOrIdentity(user!));
+    });
+
+    User.onInsert((user) => {
+      if (user.online) {
+        appendToSystemMessage(`${userNameOrIdentity(user)} has connected.`);
+      }
+    });
+
+    User.onUpdate((oldUser, user) => {
+      if (oldUser.online === false && user.online === true) {
+        appendToSystemMessage(`${userNameOrIdentity(user)} has connected.`);
+      } else if (oldUser.online === true && user.online === false) {
+        appendToSystemMessage(`${userNameOrIdentity(user)} has disconnected.`);
+      }
+
+      if (user.name !== oldUser.name) {
+        appendToSystemMessage(
+          `User ${userNameOrIdentity(oldUser)} renamed to ${userNameOrIdentity(
+            user
+          )}.`
+        );
+      }
+    });
+
+    Message.onInsert(() => {
+      setAllMessagesInOrder();
+    });
+
+    SendMessageReducer.on((reducerEvent) => {
+      if (
+        local_identity.current &&
+        reducerEvent.callerIdentity.isEqual(local_identity.current)
+      ) {
+        if (reducerEvent.status === "failed") {
+          appendToSystemMessage(
+            `Error sending message: ${reducerEvent.message} `
+          );
+        }
+      }
+    });
+
+    SetNameReducer.on((reducerEvent, reducerArgs) => {
+      if (
+        local_identity.current &&
+        reducerEvent.callerIdentity.isEqual(local_identity.current)
+      ) {
+        if (reducerEvent.status === "failed") {
+          appendToSystemMessage(`Error setting name: ${reducerEvent.message} `);
+        } else if (reducerEvent.status === "committed") {
+          setName(reducerArgs[0]);
+        }
+      }
+    });
+  }, []);
 
   function userNameOrIdentity(user: User): string {
     console.log(`Name: ${user.name} `);
-    if (user.name !== null) {
-      return user.name || "";
-    } else {
-      var identityStr = user.identity.toHexString();
-      console.log(`Name: ${identityStr} `);
-      return user.identity.toHexString().substring(0, 8);
-    }
+    if (user.name !== null) return user.name || "";
+
+    const identityStr = user.identity.toHexString();
+    console.log(`Name: ${identityStr} `);
+    return user.identity.toHexString().substring(0, 8);
   }
 
   function setAllMessagesInOrder() {
-    let messages = Array.from(Message.all());
+    const messages = Array.from(Message.all());
     messages.sort((a, b) => (a.sent > b.sent ? 1 : a.sent < b.sent ? -1 : 0));
 
-    let messagesType: MessageType[] = messages.map((message) => {
-      let sender = User.findByIdentity(message.sender);
-      let name = sender ? userNameOrIdentity(sender) : "unknown";
+    const messagesType: MessageType[] = messages.map((message) => {
+      const sender = User.findByIdentity(message.sender);
+      const name = sender ? userNameOrIdentity(sender) : "unknown";
 
       return {
         name: name, // convert sender Uint8Array to name string using helper function
@@ -82,68 +149,10 @@ function App() {
     setMessages(messagesType);
   }
 
-  client.current.on("initialStateSync", () => {
-    setAllMessagesInOrder();
-    var user = User.findByIdentity(local_identity?.current!);
-    setName(userNameOrIdentity(user!));
-  });
-
   // Helper function to append a line to the systemMessage state
-  function appendToSystemMessage(line: String) {
-    setSystemMessage((prevMessage) => prevMessage + "\n" + line);
+  function appendToSystemMessage(line: string) {
+    setSystemMessages((systemMessages) => systemMessages.add(line));
   }
-
-  User.onInsert((user, reducerEvent) => {
-    if (user.online) {
-      appendToSystemMessage(`${userNameOrIdentity(user)} has connected.`);
-    }
-  });
-
-  User.onUpdate((oldUser, user, reducerEvent) => {
-    if (oldUser.online === false && user.online === true) {
-      appendToSystemMessage(`${userNameOrIdentity(user)} has connected.`);
-    } else if (oldUser.online === true && user.online === false) {
-      appendToSystemMessage(`${userNameOrIdentity(user)} has disconnected.`);
-    }
-
-    if (user.name !== oldUser.name) {
-      appendToSystemMessage(
-        `User ${userNameOrIdentity(oldUser)} renamed to ${userNameOrIdentity(
-          user
-        )}.`
-      );
-    }
-  });
-
-  Message.onInsert((message, reducerEvent) => {
-    setAllMessagesInOrder();
-  });
-
-  SendMessageReducer.on((reducerEvent, reducerArgs) => {
-    if (
-      local_identity.current &&
-      reducerEvent.callerIdentity.isEqual(local_identity.current)
-    ) {
-      if (reducerEvent.status === "failed") {
-        appendToSystemMessage(
-          `Error sending message: ${reducerEvent.message} `
-        );
-      }
-    }
-  });
-
-  SetNameReducer.on((reducerEvent, reducerArgs) => {
-    if (
-      local_identity.current &&
-      reducerEvent.callerIdentity.isEqual(local_identity.current)
-    ) {
-      if (reducerEvent.status === "failed") {
-        appendToSystemMessage(`Error setting name: ${reducerEvent.message} `);
-      } else if (reducerEvent.status === "committed") {
-        setName(reducerArgs[0]);
-      }
-    }
-  });
 
   const onSubmitNewName = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -158,27 +167,21 @@ function App() {
     setNewMessage("");
   };
 
-  useEffect(() => {
-    if (!initialized.current) {
-      client.current.connect();
-      initialized.current = true;
-    }
-  }, []);
-
   return (
     <div className="App">
       <div className="profile">
-        <h1>Profile</h1>
+        <h2>Profile</h2>
         {!settingName ? (
           <>
             <p>{name}</p>
             <button
+              type="button"
               onClick={() => {
                 setSettingName(true);
                 setNewName(name);
               }}
             >
-              Edit Name
+              EDIT NAME
             </button>
           </>
         ) : (
@@ -189,46 +192,47 @@ function App() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
             />
-            <button type="submit">Submit</button>
+            <button type="submit">SUBMIT</button>
           </form>
         )}
       </div>
-      <div className="message">
-        <h1>Messages</h1>
-        {messages.length < 1 && <p>No messages</p>}
+
+      <section className="chatbox">
+        <div className="message">
+          <h2>Messages</h2>
+          {messages.length < 1 && <p>No messages</p>}
+          <div>
+            {messages.map(({ message, name }) => (
+              <div key={message}>
+                <p>
+                  <b>{name}</b>: {message}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="new-message">
+          <form onSubmit={onMessageSubmit}>
+            <input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Send a message..."
+              autoFocus
+              type="text"
+            />
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </section>
+
+      <div className="system" style={{ whiteSpace: "pre-wrap" }}>
+        <h2>System</h2>
         <div>
-          {messages.map((message, key) => (
-            <div key={key}>
-              <p>
-                <b>{message.name}</b>: {message.message}
-              </p>
-            </div>
+          {Array.from(systemMessages).map((message) => (
+            <p key={message}>{message}</p>
           ))}
         </div>
-      </div>
-      <div className="system" style={{ whiteSpace: "pre-wrap" }}>
-        <h1>System</h1>
-        <div>
-          <p>{systemMessage}</p>
-        </div>
-      </div>
-      <div className="new-message">
-        <form
-          onSubmit={onMessageSubmit}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: "50%",
-            margin: "0 auto",
-          }}
-        >
-          <h3>New Message</h3>
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-          ></textarea>
-          <button type="submit">Send</button>
-        </form>
       </div>
     </div>
   );
