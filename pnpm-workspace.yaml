@@ -2,4 +2,3 @@ packages:
   - "packages/*"
   - "examples/**"
   - "packages/sdk/test-app"
-  - "packages/sdk/test-app-vite"
