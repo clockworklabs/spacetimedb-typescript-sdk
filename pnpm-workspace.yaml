@@ -1,4 +1,5 @@
 packages:
   - "packages/*"
   - "examples/**"
-  - "tests/**/*"
+  - "packages/sdk/test-app"
+  - "packages/sdk/test-app-vite"
