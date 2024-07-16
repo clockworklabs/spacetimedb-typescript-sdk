@@ -1,4 +1,4 @@
-import { DatabaseTableClass } from ".";
+import { type DatabaseTableClass } from "./index.ts";
 import { Table } from "./table";
 
 export class ClientDB {
