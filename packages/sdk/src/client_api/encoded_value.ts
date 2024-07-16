@@ -3,11 +3,10 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  SumTypeVariant,
-  BuiltinType,
   AlgebraicValue,
+  BuiltinType,
+  SumTypeVariant,
 } from "../index";
 
 export namespace EncodedValue {

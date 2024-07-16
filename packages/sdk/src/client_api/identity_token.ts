@@ -3,29 +3,21 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
-  AlgebraicType,
-  ProductType,
-  BuiltinType,
-  ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
   Address,
-  ClientDB,
-  SpacetimeDBClient,
+  AlgebraicType,
+  AlgebraicValue,
+  BuiltinType,
+  Identity,
+  ProductTypeElement,
 } from "../index";
 
 export class IdentityToken {
-  public static tableName = "IdentityToken";
-  public identity: Identity;
-  public token: string;
-  public address: Address;
+  static tableName = "IdentityToken";
+  identity: Identity;
+  token: string;
+  address: Address;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(identity: Identity, token: string, address: Address) {
     this.identity = identity;
@@ -33,7 +25,7 @@ export class IdentityToken {
     this.address = address;
   }
 
-  public static serialize(value: IdentityToken): object {
+  static serialize(value: IdentityToken): object {
     return [
       Array.from(value.identity.toUint8Array()),
       value.token,
@@ -41,7 +33,7 @@ export class IdentityToken {
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "identity",
@@ -72,7 +64,7 @@ export class IdentityToken {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): IdentityToken {
+  static fromValue(value: AlgebraicValue): IdentityToken {
     let productValue = value.asProductValue();
     let __identity = new Identity(
       productValue.elements[0].asProductValue().elements[0].asBytes()

@@ -5,17 +5,17 @@ export type ReducerClass = {
   reducerName: string;
 };
 export class Reducer {
-  public static reducerName: string;
-  public call(..._args: any[]): void {
+  static reducerName: string;
+  call(..._args: any[]): void {
     throw "not implemented";
   }
-  public on(..._args: any[]): void {
+  on(..._args: any[]): void {
     throw "not implemented";
   }
 
   protected client: SpacetimeDBClient;
 
-  public static with<T extends typeof Reducer>(
+  static with<T extends typeof Reducer>(
     client: SpacetimeDBClient
   ): InstanceType<T> {
     return new this(client) as InstanceType<T>;

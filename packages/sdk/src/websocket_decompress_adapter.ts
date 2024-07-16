@@ -1,16 +1,16 @@
-import WebSocket from "isomorphic-ws";
 import decompress from "brotli/decompress";
 import { Buffer } from "buffer";
+import WebSocket from "isomorphic-ws";
 
 export class WebsocketDecompressAdapter {
-  public onclose: Function | undefined;
-  public onopen: Function | undefined;
-  public onmessage: ((msg: { data: Uint8Array }) => void) | undefined;
-  public onerror: Function | undefined;
+  onclose: Function | undefined;
+  onopen: Function | undefined;
+  onmessage: ((msg: { data: Uint8Array }) => void) | undefined;
+  onerror: Function | undefined;
 
-  private ws: WebSocket;
+  #ws: WebSocket;
 
-  private handleOnMessage(msg: { data: any }) {
+  #handleOnMessage(msg: { data: any }) {
     msg.data.arrayBuffer().then((data: Uint8Array) => {
       const decompressed = decompress(new Buffer(data));
       if (this.onmessage) {
@@ -19,30 +19,30 @@ export class WebsocketDecompressAdapter {
     });
   }
 
-  private handleOnClose(msg: any) {
+  #handleOnClose(msg: any) {
     if (this.onclose !== undefined) {
       this.onclose(msg);
     }
   }
 
-  private handleOnOpen(msg: any) {
+  #handleOnOpen(msg: any) {
     if (this.onopen !== undefined) {
       this.onopen(msg);
     }
   }
 
-  private handleOnError(msg: any) {
+  #handleOnError(msg: any) {
     if (this.onerror !== undefined) {
       this.onerror(msg);
     }
   }
 
-  public send(msg: any) {
-    this.ws.send(msg);
+  send(msg: any) {
+    this.#ws.send(msg);
   }
 
-  public close() {
-    this.ws.close();
+  close() {
+    this.#ws.close();
   }
 
   constructor(ws: WebSocket) {
@@ -51,15 +51,15 @@ export class WebsocketDecompressAdapter {
     this.onmessage = undefined;
     this.onerror = undefined;
 
-    ws.onmessage = this.handleOnMessage.bind(this);
-    ws.onerror = this.handleOnError.bind(this);
-    ws.onclose = this.handleOnError.bind(this);
-    ws.onopen = this.handleOnOpen.bind(this);
+    ws.onmessage = this.#handleOnMessage.bind(this);
+    ws.onerror = this.#handleOnError.bind(this);
+    ws.onclose = this.#handleOnError.bind(this);
+    ws.onopen = this.#handleOnOpen.bind(this);
 
-    this.ws = ws;
+    this.#ws = ws;
   }
 
-  public static async createWebSocketFn(
+  static async createWebSocketFn(
     url: string,
     protocol: string,
     params: {

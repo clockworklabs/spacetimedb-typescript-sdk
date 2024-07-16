@@ -2,13 +2,7 @@
 // WILL NOT BE SAVED. MODIFY TABLES IN RUST INSTEAD.
 
 // @ts-ignore
-import {
-  __SPACETIMEDB__,
-  AlgebraicType,
-  SumTypeVariant,
-  BuiltinType,
-  AlgebraicValue,
-} from "../index";
+import { AlgebraicType, AlgebraicValue, SumTypeVariant } from "../index";
 // @ts-ignore
 import { InitialSubscription as __InitialSubscription } from "./initial_subscription";
 // @ts-ignore

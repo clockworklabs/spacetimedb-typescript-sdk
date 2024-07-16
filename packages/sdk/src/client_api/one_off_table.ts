@@ -3,44 +3,34 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 // @ts-ignore
 import { EncodedValue } from "./encoded_value";
 
 export class OneOffTable {
-  public static tableName = "OneOffTable";
-  public tableName: string;
-  public rows: EncodedValue[];
+  static tableName = "OneOffTable";
+  tableName: string;
+  rows: EncodedValue[];
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(tableName: string, rows: EncodedValue[]) {
     this.tableName = tableName;
     this.rows = rows;
   }
 
-  public static serialize(value: OneOffTable): object {
+  static serialize(value: OneOffTable): object {
     return [
       value.tableName,
       value.rows.map((el) => EncodedValue.serialize(el)),
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "tableName",
@@ -53,7 +43,7 @@ export class OneOffTable {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): OneOffTable {
+  static fromValue(value: AlgebraicValue): OneOffTable {
     let productValue = value.asProductValue();
     let __table_name = productValue.elements[0].asString();
     let __rows = productValue.elements[1]

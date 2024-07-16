@@ -3,31 +3,21 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 // @ts-ignore
 import { DatabaseUpdate } from "./database_update";
 
 export class InitialSubscription {
-  public static tableName = "InitialSubscription";
-  public databaseUpdate: DatabaseUpdate;
-  public requestId: number;
-  public totalHostExecutionDurationMicros: BigInt;
+  static tableName = "InitialSubscription";
+  databaseUpdate: DatabaseUpdate;
+  requestId: number;
+  totalHostExecutionDurationMicros: BigInt;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(
     databaseUpdate: DatabaseUpdate,
@@ -39,7 +29,7 @@ export class InitialSubscription {
     this.totalHostExecutionDurationMicros = totalHostExecutionDurationMicros;
   }
 
-  public static serialize(value: InitialSubscription): object {
+  static serialize(value: InitialSubscription): object {
     return [
       DatabaseUpdate.serialize(value.databaseUpdate),
       value.requestId,
@@ -47,7 +37,7 @@ export class InitialSubscription {
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "databaseUpdate",
@@ -64,7 +54,7 @@ export class InitialSubscription {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): InitialSubscription {
+  static fromValue(value: AlgebraicValue): InitialSubscription {
     let productValue = value.asProductValue();
     let __database_update = DatabaseUpdate.fromValue(productValue.elements[0]);
     let __request_id = productValue.elements[1].asNumber();

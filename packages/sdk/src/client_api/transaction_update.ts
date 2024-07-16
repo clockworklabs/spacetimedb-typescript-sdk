@@ -3,20 +3,12 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
-  AlgebraicType,
-  ProductType,
-  BuiltinType,
-  ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
   Address,
-  ClientDB,
-  SpacetimeDBClient,
+  AlgebraicType,
+  AlgebraicValue,
+  BuiltinType,
+  Identity,
+  ProductTypeElement,
 } from "../index";
 // @ts-ignore
 import { UpdateStatus } from "./update_status";
@@ -28,16 +20,16 @@ import { ReducerCallInfo } from "./reducer_call_info";
 import { EnergyQuanta } from "./energy_quanta";
 
 export class TransactionUpdate {
-  public static tableName = "TransactionUpdate";
-  public status: UpdateStatus;
-  public timestamp: Timestamp;
-  public callerIdentity: Identity;
-  public callerAddress: Address;
-  public reducerCall: ReducerCallInfo;
-  public energyQuantaUsed: EnergyQuanta;
-  public hostExecutionDurationMicros: BigInt;
+  static tableName = "TransactionUpdate";
+  status: UpdateStatus;
+  timestamp: Timestamp;
+  callerIdentity: Identity;
+  callerAddress: Address;
+  reducerCall: ReducerCallInfo;
+  energyQuantaUsed: EnergyQuanta;
+  hostExecutionDurationMicros: BigInt;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(
     status: UpdateStatus,
@@ -57,7 +49,7 @@ export class TransactionUpdate {
     this.hostExecutionDurationMicros = hostExecutionDurationMicros;
   }
 
-  public static serialize(value: TransactionUpdate): object {
+  static serialize(value: TransactionUpdate): object {
     return [
       UpdateStatus.serialize(value.status),
       Timestamp.serialize(value.timestamp),
@@ -69,7 +61,7 @@ export class TransactionUpdate {
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement("status", UpdateStatus.getAlgebraicType()),
       new ProductTypeElement("timestamp", Timestamp.getAlgebraicType()),
@@ -107,7 +99,7 @@ export class TransactionUpdate {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): TransactionUpdate {
+  static fromValue(value: AlgebraicValue): TransactionUpdate {
     let productValue = value.asProductValue();
     let __status = UpdateStatus.fromValue(productValue.elements[0]);
     let __timestamp = Timestamp.fromValue(productValue.elements[1]);

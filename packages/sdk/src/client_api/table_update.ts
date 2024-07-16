@@ -3,34 +3,23 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 // @ts-ignore
 import { EncodedValue } from "./encoded_value";
 // @ts-ignore
-import { EncodedValue } from "./encoded_value";
 
 export class TableUpdate {
-  public static tableName = "TableUpdate";
-  public tableId: number;
-  public tableName: string;
-  public deletes: EncodedValue[];
-  public inserts: EncodedValue[];
+  static tableName = "TableUpdate";
+  tableId: number;
+  tableName: string;
+  deletes: EncodedValue[];
+  inserts: EncodedValue[];
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(
     tableId: number,
@@ -44,7 +33,7 @@ export class TableUpdate {
     this.inserts = inserts;
   }
 
-  public static serialize(value: TableUpdate): object {
+  static serialize(value: TableUpdate): object {
     return [
       value.tableId,
       value.tableName,
@@ -53,7 +42,7 @@ export class TableUpdate {
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "tableId",
@@ -74,7 +63,7 @@ export class TableUpdate {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): TableUpdate {
+  static fromValue(value: AlgebraicValue): TableUpdate {
     let productValue = value.asProductValue();
     let __table_id = productValue.elements[0].asNumber();
     let __table_name = productValue.elements[1].asString();

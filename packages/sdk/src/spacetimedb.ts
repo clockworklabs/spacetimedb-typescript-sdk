@@ -85,32 +85,32 @@ export class SpacetimeDBClient {
   /**
    * Reference to the database of the client.
    */
-  public db: ClientDB;
-  public emitter!: EventEmitter;
+  db: ClientDB;
+  emitter!: EventEmitter;
 
   /**
    * Whether the client is connected.
    */
-  public live: boolean;
+  live: boolean;
 
-  private ws!: WebsocketDecompressAdapter | WebsocketTestAdapter;
-  private manualTableSubscriptions: string[] = [];
-  private queriesQueue: string[];
-  private runtime: {
+  #ws!: WebsocketDecompressAdapter | WebsocketTestAdapter;
+  #manualTableSubscriptions: string[] = [];
+  #queriesQueue: string[];
+  #runtime: {
     host: string;
     name_or_address: string;
     auth_token?: string;
     global: SpacetimeDBGlobals;
   };
-  private createWSFn: CreateWSFnType;
-  private ssl: boolean = false;
-  private clientAddress: Address = Address.random();
+  #createWSFn: CreateWSFnType;
+  #ssl: boolean = false;
+  #clientAddress: Address = Address.random();
 
-  private static tableClasses: Map<string, DatabaseTableClass> = new Map();
-  private static reducerClasses: Map<string, ReducerClass> = new Map();
+  static #tableClasses: Map<string, DatabaseTableClass> = new Map();
+  static #reducerClasses: Map<string, ReducerClass> = new Map();
 
-  private static getTableClass(name: string): DatabaseTableClass {
-    const tableClass = this.tableClasses.get(name);
+  static #getTableClass(name: string): DatabaseTableClass {
+    const tableClass = this.#tableClasses.get(name);
     if (!tableClass) {
       throw `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerTable() first`;
     }
@@ -118,9 +118,9 @@ export class SpacetimeDBClient {
     return tableClass;
   }
 
-  private static getReducerClass(name: string): ReducerClass | undefined {
+  static #getReducerClass(name: string): ReducerClass | undefined {
     const reducerName = `${name}Reducer`;
-    const reducerClass = this.reducerClasses.get(reducerName);
+    const reducerClass = this.#reducerClasses.get(reducerName);
     if (!reducerClass) {
       stdbLogger(
         "warn",
@@ -168,36 +168,36 @@ export class SpacetimeDBClient {
     //   this.registerReducer(reducer);
     // }
 
-    if (SpacetimeDBClient.tableClasses.size === 0) {
+    if (SpacetimeDBClient.#tableClasses.size === 0) {
       stdbLogger(
         "warn",
         "No tables were automatically registered globally, if you want to automatically register tables, you need to register them with SpacetimeDBClient.registerTable() first"
       );
     }
 
-    for (const [_name, table] of SpacetimeDBClient.tableClasses) {
-      this.registerTable(table);
+    for (const [_name, table] of SpacetimeDBClient.#tableClasses) {
+      this.#registerTable(table);
     }
 
     this.live = false;
     this.emitter = new EventEmitter();
-    this.queriesQueue = [];
+    this.#queriesQueue = [];
 
-    this.runtime = {
+    this.#runtime = {
       host,
       name_or_address,
       auth_token,
       global,
     };
 
-    this.createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
+    this.#createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
   }
 
   /**
    * Handles WebSocket onClose event.
    * @param event CloseEvent object.
    */
-  private handleOnClose(event: CloseEvent) {
+  #handleOnClose(event: CloseEvent) {
     stdbLogger("warn", "Closed: " + event);
     this.emitter.emit("disconnected");
     this.emitter.emit("client_error", event);
@@ -207,7 +207,7 @@ export class SpacetimeDBClient {
    * Handles WebSocket onError event.
    * @param event ErrorEvent object.
    */
-  private handleOnError(event: ErrorEvent) {
+  #handleOnError(event: ErrorEvent) {
     stdbLogger("warn", "WS Error: " + event);
     this.emitter.emit("disconnected");
     this.emitter.emit("client_error", event);
@@ -216,12 +216,12 @@ export class SpacetimeDBClient {
   /**
    * Handles WebSocket onOpen event.
    */
-  private handleOnOpen() {
+  #handleOnOpen() {
     this.live = true;
 
-    if (this.queriesQueue.length > 0) {
-      this.subscribe(this.queriesQueue);
-      this.queriesQueue = [];
+    if (this.#queriesQueue.length > 0) {
+      this.subscribe(this.#queriesQueue);
+      this.#queriesQueue = [];
     }
   }
 
@@ -229,14 +229,14 @@ export class SpacetimeDBClient {
    * Handles WebSocket onMessage event.
    * @param wsMessage MessageEvent object.
    */
-  private handleOnMessage(wsMessage: { data: Uint8Array }) {
+  #handleOnMessage(wsMessage: { data: Uint8Array }) {
     this.emitter.emit("receiveWSMessage", wsMessage);
 
-    this.processMessage(wsMessage.data, (message: Message) => {
+    this.#processMessage(wsMessage.data, (message: Message) => {
       if (message instanceof SubscriptionUpdateMessage) {
         for (let tableUpdate of message.tableUpdates) {
           const tableName = tableUpdate.tableName;
-          const entityClass = SpacetimeDBClient.getTableClass(tableName);
+          const entityClass = SpacetimeDBClient.#getTableClass(tableName);
           const table = this.db.getOrCreateTable(
             tableUpdate.tableName,
             undefined,
@@ -257,7 +257,7 @@ export class SpacetimeDBClient {
           console.error(`Received an error from the database: ${errorMessage}`);
         } else {
           const reducer: any | undefined = reducerName
-            ? SpacetimeDBClient.getReducerClass(reducerName)
+            ? SpacetimeDBClient.#getReducerClass(reducerName)
             : undefined;
 
           let reducerEvent: ReducerEvent | undefined;
@@ -283,7 +283,7 @@ export class SpacetimeDBClient {
 
           for (let tableUpdate of message.tableUpdates) {
             const tableName = tableUpdate.tableName;
-            const entityClass = SpacetimeDBClient.getTableClass(tableName);
+            const entityClass = SpacetimeDBClient.#getTableClass(tableName);
             const table = this.db.getOrCreateTable(
               tableUpdate.tableName,
               undefined,
@@ -303,17 +303,17 @@ export class SpacetimeDBClient {
         }
       } else if (message instanceof IdentityTokenMessage) {
         this.identity = message.identity;
-        if (this.runtime.auth_token) {
-          this.token = this.runtime.auth_token;
+        if (this.#runtime.auth_token) {
+          this.token = this.#runtime.auth_token;
         } else {
           this.token = message.token;
         }
-        this.clientAddress = message.address;
+        this.#clientAddress = message.address;
         this.emitter.emit(
           "connected",
           this.token,
           this.identity,
-          this.clientAddress
+          this.#clientAddress
         );
       }
     });
@@ -325,12 +325,12 @@ export class SpacetimeDBClient {
    * @param table The table to subscribe to
    * @param query The query to subscribe to. If not provided, the default is `SELECT * FROM {table}`
    */
-  public registerManualTable(table: string, query?: string) {
-    this.manualTableSubscriptions.push(
+  registerManualTable(table: string, query?: string) {
+    this.#manualTableSubscriptions.push(
       query ? query : `SELECT * FROM ${table}`
     );
 
-    this.subscribe([...this.manualTableSubscriptions]);
+    this.subscribe([...this.#manualTableSubscriptions]);
   }
 
   /**
@@ -338,16 +338,16 @@ export class SpacetimeDBClient {
    *
    * @param table The table to unsubscribe from
    */
-  public removeManualTable(table: string) {
+  removeManualTable(table: string) {
     // pgoldman 2024-06-25: Is this broken? `registerManualTable` treats `manualTableSubscriptions`
     // as containing SQL strings,
     // but this code treats it as containing table name strings.
-    this.manualTableSubscriptions = this.manualTableSubscriptions.filter(
+    this.#manualTableSubscriptions = this.#manualTableSubscriptions.filter(
       (val) => val !== table
     );
 
     this.subscribe(
-      this.manualTableSubscriptions.map((val) => `SELECT * FROM ${val}`)
+      this.#manualTableSubscriptions.map((val) => `SELECT * FROM ${val}`)
     );
   }
 
@@ -362,8 +362,8 @@ export class SpacetimeDBClient {
    * spacetimeDBClient.disconnect()
    * ```
    */
-  public disconnect() {
-    this.ws.close();
+  disconnect() {
+    this.#ws.close();
   }
 
   /**
@@ -387,11 +387,7 @@ export class SpacetimeDBClient {
    * spacetimeDBClient.connect(undefined, undefined, NEW_TOKEN);
    * ```
    */
-  public async connect(
-    host?: string,
-    name_or_address?: string,
-    auth_token?: string
-  ) {
+  async connect(host?: string, name_or_address?: string, auth_token?: string) {
     if (this.live) {
       return;
     }
@@ -399,50 +395,52 @@ export class SpacetimeDBClient {
     stdbLogger("info", "Connecting to SpacetimeDB WS...");
 
     if (host) {
-      this.runtime.host = host;
+      this.#runtime.host = host;
     }
 
     if (name_or_address) {
-      this.runtime.name_or_address = name_or_address;
+      this.#runtime.name_or_address = name_or_address;
     }
 
     if (auth_token) {
       // TODO: do we need both of these
-      this.runtime.auth_token = auth_token;
+      this.#runtime.auth_token = auth_token;
       this.token = auth_token;
     }
 
     // TODO: we should probably just accept a host and an ssl boolean flag in stead of this
     // whole dance
-    let url = `${this.runtime.host}/database/subscribe/${this.runtime.name_or_address}`;
+    let url = `${this.#runtime.host}/database/subscribe/${
+      this.#runtime.name_or_address
+    }`;
     if (
-      !this.runtime.host.startsWith("ws://") &&
-      !this.runtime.host.startsWith("wss://")
+      !this.#runtime.host.startsWith("ws://") &&
+      !this.#runtime.host.startsWith("wss://")
     ) {
       url = "ws://" + url;
     }
 
-    let clientAddress = this.clientAddress.toHexString();
+    let clientAddress = this.#clientAddress.toHexString();
     url += `?client_address=${clientAddress}`;
 
-    this.ssl = url.startsWith("wss");
-    this.runtime.host = this.runtime.host
+    this.#ssl = url.startsWith("wss");
+    this.#runtime.host = this.#runtime.host
       .replace("ws://", "")
       .replace("wss://", "");
 
-    this.ws = await this.createWSFn(url, "v1.bin.spacetimedb", {
-      host: this.runtime.host,
-      auth_token: this.runtime.auth_token,
-      ssl: this.ssl,
+    this.#ws = await this.#createWSFn(url, "v1.bin.spacetimedb", {
+      host: this.#runtime.host,
+      auth_token: this.#runtime.auth_token,
+      ssl: this.#ssl,
     });
 
-    this.ws.onclose = this.handleOnClose.bind(this);
-    this.ws.onerror = this.handleOnError.bind(this);
-    this.ws.onopen = this.handleOnOpen.bind(this);
-    this.ws.onmessage = this.handleOnMessage.bind(this);
+    this.#ws.onclose = this.#handleOnClose.bind(this);
+    this.#ws.onerror = this.#handleOnError.bind(this);
+    this.#ws.onopen = this.#handleOnOpen.bind(this);
+    this.#ws.onmessage = this.#handleOnMessage.bind(this);
   }
 
-  private processParsedMessage(
+  #processParsedMessage(
     message: ws.ServerMessage,
     callback: (message: Message) => void
   ) {
@@ -563,12 +561,9 @@ export class SpacetimeDBClient {
     }
   }
 
-  private processMessage(
-    data: Uint8Array,
-    callback: (message: Message) => void
-  ) {
+  #processMessage(data: Uint8Array, callback: (message: Message) => void) {
     const message: ws.ServerMessage = parseValue(ws.ServerMessage, data);
-    this.processParsedMessage(message, callback);
+    this.#processParsedMessage(message, callback);
   }
 
   /**
@@ -577,7 +572,7 @@ export class SpacetimeDBClient {
    * @param name The name of the component to register
    * @param component The component to register
    */
-  private registerTable(tableClass: DatabaseTableClass) {
+  #registerTable(tableClass: DatabaseTableClass) {
     this.db.getOrCreateTable(tableClass.tableName, undefined, tableClass);
     // only set a default ClientDB on a table class if it's not set yet. This means
     // that only the first created client will be usable without the `with` method
@@ -591,15 +586,15 @@ export class SpacetimeDBClient {
    * new clients
    * @param table Component to be registered
    */
-  public static registerTable(table: DatabaseTableClass) {
-    this.tableClasses.set(table.tableName, table);
+  static registerTable(table: DatabaseTableClass) {
+    this.#tableClasses.set(table.tableName, table);
   }
 
   /**
    *  Register a list of components to be used with any SpacetimeDB client. The components will be automatically registered to any new clients
    * @param tables A list of tables to register globally with SpacetimeDBClient
    */
-  public static registerTables(...tables: DatabaseTableClass[]) {
+  static registerTables(...tables: DatabaseTableClass[]) {
     for (const table of tables) {
       this.registerTable(table);
     }
@@ -610,15 +605,15 @@ export class SpacetimeDBClient {
    * new clients
    * @param reducer Reducer to be registered
    */
-  public static registerReducer(reducer: ReducerClass) {
-    this.reducerClasses.set(reducer.reducerName + "Reducer", reducer);
+  static registerReducer(reducer: ReducerClass) {
+    this.#reducerClasses.set(reducer.reducerName + "Reducer", reducer);
   }
 
   /**
    * Register a list of reducers to be used with any SpacetimeDB client. The reducers will be automatically registered to any new clients
    * @param reducers A list of reducers to register globally with SpacetimeDBClient
    */
-  public static registerReducers(...reducers: ReducerClass[]) {
+  static registerReducers(...reducers: ReducerClass[]) {
     for (const reducer of reducers) {
       this.registerReducer(reducer);
     }
@@ -640,7 +635,7 @@ export class SpacetimeDBClient {
    * spacetimeDBClient.subscribe(["SELECT * FROM User","SELECT * FROM Message"]);
    * ```
    */
-  public subscribe(queryOrQueries: string | string[]) {
+  subscribe(queryOrQueries: string | string[]) {
     const queries =
       typeof queryOrQueries === "string" ? [queryOrQueries] : queryOrQueries;
     if (this.live) {
@@ -652,18 +647,18 @@ export class SpacetimeDBClient {
           0
         )
       );
-      this.sendMessage(message);
+      this.#sendMessage(message);
     } else {
-      this.queriesQueue = this.queriesQueue.concat(queries);
+      this.#queriesQueue = this.#queriesQueue.concat(queries);
     }
   }
 
-  private sendMessage(message: ws.ClientMessage) {
+  #sendMessage(message: ws.ClientMessage) {
     const serializer = new BinarySerializer();
     serializer.write(ws.ClientMessage.getAlgebraicType(), message);
     const encoded = serializer.args();
     this.emitter.emit("sendWSMessage", encoded);
-    this.ws.send(encoded);
+    this.#ws.send(encoded);
   }
 
   /**
@@ -672,7 +667,7 @@ export class SpacetimeDBClient {
    * @param reducerName The name of the reducer to call
    * @param argsSerializer The arguments to pass to the reducer
    */
-  public call(reducerName: string, argsSerializer: Serializer) {
+  call(reducerName: string, argsSerializer: Serializer) {
     const message = ws.ClientMessage.CallReducer(
       new ws.CallReducer(
         reducerName,
@@ -682,7 +677,7 @@ export class SpacetimeDBClient {
         0
       )
     );
-    this.sendMessage(message);
+    this.#sendMessage(message);
   }
 
   on(eventName: EventType | string, callback: (...args: any[]) => void) {
@@ -697,9 +692,9 @@ export class SpacetimeDBClient {
    * Register a callback to be invoked upon authentication with the database.
    *
    * @param token The credentials to use to authenticate with SpacetimeDB.
-   * @param identity A unique public identifier for a client connected to a database.
+   * @param identity A unique identifier for a client connected to a database.
    *
-   * The callback will be invoked with the public `Identity` and private authentication `token` provided by the database to identify this connection.
+   * The callback will be invoked with the `Identity` and private authentication `token` provided by the database to identify this connection.
    *
    * If credentials were supplied to connect, those passed to the callback will be equivalent to the ones used to connect.
    *
@@ -739,7 +734,7 @@ export class SpacetimeDBClient {
   }
 
   _setCreateWSFn(fn: CreateWSFnType) {
-    this.createWSFn = fn;
+    this.#createWSFn = fn;
   }
 
   getSerializer(): Serializer {

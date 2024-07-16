@@ -3,39 +3,29 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 
 export class OneOffQuery {
-  public static tableName = "OneOffQuery";
-  public messageId: Uint8Array;
-  public queryString: string;
+  static tableName = "OneOffQuery";
+  messageId: Uint8Array;
+  queryString: string;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(messageId: Uint8Array, queryString: string) {
     this.messageId = messageId;
     this.queryString = queryString;
   }
 
-  public static serialize(value: OneOffQuery): object {
+  static serialize(value: OneOffQuery): object {
     return [Array.from(value.messageId), value.queryString];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "messageId",
@@ -50,7 +40,7 @@ export class OneOffQuery {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): OneOffQuery {
+  static fromValue(value: AlgebraicValue): OneOffQuery {
     let productValue = value.asProductValue();
     let __message_id = productValue.elements[0].asBytes();
     let __query_string = productValue.elements[1].asString();

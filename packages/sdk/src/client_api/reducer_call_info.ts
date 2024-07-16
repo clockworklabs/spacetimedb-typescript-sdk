@@ -3,32 +3,22 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 // @ts-ignore
 import { EncodedValue } from "./encoded_value";
 
 export class ReducerCallInfo {
-  public static tableName = "ReducerCallInfo";
-  public reducerName: string;
-  public reducerId: number;
-  public args: EncodedValue;
-  public requestId: number;
+  static tableName = "ReducerCallInfo";
+  reducerName: string;
+  reducerId: number;
+  args: EncodedValue;
+  requestId: number;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(
     reducerName: string,
@@ -42,7 +32,7 @@ export class ReducerCallInfo {
     this.requestId = requestId;
   }
 
-  public static serialize(value: ReducerCallInfo): object {
+  static serialize(value: ReducerCallInfo): object {
     return [
       value.reducerName,
       value.reducerId,
@@ -51,7 +41,7 @@ export class ReducerCallInfo {
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "reducerName",
@@ -69,7 +59,7 @@ export class ReducerCallInfo {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): ReducerCallInfo {
+  static fromValue(value: AlgebraicValue): ReducerCallInfo {
     let productValue = value.asProductValue();
     let __reducer_name = productValue.elements[0].asString();
     let __reducer_id = productValue.elements[1].asNumber();

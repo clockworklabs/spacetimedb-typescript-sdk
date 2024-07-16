@@ -3,11 +3,10 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  SumTypeVariant,
-  BuiltinType,
   AlgebraicValue,
+  BuiltinType,
+  SumTypeVariant,
 } from "../index";
 // @ts-ignore
 import { DatabaseUpdate as __DatabaseUpdate } from "./database_update";

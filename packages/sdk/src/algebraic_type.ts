@@ -5,8 +5,8 @@
  * Uniquely identifies an element similarly to protobuf tags.
  */
 export class SumTypeVariant {
-  public name: string;
-  public algebraicType: AlgebraicType;
+  name: string;
+  algebraicType: AlgebraicType;
 
   constructor(name: string, algebraicType: AlgebraicType) {
     this.name = name;
@@ -39,7 +39,7 @@ export class SumTypeVariant {
  * [structural]: https://en.wikipedia.org/wiki/Structural_type_system
  */
 export class SumType {
-  public variants: SumTypeVariant[];
+  variants: SumTypeVariant[];
 
   constructor(variants: SumTypeVariant[]) {
     this.variants = variants;
@@ -55,8 +55,8 @@ export class SumType {
  * Uniquely identifies an element similarly to protobuf tags.
  */
 export class ProductTypeElement {
-  public name: string;
-  public algebraicType: AlgebraicType;
+  name: string;
+  algebraicType: AlgebraicType;
 
   constructor(name: string, algebraicType: AlgebraicType) {
     this.name = name;
@@ -90,21 +90,21 @@ export class ProductTypeElement {
  * [structural]: https://en.wikipedia.org/wiki/Structural_type_system
  */
 export class ProductType {
-  public elements: ProductTypeElement[];
+  elements: ProductTypeElement[];
 
   constructor(elements: ProductTypeElement[]) {
     this.elements = elements;
   }
 
-  public isEmpty(): boolean {
+  isEmpty(): boolean {
     return this.elements.length === 0;
   }
 }
 
 /* A map type from keys of type `keyType` to values of type `valueType`. */
 export class MapType {
-  public keyType: AlgebraicType;
-  public valueType: AlgebraicType;
+  keyType: AlgebraicType;
+  valueType: AlgebraicType;
 
   constructor(keyType: AlgebraicType, valueType: AlgebraicType) {
     this.keyType = keyType;
@@ -113,9 +113,9 @@ export class MapType {
 }
 
 export class BuiltinType {
-  public type: BuiltinType.Type;
-  public arrayType: AlgebraicType | undefined;
-  public mapType: MapType | undefined;
+  type: BuiltinType.Type;
+  arrayType: AlgebraicType | undefined;
+  mapType: MapType | undefined;
 
   constructor(
     type: BuiltinType.Type,
@@ -131,14 +131,14 @@ export class BuiltinType {
     }
   }
 
-  public static bytes(): BuiltinType {
+  static bytes(): BuiltinType {
     return new BuiltinType(
       BuiltinType.Type.Array,
       AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
     );
   }
 
-  public static string_ty(): BuiltinType {
+  static string_ty(): BuiltinType {
     return new BuiltinType(BuiltinType.Type.String, undefined);
   }
 }
@@ -198,79 +198,77 @@ export class AlgebraicType {
   type!: Type;
   type_?: AnyType;
 
-  public get product(): ProductType {
+  get product(): ProductType {
     if (this.type !== Type.ProductType) {
       throw "product type was requested, but the type is not ProductType";
     }
     return this.type_ as ProductType;
   }
 
-  public set product(value: ProductType | undefined) {
+  set product(value: ProductType | undefined) {
     this.type_ = value;
     this.type = value == undefined ? Type.None : Type.ProductType;
   }
 
-  public get sum(): SumType {
+  get sum(): SumType {
     if (this.type !== Type.SumType) {
       throw "sum type was requested, but the type is not SumType";
     }
     return this.type_ as SumType;
   }
-  public set sum(value: SumType | undefined) {
+  set sum(value: SumType | undefined) {
     this.type_ = value;
     this.type = value == undefined ? Type.None : Type.SumType;
   }
 
-  public get builtin(): BuiltinType {
+  get builtin(): BuiltinType {
     if (this.type !== Type.BuiltinType) {
       throw "builtin type was requested, but the type is not BuiltinType";
     }
     return this.type_ as BuiltinType;
   }
-  public set builtin(value: BuiltinType | undefined) {
+  set builtin(value: BuiltinType | undefined) {
     this.type_ = value;
     this.type = value == undefined ? Type.None : Type.BuiltinType;
   }
 
-  public static createProductType(
-    elements: ProductTypeElement[]
-  ): AlgebraicType {
+  static createProductType(elements: ProductTypeElement[]): AlgebraicType {
     let type = new AlgebraicType();
     type.product = new ProductType(elements);
     return type;
   }
 
-  public static createArrayType(elementType: AlgebraicType) {
+  static createArrayType(elementType: AlgebraicType) {
     let type = new AlgebraicType();
     type.builtin = new BuiltinType(BuiltinType.Type.Array, elementType);
     return type;
   }
 
-  public static createSumType(variants: SumTypeVariant[]): AlgebraicType {
+  static createSumType(variants: SumTypeVariant[]): AlgebraicType {
     let type = new AlgebraicType();
     type.sum = new SumType(variants);
     return type;
   }
 
-  public static createPrimitiveType(type: BuiltinType.Type) {
+  static createPrimitiveType(type: BuiltinType.Type) {
     let algebraicType = new AlgebraicType();
     algebraicType.builtin = new BuiltinType(type, undefined);
     return algebraicType;
   }
 
-  public isProductType(): boolean {
+  isProductType(): boolean {
     return this.type === Type.ProductType;
   }
 
-  public isSumType(): boolean {
+  isSumType(): boolean {
     return this.type === Type.SumType;
   }
 
-  public isBuiltinType(): boolean {
+  isBuiltinType(): boolean {
     return this.type === Type.BuiltinType;
   }
 
-  private isBytes(): boolean {
+  #isBytes(): boolean {
     return (
       this.isBuiltinType() &&
       this.builtin.type === BuiltinType.Type.Array &&
@@ -280,21 +278,21 @@ export class AlgebraicType {
     );
   }
 
-  private isBytesNewtype(tag: string): boolean {
+  #isBytesNewtype(tag: string): boolean {
     return (
       this.isProductType() &&
       this.product.elements.length === 1 &&
-      this.product.elements[0].algebraicType.isBytes() &&
+      this.product.elements[0].algebraicType.#isBytes() &&
       this.product.elements[0].name === tag
     );
   }
 
-  public isIdentity(): boolean {
-    return this.isBytesNewtype("__identity_bytes");
+  isIdentity(): boolean {
+    return this.#isBytesNewtype("__identity_bytes");
   }
 
-  public isAddress(): boolean {
-    return this.isBytesNewtype("__address_bytes");
+  isAddress(): boolean {
+    return this.#isBytesNewtype("__address_bytes");
   }
 }
 

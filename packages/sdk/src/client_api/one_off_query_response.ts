@@ -3,32 +3,23 @@
 
 // @ts-ignore
 import {
-  __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
+  AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-  SumType,
   SumTypeVariant,
-  DatabaseTable,
-  AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
-  ClientDB,
-  SpacetimeDBClient,
 } from "../index";
 // @ts-ignore
 import { OneOffTable } from "./one_off_table";
 
 export class OneOffQueryResponse {
-  public static tableName = "OneOffQueryResponse";
-  public messageId: Uint8Array;
-  public error: string | null;
-  public tables: OneOffTable[];
-  public totalHostExecutionDurationMicros: BigInt;
+  static tableName = "OneOffQueryResponse";
+  messageId: Uint8Array;
+  error: string | null;
+  tables: OneOffTable[];
+  totalHostExecutionDurationMicros: BigInt;
 
-  public static primaryKey: string | undefined = undefined;
+  static primaryKey: string | undefined = undefined;
 
   constructor(
     messageId: Uint8Array,
@@ -42,7 +33,7 @@ export class OneOffQueryResponse {
     this.totalHostExecutionDurationMicros = totalHostExecutionDurationMicros;
   }
 
-  public static serialize(value: OneOffQueryResponse): object {
+  static serialize(value: OneOffQueryResponse): object {
     return [
       Array.from(value.messageId),
       value.error ? { some: value.error } : { none: [] },
@@ -51,7 +42,7 @@ export class OneOffQueryResponse {
     ];
   }
 
-  public static getAlgebraicType(): AlgebraicType {
+  static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         "messageId",
@@ -80,7 +71,7 @@ export class OneOffQueryResponse {
     ]);
   }
 
-  public static fromValue(value: AlgebraicValue): OneOffQueryResponse {
+  static fromValue(value: AlgebraicValue): OneOffQueryResponse {
     let productValue = value.asProductValue();
     let __message_id = productValue.elements[0].asBytes();
     let __error =
