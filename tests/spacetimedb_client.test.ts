@@ -1,17 +1,21 @@
-import { SpacetimeDBClient, ReducerEvent } from "../src/spacetimedb";
-import { BinarySerializer } from "../src/serializer";
-import { Identity } from "../src/identity";
+import { beforeEach, describe, expect, test } from "vitest";
 import { Address } from "../src/address";
 import { AlgebraicType, BuiltinType } from "../src/algebraic_type";
-import WebsocketTestAdapter from "../src/websocket_test_adapter";
-import Player from "./types/player";
-import User from "./types/user";
-import Point from "./types/point";
-import CreatePlayerReducer from "./types/create_player_reducer";
-import * as ws from "../src/client_api";
 import { parseValue } from "../src/algebraic_value";
-import { __SPACETIMEDB__ } from "../src/spacetimedb";
+import * as ws from "../src/client_api";
 import { ClientDB } from "../src/client_db";
+import { Identity } from "../src/identity";
+import { BinarySerializer } from "../src/serializer";
+import {
+  __SPACETIMEDB__,
+  ReducerEvent,
+  SpacetimeDBClient,
+} from "../src/spacetimedb";
+import WebsocketTestAdapter from "../src/websocket_test_adapter";
+import CreatePlayerReducer from "./types/create_player_reducer";
+import Player from "./types/player";
+import Point from "./types/point";
+import User from "./types/user";
 
 SpacetimeDBClient.registerTables(Player, User);
 SpacetimeDBClient.registerReducers(CreatePlayerReducer);
