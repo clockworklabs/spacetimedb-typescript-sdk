@@ -13,8 +13,9 @@ export default defineConfig([
     },
     clean: true,
     platform: "browser",
-    noExternal: [/.+/, "ws"],
+    noExternal: [],
     treeshake: "smallest",
+    external: ["undici"],
   },
   {
     entryPoints: {
@@ -25,9 +26,10 @@ export default defineConfig([
     outDir: "dist/min",
     dts: false,
     sourcemap: true,
-    noExternal: [/.*/],
+    noExternal: [],
     treeshake: "smallest",
     minify: "terser",
     platform: "browser",
+    external: ["undici"],
   },
 ]);
