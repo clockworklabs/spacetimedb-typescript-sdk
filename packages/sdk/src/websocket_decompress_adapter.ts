@@ -67,9 +67,12 @@ export class WebsocketDecompressAdapter {
       ssl: boolean;
     }
   ): Promise<WebsocketDecompressAdapter> {
-    const headers: { [key: string]: string } = {};
+    const headers = new Headers();
     if (params.auth_token) {
-      headers["Authorization"] = `Basic ${btoa("token:" + params.auth_token)}`;
+      headers.set(
+        "Authorization",
+        `Basic ${btoa("token:" + params.auth_token)}`
+      );
     }
 
     const WS =
