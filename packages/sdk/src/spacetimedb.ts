@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "./events";
 
 import { WebsocketDecompressAdapter } from "./websocket_decompress_adapter";
 import type { WebsocketTestAdapter } from "./websocket_test_adapter";
@@ -30,10 +30,10 @@ import { Identity } from "./identity";
 import { stdbLogger } from "./logger";
 import {
   IdentityTokenMessage,
-  type Message,
   SubscriptionUpdateMessage,
   TransactionUpdateEvent,
   TransactionUpdateMessage,
+  type Message,
 } from "./message_types";
 import { Reducer, type ReducerClass } from "./reducer";
 import { ReducerEvent } from "./reducer_event";
@@ -58,7 +58,6 @@ export {
   type DatabaseTableClass,
   type ReducerClass,
 };
-
 export type { ReducerArgsAdapter, Serializer, ValueAdapter };
 
 const g = (typeof window === "undefined" ? global : window)!;

@@ -16,10 +16,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": {
-        "production": "./dist/min/index.js",
-        "development": "./dist/index.js"
-      },
+      "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
@@ -42,7 +39,6 @@
   "dependencies": {
     "brotli": "1.3.3",
     "buffer": "^6.0.3",
-    "events": "^3.3.0",
     "isomorphic-ws": "^5.0.0",
     "long": "^5.2.3",
     "websocket": "^1.0.34",
