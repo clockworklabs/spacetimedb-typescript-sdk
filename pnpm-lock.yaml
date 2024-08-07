@@ -98,6 +98,12 @@ importers:
         specifier: ^5.3.4
         version: 5.3.4(terser@5.31.2)
 
+  playground/node:
+    dependencies:
+      '@clockworklabs/spacetimedb-sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+
 packages:
 
   '@ampproject/remapping@2.3.0':
