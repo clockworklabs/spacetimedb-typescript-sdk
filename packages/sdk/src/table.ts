@@ -1,6 +1,6 @@
-import { EventEmitter } from "events";
 import { BinaryAdapter } from "./algebraic_value";
 import BinaryReader from "./binary_reader";
+import { EventEmitter } from "./events";
 import OperationsMap from "./operations_map";
 import { ReducerEvent } from "./reducer_event";
 import { AlgebraicValue, DatabaseTable } from "./spacetimedb";
