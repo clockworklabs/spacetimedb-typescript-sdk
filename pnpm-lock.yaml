@@ -104,6 +104,19 @@ importers:
         specifier: workspace:*
         version: link:../../packages/sdk
 
+  playground/vanilla-ts:
+    dependencies:
+      '@clockworklabs/spacetimedb-sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+    devDependencies:
+      typescript:
+        specifier: ^5.2.2
+        version: 5.5.3
+      vite:
+        specifier: ^5.3.4
+        version: 5.3.4(terser@5.31.2)
+
 packages:
 
   '@ampproject/remapping@2.3.0':
