@@ -26,7 +26,8 @@
   },
   "scripts": {
     "compile": "tsup",
-    "test": "vitest run"
+    "test": "vitest run",
+    "size": "brotli-size dist/min/index.js"
   },
   "repository": {
     "type": "git",
