@@ -16,7 +16,7 @@ export class Address {
   }
 
   #isZero(): boolean {
-    return this.#data.every((b) => b == 0);
+    return this.#data.every(b => b == 0);
   }
 
   static nullIfZero(addr: Address): Address | null {
@@ -58,8 +58,8 @@ export class Address {
    */
   toHexString(): string {
     return Array.prototype.map
-      .call(this.#data, (x) => ("00" + x.toString(16)).slice(-2))
-      .join("");
+      .call(this.#data, x => ('00' + x.toString(16)).slice(-2))
+      .join('');
   }
 
   toUint8Array(): Uint8Array {

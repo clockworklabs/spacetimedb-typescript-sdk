@@ -8,12 +8,12 @@ import {
   BuiltinType,
   ProductTypeElement,
   SumTypeVariant,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { OneOffTable } from "./one_off_table";
+import { OneOffTable } from './one_off_table';
 
 export class OneOffQueryResponse {
-  static tableName = "OneOffQueryResponse";
+  static tableName = 'OneOffQueryResponse';
   messageId: Uint8Array;
   error: string | null;
   tables: OneOffTable[];
@@ -37,7 +37,7 @@ export class OneOffQueryResponse {
     return [
       Array.from(value.messageId),
       value.error ? { some: value.error } : { none: [] },
-      value.tables.map((el) => OneOffTable.serialize(el)),
+      value.tables.map(el => OneOffTable.serialize(el)),
       value.totalHostExecutionDurationMicros,
     ];
   }
@@ -45,27 +45,27 @@ export class OneOffQueryResponse {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "messageId",
+        'messageId',
         AlgebraicType.createArrayType(
           AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
         )
       ),
       new ProductTypeElement(
-        "error",
+        'error',
         AlgebraicType.createSumType([
           new SumTypeVariant(
-            "some",
+            'some',
             AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
           ),
-          new SumTypeVariant("none", AlgebraicType.createProductType([])),
+          new SumTypeVariant('none', AlgebraicType.createProductType([])),
         ])
       ),
       new ProductTypeElement(
-        "tables",
+        'tables',
         AlgebraicType.createArrayType(OneOffTable.getAlgebraicType())
       ),
       new ProductTypeElement(
-        "totalHostExecutionDurationMicros",
+        'totalHostExecutionDurationMicros',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U64)
       ),
     ]);
@@ -80,7 +80,7 @@ export class OneOffQueryResponse {
         : productValue.elements[1].asSumValue().value.asString();
     let __tables = productValue.elements[2]
       .asArray()
-      .map((el) => OneOffTable.fromValue(el)) as OneOffTable[];
+      .map(el => OneOffTable.fromValue(el)) as OneOffTable[];
     let __total_host_execution_duration_micros =
       productValue.elements[3].asBigInt();
     return new this(

@@ -7,19 +7,19 @@ import {
   AlgebraicValue,
   BuiltinType,
   SumTypeVariant,
-} from "../index";
+} from '../index';
 
 export namespace EncodedValue {
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
       new SumTypeVariant(
-        "Binary",
+        'Binary',
         AlgebraicType.createArrayType(
           AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
         )
       ),
       new SumTypeVariant(
-        "Text",
+        'Text',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
     ]);
@@ -27,32 +27,32 @@ export namespace EncodedValue {
 
   export function serialize(value: EncodedValue): object {
     switch (value.tag) {
-      case "Binary":
+      case 'Binary':
         return { Binary: Array.from(value.value) };
-      case "Text":
+      case 'Text':
         return { Text: value.value };
       default:
-        throw "unreachable";
+        throw 'unreachable';
     }
   }
 
-  export type Binary = { tag: "Binary"; value: Uint8Array };
+  export type Binary = { tag: 'Binary'; value: Uint8Array };
   export const Binary = (value: Uint8Array): Binary => ({
-    tag: "Binary",
+    tag: 'Binary',
     value,
   });
-  export type Text = { tag: "Text"; value: string };
-  export const Text = (value: string): Text => ({ tag: "Text", value });
+  export type Text = { tag: 'Text'; value: string };
+  export const Text = (value: string): Text => ({ tag: 'Text', value });
 
   export function fromValue(value: AlgebraicValue): EncodedValue {
     let sumValue = value.asSumValue();
     switch (sumValue.tag) {
       case 0:
-        return { tag: "Binary", value: sumValue.value.asBytes() };
+        return { tag: 'Binary', value: sumValue.value.asBytes() };
       case 1:
-        return { tag: "Text", value: sumValue.value.asString() };
+        return { tag: 'Text', value: sumValue.value.asString() };
       default:
-        throw "unreachable";
+        throw 'unreachable';
     }
   }
 }

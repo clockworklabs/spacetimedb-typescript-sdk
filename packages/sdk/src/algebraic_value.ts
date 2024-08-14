@@ -5,8 +5,8 @@ import {
   MapType,
   ProductType,
   SumType,
-} from "./algebraic_type";
-import BinaryReader from "./binary_reader";
+} from './algebraic_type';
+import BinaryReader from './binary_reader';
 
 export interface ReducerArgsAdapter {
   next: () => ValueAdapter;
@@ -183,7 +183,7 @@ export class SumValue {
   ): SumValue {
     if (type === undefined) {
       // TODO: get rid of undefined here
-      throw "sum type is undefined";
+      throw 'sum type is undefined';
     }
 
     return adapter.readSum(type);
@@ -208,7 +208,7 @@ export class ProductValue {
     adapter: ValueAdapter
   ): ProductValue {
     if (type === undefined) {
-      throw "type is undefined";
+      throw 'type is undefined';
     }
 
     return adapter.readProduct(type);
@@ -261,7 +261,7 @@ export class BuiltinValue {
         const result = adapter.readString();
         return new this(result);
       default:
-        const methodName: string = "read" + type.type;
+        const methodName: string = 'read' + type.type;
         return new this(adapter.callMethod(methodName as keyof ValueAdapter));
     }
   }
@@ -275,8 +275,8 @@ export class BuiltinValue {
   }
 
   asJsArray(type: string): any[] {
-    return this.asArray().map((el) =>
-      el.callMethod(("as" + type) as keyof AlgebraicValue)
+    return this.asArray().map(el =>
+      el.callMethod(('as' + type) as keyof AlgebraicValue)
     );
   }
 
@@ -315,7 +315,7 @@ export class AlgebraicValue {
   constructor(value: AnyValue | undefined) {
     if (value === undefined) {
       // TODO: possibly get rid of it
-      throw "value is undefined";
+      throw 'value is undefined';
     }
     switch (value.constructor) {
       case SumValue:
@@ -343,13 +343,13 @@ export class AlgebraicValue {
       case AlgebraicType.Type.BuiltinType:
         return new this(BuiltinValue.deserialize(type.builtin, adapter));
       default:
-        throw new Error("not implemented");
+        throw new Error('not implemented');
     }
   }
 
   asProductValue(): ProductValue {
     if (!this.product) {
-      throw "AlgebraicValue is not a ProductValue and product was requested";
+      throw 'AlgebraicValue is not a ProductValue and product was requested';
     }
     return this.product as ProductValue;
   }
@@ -361,7 +361,7 @@ export class AlgebraicValue {
 
   asSumValue(): SumValue {
     if (!this.sum) {
-      throw "AlgebraicValue is not a SumValue and a sum value was requested";
+      throw 'AlgebraicValue is not a SumValue and a sum value was requested';
     }
 
     return this.sum as SumValue;
@@ -404,7 +404,7 @@ export class AlgebraicValue {
 
   #assertBuiltin() {
     if (!this.builtin) {
-      throw "AlgebraicValue is not a BuiltinValue and a string was requested";
+      throw 'AlgebraicValue is not a BuiltinValue and a string was requested';
     }
   }
 }

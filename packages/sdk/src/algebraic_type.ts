@@ -152,21 +152,21 @@ export class BuiltinType {
  */
 export namespace BuiltinType {
   export enum Type {
-    Bool = "Bool",
-    I8 = "I8",
-    U8 = "U8",
-    I16 = "I16",
-    U16 = "U16",
-    I32 = "I32",
-    U32 = "U32",
-    I64 = "I64",
-    U64 = "U64",
-    I128 = "I128",
-    U128 = "U128",
-    F32 = "F32",
-    F64 = "F64",
+    Bool = 'Bool',
+    I8 = 'I8',
+    U8 = 'U8',
+    I16 = 'I16',
+    U16 = 'U16',
+    I32 = 'I32',
+    U32 = 'U32',
+    I64 = 'I64',
+    U64 = 'U64',
+    I128 = 'I128',
+    U128 = 'U128',
+    F32 = 'F32',
+    F64 = 'F64',
     /** UTF-8 encoded */
-    String = "String",
+    String = 'String',
     /** This is a SATS `ArrayType`
      *
      * An array type is a **homogeneous** product type of dynamic length.
@@ -175,9 +175,9 @@ export namespace BuiltinType {
      * where every element / factor / field is of the same type
      * and where the length is statically unknown.
      */
-    Array = "Array",
+    Array = 'Array',
     /** This is a SATS `MapType` */
-    Map = "Map",
+    Map = 'Map',
   }
 }
 
@@ -200,7 +200,7 @@ export class AlgebraicType {
 
   get product(): ProductType {
     if (this.type !== Type.ProductType) {
-      throw "product type was requested, but the type is not ProductType";
+      throw 'product type was requested, but the type is not ProductType';
     }
     return this.type_ as ProductType;
   }
@@ -212,7 +212,7 @@ export class AlgebraicType {
 
   get sum(): SumType {
     if (this.type !== Type.SumType) {
-      throw "sum type was requested, but the type is not SumType";
+      throw 'sum type was requested, but the type is not SumType';
     }
     return this.type_ as SumType;
   }
@@ -223,7 +223,7 @@ export class AlgebraicType {
 
   get builtin(): BuiltinType {
     if (this.type !== Type.BuiltinType) {
-      throw "builtin type was requested, but the type is not BuiltinType";
+      throw 'builtin type was requested, but the type is not BuiltinType';
     }
     return this.type_ as BuiltinType;
   }
@@ -288,20 +288,20 @@ export class AlgebraicType {
   }
 
   isIdentity(): boolean {
-    return this.#isBytesNewtype("__identity_bytes");
+    return this.#isBytesNewtype('__identity_bytes');
   }
 
   isAddress(): boolean {
-    return this.#isBytesNewtype("__address_bytes");
+    return this.#isBytesNewtype('__address_bytes');
   }
 }
 
 export namespace AlgebraicType {
   export enum Type {
-    SumType = "SumType",
-    ProductType = "ProductType",
-    BuiltinType = "BuiltinType",
-    None = "None",
+    SumType = 'SumType',
+    ProductType = 'ProductType',
+    BuiltinType = 'BuiltinType',
+    None = 'None',
   }
 }
 

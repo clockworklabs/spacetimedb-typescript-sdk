@@ -1,13 +1,13 @@
-import "./App.css";
+import './App.css';
 
 // Bindings
-import Message from "./module_bindings/message";
-import SendMessageReducer from "./module_bindings/send_message_reducer";
-import SetNameReducer from "./module_bindings/set_name_reducer";
-import User from "./module_bindings/user";
+import Message from './module_bindings/message';
+import SendMessageReducer from './module_bindings/send_message_reducer';
+import SetNameReducer from './module_bindings/set_name_reducer';
+import User from './module_bindings/user';
 
-import { Identity, SpacetimeDBClient } from "@clockworklabs/spacetimedb-sdk";
-import React, { useEffect, useRef, useState } from "react";
+import { Identity, SpacetimeDBClient } from '@clockworklabs/spacetimedb-sdk';
+import React, { useEffect, useRef, useState } from 'react';
 
 export type MessageType = {
   name: string;
@@ -18,13 +18,13 @@ export type MessageType = {
 SpacetimeDBClient.registerTables(Message, User);
 SpacetimeDBClient.registerReducers(SendMessageReducer, SetNameReducer);
 
-const token = localStorage.getItem("auth_token") || undefined;
-const client = new SpacetimeDBClient("ws://localhost:3000", "chat", token);
+const token = localStorage.getItem('auth_token') || undefined;
+const client = new SpacetimeDBClient('ws://localhost:3000', 'chat', token);
 
 function App() {
-  const [newName, setNewName] = useState("");
+  const [newName, setNewName] = useState('');
   const [settingName, setSettingName] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
 
   // Store all system messages as a Set, to avoid duplication
   const [systemMessages, setSystemMessages] = useState(
@@ -32,7 +32,7 @@ function App() {
   );
   const [messages, setMessages] = useState<MessageType[]>([]);
 
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
 
   const local_identity = useRef<Identity | undefined>(undefined);
   const initialized = useRef<boolean>(false);
@@ -46,31 +46,31 @@ function App() {
 
   // All the event listeners are set up in the useEffect hook
   useEffect(() => {
-    client.on("disconnected", () => {
-      console.log("disconnected");
+    client.on('disconnected', () => {
+      console.log('disconnected');
     });
 
-    client.on("client_error", () => {
-      console.log("client_error");
+    client.on('client_error', () => {
+      console.log('client_error');
     });
 
     client.onConnect((token: string, identity: Identity) => {
-      console.log("Connected to SpacetimeDB");
+      console.log('Connected to SpacetimeDB');
 
       local_identity.current = identity;
 
-      localStorage.setItem("auth_token", token);
+      localStorage.setItem('auth_token', token);
 
-      client.subscribe(["SELECT * FROM User", "SELECT * FROM Message"]);
+      client.subscribe(['SELECT * FROM User', 'SELECT * FROM Message']);
     });
 
-    client.on("initialStateSync", () => {
+    client.on('initialStateSync', () => {
       setAllMessagesInOrder();
       const user = User.findByIdentity(local_identity?.current!);
       setName(userNameOrIdentity(user!));
     });
 
-    User.onInsert((user) => {
+    User.onInsert(user => {
       if (user.online) {
         appendToSystemMessage(`${userNameOrIdentity(user)} has connected.`);
       }
@@ -96,12 +96,12 @@ function App() {
       setAllMessagesInOrder();
     });
 
-    SendMessageReducer.on((reducerEvent) => {
+    SendMessageReducer.on(reducerEvent => {
       if (
         local_identity.current &&
         reducerEvent.callerIdentity.isEqual(local_identity.current)
       ) {
-        if (reducerEvent.status === "failed") {
+        if (reducerEvent.status === 'failed') {
           appendToSystemMessage(
             `Error sending message: ${reducerEvent.message} `
           );
@@ -114,9 +114,9 @@ function App() {
         local_identity.current &&
         reducerEvent.callerIdentity.isEqual(local_identity.current)
       ) {
-        if (reducerEvent.status === "failed") {
+        if (reducerEvent.status === 'failed') {
           appendToSystemMessage(`Error setting name: ${reducerEvent.message} `);
-        } else if (reducerEvent.status === "committed") {
+        } else if (reducerEvent.status === 'committed') {
           setName(reducerArgs[0]);
         }
       }
@@ -125,7 +125,7 @@ function App() {
 
   function userNameOrIdentity(user: User): string {
     console.log(`Name: ${user.name} `);
-    if (user.name !== null) return user.name || "";
+    if (user.name !== null) return user.name || '';
 
     const identityStr = user.identity.toHexString();
     console.log(`Name: ${identityStr} `);
@@ -136,9 +136,9 @@ function App() {
     const messages = Array.from(Message.all());
     messages.sort((a, b) => (a.sent > b.sent ? 1 : a.sent < b.sent ? -1 : 0));
 
-    const messagesType: MessageType[] = messages.map((message) => {
+    const messagesType: MessageType[] = messages.map(message => {
       const sender = User.findByIdentity(message.sender);
-      const name = sender ? userNameOrIdentity(sender) : "unknown";
+      const name = sender ? userNameOrIdentity(sender) : 'unknown';
 
       return {
         name: name, // convert sender Uint8Array to name string using helper function
@@ -151,7 +151,7 @@ function App() {
 
   // Helper function to append a line to the systemMessage state
   function appendToSystemMessage(line: string) {
-    setSystemMessages((systemMessages) => systemMessages.add(line));
+    setSystemMessages(systemMessages => systemMessages.add(line));
   }
 
   const onSubmitNewName = (e: React.FormEvent<HTMLFormElement>) => {
@@ -164,7 +164,7 @@ function App() {
     e.preventDefault();
     // send message here
     SendMessageReducer.call(newMessage);
-    setNewMessage("");
+    setNewMessage('');
   };
 
   return (
@@ -188,9 +188,9 @@ function App() {
           <form onSubmit={onSubmitNewName}>
             <input
               type="text"
-              style={{ marginBottom: "1rem" }}
+              style={{ marginBottom: '1rem' }}
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={e => setNewName(e.target.value)}
             />
             <button type="submit">SUBMIT</button>
           </form>
@@ -216,7 +216,7 @@ function App() {
           <form onSubmit={onMessageSubmit}>
             <input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={e => setNewMessage(e.target.value)}
               placeholder="Send a message..."
               autoFocus
               type="text"
@@ -226,10 +226,10 @@ function App() {
         </div>
       </section>
 
-      <div className="system" style={{ whiteSpace: "pre-wrap" }}>
+      <div className="system" style={{ whiteSpace: 'pre-wrap' }}>
         <h2>System</h2>
         <div>
-          {Array.from(systemMessages).map((message) => (
+          {Array.from(systemMessages).map(message => (
             <p key={message}>{message}</p>
           ))}
         </div>

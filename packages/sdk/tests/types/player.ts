@@ -17,18 +17,18 @@ import {
   Address,
   ClientDB,
   SpacetimeDBClient,
-} from "../../src/index";
+} from '../../src/index';
 // @ts-ignore
-import { Point } from "./point";
+import { Point } from './point';
 
 export class Player extends DatabaseTable {
   public static db: ClientDB = __SPACETIMEDB__.clientDB;
-  public static tableName = "Player";
+  public static tableName = 'Player';
   public ownerId: string;
   public name: string;
   public location: Point;
 
-  public static primaryKey: string | undefined = "ownerId";
+  public static primaryKey: string | undefined = 'ownerId';
 
   constructor(ownerId: string, name: string, location: Point) {
     super();
@@ -44,14 +44,14 @@ export class Player extends DatabaseTable {
   public static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "ownerId",
+        'ownerId',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
       new ProductTypeElement(
-        "name",
+        'name',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
-      new ProductTypeElement("location", Point.getAlgebraicType()),
+      new ProductTypeElement('location', Point.getAlgebraicType()),
     ]);
   }
 
@@ -64,7 +64,7 @@ export class Player extends DatabaseTable {
   }
 
   public static filterByOwnerId(value: string): Player | null {
-    for (let instance of this.db.getTable("Player").getInstances()) {
+    for (let instance of this.db.getTable('Player').getInstances()) {
       if (instance.ownerId === value) {
         return instance;
       }
@@ -74,7 +74,7 @@ export class Player extends DatabaseTable {
 
   public static filterByName(value: string): Player[] {
     let result: Player[] = [];
-    for (let instance of this.db.getTable("Player").getInstances()) {
+    for (let instance of this.db.getTable('Player').getInstances()) {
       if (instance.name === value) {
         result.push(instance);
       }

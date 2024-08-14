@@ -21,7 +21,7 @@ export interface TableUpdate {
 }
 
 export interface TableRowOperation {
-  op: "insert" | "delete";
+  op: 'insert' | 'delete';
   row: any[];
 }
 
@@ -32,7 +32,7 @@ export interface TransactionUpdate {
 
 export interface Event {
   timestamp: number;
-  status: "committed" | "failed" | "out_of_energy";
+  status: 'committed' | 'failed' | 'out_of_energy';
   caller_identity: string;
   caller_address: string;
   function_call: FunctionCall;

@@ -2,7 +2,7 @@ export default class OperationsMap<K, V> {
   #items: { key: K; value: V }[] = [];
 
   #isEqual(a: K, b: K): boolean {
-    if (a && typeof a === "object" && "isEqual" in a) {
+    if (a && typeof a === 'object' && 'isEqual' in a) {
       return (a as any).isEqual(b);
     }
     return a === b;
@@ -40,6 +40,6 @@ export default class OperationsMap<K, V> {
   }
 
   values(): Array<V> {
-    return this.#items.map((i) => i.value);
+    return this.#items.map(i => i.value);
   }
 }

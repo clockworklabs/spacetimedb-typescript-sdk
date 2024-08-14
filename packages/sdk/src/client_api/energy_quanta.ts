@@ -7,10 +7,10 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 
 export class EnergyQuanta {
-  static tableName = "EnergyQuanta";
+  static tableName = 'EnergyQuanta';
   quanta: BigInt;
 
   static primaryKey: string | undefined = undefined;
@@ -26,7 +26,7 @@ export class EnergyQuanta {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "quanta",
+        'quanta',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U128)
       ),
     ]);

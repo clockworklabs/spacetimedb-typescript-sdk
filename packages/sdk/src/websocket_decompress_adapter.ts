@@ -1,5 +1,5 @@
-import decompress from "brotli/decompress";
-import { Buffer } from "buffer";
+import decompress from 'brotli/decompress';
+import { Buffer } from 'buffer';
 
 export class WebsocketDecompressAdapter {
   onclose: Function | undefined;
@@ -53,7 +53,7 @@ export class WebsocketDecompressAdapter {
     ws.onclose = this.#handleOnError.bind(this);
     ws.onopen = this.#handleOnOpen.bind(this);
 
-    ws.binaryType = "arraybuffer";
+    ws.binaryType = 'arraybuffer';
 
     this.#ws = ws;
   }
@@ -70,24 +70,24 @@ export class WebsocketDecompressAdapter {
     const headers = new Headers();
     if (params.auth_token) {
       headers.set(
-        "Authorization",
-        `Basic ${btoa("token:" + params.auth_token)}`
+        'Authorization',
+        `Basic ${btoa('token:' + params.auth_token)}`
       );
     }
 
     const WS =
-      "WebSocket" in globalThis
+      'WebSocket' in globalThis
         ? WebSocket
-        : ((await import("undici")).WebSocket as unknown as typeof WebSocket);
+        : ((await import('undici')).WebSocket as unknown as typeof WebSocket);
 
     // In the browser we first have to get a short lived token and only then connect to the websocket
-    let httpProtocol = params.ssl ? "https://" : "http://";
+    let httpProtocol = params.ssl ? 'https://' : 'http://';
     let tokenUrl = `${httpProtocol}${params.host}/identity/websocket_token`;
 
-    const response = await fetch(tokenUrl, { method: "POST", headers });
+    const response = await fetch(tokenUrl, { method: 'POST', headers });
     if (response.ok) {
       const { token } = await response.json();
-      url += "&token=" + btoa("token:" + token);
+      url += '&token=' + btoa('token:' + token);
     }
     const ws = new WS(url, protocol);
     return new WebsocketDecompressAdapter(ws);

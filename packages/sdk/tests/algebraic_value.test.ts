@@ -1,16 +1,16 @@
-import { describe, expect, test } from "vitest";
-import { AlgebraicType, BuiltinType } from "../src/algebraic_type";
+import { describe, expect, test } from 'vitest';
+import { AlgebraicType, BuiltinType } from '../src/algebraic_type';
 import {
   AlgebraicValue,
   BinaryAdapter,
   BuiltinValue,
   ProductValue,
   SumValue,
-} from "../src/algebraic_value";
-import BinaryReader from "../src/binary_reader";
+} from '../src/algebraic_value';
+import BinaryReader from '../src/binary_reader';
 
-describe("AlgebraicValue", () => {
-  test("when created with a ProductValue it assigns the product property", () => {
+describe('AlgebraicValue', () => {
+  test('when created with a ProductValue it assigns the product property', () => {
     let value = new ProductValue([]);
     let av = new AlgebraicValue(value);
 
@@ -18,7 +18,7 @@ describe("AlgebraicValue", () => {
     expect(av.asProductValue()).toBe(value);
   });
 
-  test("when created with a SumValue it assigns the sum property", () => {
+  test('when created with a SumValue it assigns the sum property', () => {
     let value = new SumValue(1, new AlgebraicValue(new BuiltinValue(1)));
     let av = new AlgebraicValue(value);
 
@@ -26,7 +26,7 @@ describe("AlgebraicValue", () => {
     expect(av.asSumValue()).toBe(value);
   });
 
-  test("when created with a BuiltinValue it assigns the builtin property", () => {
+  test('when created with a BuiltinValue it assigns the builtin property', () => {
     let value = new BuiltinValue(1);
     let av = new AlgebraicValue(value);
 
@@ -34,14 +34,14 @@ describe("AlgebraicValue", () => {
     expect(av.asBuiltinValue()).toBe(value);
   });
 
-  test("when created with a BuiltinValue(string) it can be requested as a string", () => {
-    let value = new BuiltinValue("foo");
+  test('when created with a BuiltinValue(string) it can be requested as a string', () => {
+    let value = new BuiltinValue('foo');
     let av = new AlgebraicValue(value);
 
-    expect(av.asString()).toBe("foo");
+    expect(av.asString()).toBe('foo');
   });
 
-  test("when created with a BuiltinValue(AlgebraicValue[]) it can be requested as an array", () => {
+  test('when created with a BuiltinValue(AlgebraicValue[]) it can be requested as an array', () => {
     let array: AlgebraicValue[] = [new AlgebraicValue(new BuiltinValue(1))];
     let value = new BuiltinValue(array);
     let av = new AlgebraicValue(value);
@@ -50,9 +50,9 @@ describe("AlgebraicValue", () => {
   });
 });
 
-describe("BuiltinValue", () => {
-  describe("deserialize with a binary adapter", () => {
-    test("should correctly deserialize array with U8 type", () => {
+describe('BuiltinValue', () => {
+  describe('deserialize with a binary adapter', () => {
+    test('should correctly deserialize array with U8 type', () => {
       const input = new Uint8Array([2, 0, 0, 0, 10, 20]);
       const reader = new BinaryReader(input);
       const adapter: BinaryAdapter = new BinaryAdapter(reader);
@@ -69,7 +69,7 @@ describe("BuiltinValue", () => {
       expect(result.asBytes()).toEqual(new Uint8Array([10, 20]));
     });
 
-    test("should correctly deserialize array with U128 type", () => {
+    test('should correctly deserialize array with U128 type', () => {
       // byte array of length 0002
       // prettier-ignore
       const input = new Uint8Array([
@@ -91,14 +91,14 @@ describe("BuiltinValue", () => {
       const result = BuiltinValue.deserialize(type, adapter);
 
       const u128_max = BigInt(2) ** BigInt(128) - BigInt(1);
-      expect(result.asJsArray("BigInt")).toEqual([
+      expect(result.asJsArray('BigInt')).toEqual([
         BigInt(1),
         u128_max,
         BigInt(10),
       ]);
     });
 
-    test("should correctly deserialize an U128 type", () => {
+    test('should correctly deserialize an U128 type', () => {
       // byte array of length 0002
       // prettier-ignore
       const input = new Uint8Array([
@@ -115,7 +115,7 @@ describe("BuiltinValue", () => {
       expect(result.asBigInt()).toEqual(u128_max);
     });
 
-    test("should correctly deserialize a boolean type", () => {
+    test('should correctly deserialize a boolean type', () => {
       // byte array of length 0002
       const input = new Uint8Array([1]);
       const reader = new BinaryReader(input);
@@ -128,9 +128,9 @@ describe("BuiltinValue", () => {
       expect(result.asBool()).toEqual(true);
     });
 
-    test("should correctly deserialize a string type", () => {
+    test('should correctly deserialize a string type', () => {
       // byte array of length 0002
-      const text = "zażółć gęślą jaźń";
+      const text = 'zażółć gęślą jaźń';
       const encoder = new TextEncoder();
       const textBytes = encoder.encode(text);
 
@@ -145,7 +145,7 @@ describe("BuiltinValue", () => {
         adapter
       );
 
-      expect(result.asString()).toEqual("zażółć gęślą jaźń");
+      expect(result.asString()).toEqual('zażółć gęślą jaźń');
     });
   });
 });

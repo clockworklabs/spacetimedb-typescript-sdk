@@ -95,7 +95,7 @@ export default class BinaryWriter {
 
   writeU128(value: bigint): void {
     this.#expandBuffer(16);
-    const lowerPart = value & BigInt("0xFFFFFFFFFFFFFFFF");
+    const lowerPart = value & BigInt('0xFFFFFFFFFFFFFFFF');
     const upperPart = value >> BigInt(64);
     this.#view.setBigUint64(this.#offset, lowerPart, true);
     this.#view.setBigUint64(this.#offset + 8, upperPart, true);
@@ -104,7 +104,7 @@ export default class BinaryWriter {
 
   writeI128(value: bigint): void {
     this.#expandBuffer(16);
-    const lowerPart = value & BigInt("0xFFFFFFFFFFFFFFFF");
+    const lowerPart = value & BigInt('0xFFFFFFFFFFFFFFFF');
     const upperPart = value >> BigInt(64);
     this.#view.setBigInt64(this.#offset, lowerPart, true);
     this.#view.setBigInt64(this.#offset + 8, upperPart, true);

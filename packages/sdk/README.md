@@ -19,9 +19,9 @@ You can use the package in the browser, using a bundler like webpack of vite, an
 In order to connect to a database you have to create a new client:
 
 ```ts
-import { SpacetimeDBClient } from "@clockworklabs/spacetimedb-sdk";
+import { SpacetimeDBClient } from '@clockworklabs/spacetimedb-sdk';
 
-let client = new SpacetimeDBClient("spacetimedb.com/spacetimedb", "<db-name>");
+let client = new SpacetimeDBClient('spacetimedb.com/spacetimedb', '<db-name>');
 ```
 
 If you would like to connect to the client you can call the below method. This also takes optional parameters to override the host or credentials:
@@ -48,10 +48,10 @@ client.onConnect((identity: string) => {
 You may also pass credentials as an optional third argument:
 
 ```ts
-let credentials = { identity: "<identity>", token: "<token>" };
+let credentials = { identity: '<identity>', token: '<token>' };
 let client = new SpacetimeDBClient(
-  "spacetimedb.com/spacetimedb",
-  "<db-name>",
+  'spacetimedb.com/spacetimedb',
+  '<db-name>',
   credentials
 );
 ```
@@ -59,7 +59,7 @@ let client = new SpacetimeDBClient(
 Typically, you will use the SDK with types generated from a backend DB service. For example, given a component named `Player` you can subscribe to player updates by registering the component:
 
 ```ts
-client.registerComponent(Player, "Player");
+client.registerComponent(Player, 'Player');
 ```
 
 Then you will be able to register callbacks on insert and delete events, for example:
@@ -73,5 +73,5 @@ Player.onInsert((newPlayer: Player) => {
 Given a reducer called `CreatePlayer` you can call it using a call method:
 
 ```ts
-CreatePlayer.call("Nickname");
+CreatePlayer.call('Nickname');
 ```

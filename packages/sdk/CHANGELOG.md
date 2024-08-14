@@ -38,5 +38,5 @@
 
   ```typescript
   SetRoleReducer.call(UserRole.Admin);
-  SetRoleReducer.call(UserRole.Other("another role"));
+  SetRoleReducer.call(UserRole.Other('another role'));
   ```

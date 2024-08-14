@@ -1,5 +1,5 @@
-import { type DatabaseTableClass } from "./index.ts";
-import { Table } from "./table";
+import { type DatabaseTableClass } from './index.ts';
+import { Table } from './table';
 
 export class ClientDB {
   /**
@@ -22,7 +22,7 @@ export class ClientDB {
     // ! This should not happen as the table should be available but an exception is thrown just in case.
     if (!table) {
       console.error(
-        "The table has not been registered for this client. Please register the table before using it. If you have registered global tables using the SpacetimeDBClient.registerTables() or `registerTable()` method, please make sure that is executed first!"
+        'The table has not been registered for this client. Please register the table before using it. If you have registered global tables using the SpacetimeDBClient.registerTables() or `registerTable()` method, please make sure that is executed first!'
       );
       throw new Error(`Table ${name} does not exist`);
     }

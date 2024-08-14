@@ -1,5 +1,5 @@
-import { AlgebraicType, BuiltinType } from "./algebraic_type";
-import BinaryWriter from "./binary_writer";
+import { AlgebraicType, BuiltinType } from './algebraic_type';
+import BinaryWriter from './binary_writer';
 
 export interface Serializer {
   write(type: AlgebraicType, value: any): any;
@@ -35,8 +35,8 @@ export class BinarySerializer {
       case AlgebraicType.Type.SumType:
         if (
           type.sum.variants.length == 2 &&
-          type.sum.variants[0].name === "some" &&
-          type.sum.variants[1].name === "none"
+          type.sum.variants[0].name === 'some' &&
+          type.sum.variants[1].name === 'none'
         ) {
           if (value) {
             this.writeByte(0);
@@ -45,9 +45,7 @@ export class BinarySerializer {
             this.writeByte(1);
           }
         } else {
-          const index = type.sum.variants.findIndex(
-            (v) => v.name === value.tag
-          );
+          const index = type.sum.variants.findIndex(v => v.name === value.tag);
           if (index < 0) {
             throw `Can't serialize a sum type, couldn't find ${value.tag} tag`;
           }

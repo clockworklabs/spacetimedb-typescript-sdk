@@ -7,10 +7,10 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 
 export class Timestamp {
-  static tableName = "Timestamp";
+  static tableName = 'Timestamp';
   microseconds: BigInt;
 
   static primaryKey: string | undefined = undefined;
@@ -26,7 +26,7 @@ export class Timestamp {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "microseconds",
+        'microseconds',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U64)
       ),
     ]);

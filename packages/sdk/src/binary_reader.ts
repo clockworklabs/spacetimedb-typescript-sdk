@@ -121,7 +121,7 @@ export default class BinaryReader {
       this.#offset,
       length
     );
-    const decoder = new TextDecoder("utf-8");
+    const decoder = new TextDecoder('utf-8');
     const value = decoder.decode(uint8Array);
     this.#offset += length;
     return value;

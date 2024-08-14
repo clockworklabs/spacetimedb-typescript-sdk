@@ -7,10 +7,10 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 
 export class OneOffQuery {
-  static tableName = "OneOffQuery";
+  static tableName = 'OneOffQuery';
   messageId: Uint8Array;
   queryString: string;
 
@@ -28,13 +28,13 @@ export class OneOffQuery {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "messageId",
+        'messageId',
         AlgebraicType.createArrayType(
           AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
         )
       ),
       new ProductTypeElement(
-        "queryString",
+        'queryString',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
     ]);

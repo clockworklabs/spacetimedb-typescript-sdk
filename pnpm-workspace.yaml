@@ -1,5 +1,5 @@
 packages:
-  - "packages/*"
-  - "examples/**"
-  - "packages/sdk/test-app"
-  - "playground/*"
+  - 'packages/*'
+  - 'examples/**'
+  - 'packages/sdk/test-app'
+  - 'playground/*'

@@ -1,9 +1,9 @@
-import { EventEmitter } from "./events";
+import { EventEmitter } from './events';
 
-import { WebsocketDecompressAdapter } from "./websocket_decompress_adapter";
-import type { WebsocketTestAdapter } from "./websocket_test_adapter";
+import { WebsocketDecompressAdapter } from './websocket_decompress_adapter';
+import type { WebsocketTestAdapter } from './websocket_test_adapter';
 
-import { Address } from "./address";
+import { Address } from './address';
 import {
   AlgebraicType,
   BuiltinType,
@@ -11,7 +11,7 @@ import {
   ProductTypeElement,
   SumType,
   SumTypeVariant,
-} from "./algebraic_type";
+} from './algebraic_type';
 import {
   AlgebraicValue,
   BinaryAdapter,
@@ -20,27 +20,27 @@ import {
   ProductValue,
   type ReducerArgsAdapter,
   type ValueAdapter,
-} from "./algebraic_value";
-import BinaryReader from "./binary_reader";
-import * as ws from "./client_api";
-import { ClientDB } from "./client_db";
-import { DatabaseTable, type DatabaseTableClass } from "./database_table";
-import type { SpacetimeDBGlobals } from "./global";
-import { Identity } from "./identity";
-import { stdbLogger } from "./logger";
+} from './algebraic_value';
+import BinaryReader from './binary_reader';
+import * as ws from './client_api';
+import { ClientDB } from './client_db';
+import { DatabaseTable, type DatabaseTableClass } from './database_table';
+import type { SpacetimeDBGlobals } from './global';
+import { Identity } from './identity';
+import { stdbLogger } from './logger';
 import {
   IdentityTokenMessage,
   SubscriptionUpdateMessage,
   TransactionUpdateEvent,
   TransactionUpdateMessage,
   type Message,
-} from "./message_types";
-import { Reducer, type ReducerClass } from "./reducer";
-import { ReducerEvent } from "./reducer_event";
-import { BinarySerializer, type Serializer } from "./serializer";
-import { TableOperation, TableUpdate } from "./table";
-import type { EventType } from "./types";
-import { toPascalCase } from "./utils";
+} from './message_types';
+import { Reducer, type ReducerClass } from './reducer';
+import { ReducerEvent } from './reducer_event';
+import { BinarySerializer, type Serializer } from './serializer';
+import { TableOperation, TableUpdate } from './table';
+import type { EventType } from './types';
+import { toPascalCase } from './utils';
 
 export {
   AlgebraicType,
@@ -60,7 +60,7 @@ export {
 };
 export type { ReducerArgsAdapter, Serializer, ValueAdapter };
 
-const g = (typeof window === "undefined" ? global : window)!;
+const g = (typeof window === 'undefined' ? global : window)!;
 
 export type CreateWSFnType = (
   url: string,
@@ -122,7 +122,7 @@ export class SpacetimeDBClient {
     const reducerClass = this.#reducerClasses.get(reducerName);
     if (!reducerClass) {
       stdbLogger(
-        "warn",
+        'warn',
         `Could not find class \"${name}\", you need to register it with SpacetimeDBClient.registerReducer() first`
       );
       return;
@@ -169,8 +169,8 @@ export class SpacetimeDBClient {
 
     if (SpacetimeDBClient.#tableClasses.size === 0) {
       stdbLogger(
-        "warn",
-        "No tables were automatically registered globally, if you want to automatically register tables, you need to register them with SpacetimeDBClient.registerTable() first"
+        'warn',
+        'No tables were automatically registered globally, if you want to automatically register tables, you need to register them with SpacetimeDBClient.registerTable() first'
       );
     }
 
@@ -197,9 +197,9 @@ export class SpacetimeDBClient {
    * @param event CloseEvent object.
    */
   #handleOnClose(event: CloseEvent) {
-    stdbLogger("warn", "Closed: " + event);
-    this.emitter.emit("disconnected");
-    this.emitter.emit("client_error", event);
+    stdbLogger('warn', 'Closed: ' + event);
+    this.emitter.emit('disconnected');
+    this.emitter.emit('client_error', event);
   }
 
   /**
@@ -207,9 +207,9 @@ export class SpacetimeDBClient {
    * @param event ErrorEvent object.
    */
   #handleOnError(event: ErrorEvent) {
-    stdbLogger("warn", "WS Error: " + event);
-    this.emitter.emit("disconnected");
-    this.emitter.emit("client_error", event);
+    stdbLogger('warn', 'WS Error: ' + event);
+    this.emitter.emit('disconnected');
+    this.emitter.emit('client_error', event);
   }
 
   /**
@@ -229,7 +229,7 @@ export class SpacetimeDBClient {
    * @param wsMessage MessageEvent object.
    */
   #handleOnMessage(wsMessage: { data: Uint8Array }) {
-    this.emitter.emit("receiveWSMessage", wsMessage);
+    this.emitter.emit('receiveWSMessage', wsMessage);
 
     this.#processMessage(wsMessage.data, (message: Message) => {
       if (message instanceof SubscriptionUpdateMessage) {
@@ -246,12 +246,12 @@ export class SpacetimeDBClient {
         }
 
         if (this.emitter) {
-          this.emitter.emit("initialStateSync");
+          this.emitter.emit('initialStateSync');
         }
       } else if (message instanceof TransactionUpdateMessage) {
         const reducerName = message.event.reducerName;
 
-        if (reducerName == "<none>") {
+        if (reducerName == '<none>') {
           let errorMessage = message.event.message;
           console.error(`Received an error from the database: ${errorMessage}`);
         } else {
@@ -261,7 +261,7 @@ export class SpacetimeDBClient {
 
           let reducerEvent: ReducerEvent | undefined;
           let reducerArgs: any;
-          if (reducer && message.event.status === "committed") {
+          if (reducer && message.event.status === 'committed') {
             let adapter: ReducerArgsAdapter = new BinaryReducerArgsAdapter(
               new BinaryAdapter(
                 new BinaryReader(message.event.args as Uint8Array)
@@ -294,7 +294,7 @@ export class SpacetimeDBClient {
 
           if (reducer) {
             this.emitter.emit(
-              "reducer:" + reducerName,
+              'reducer:' + reducerName,
               reducerEvent,
               ...(reducerArgs || [])
             );
@@ -309,7 +309,7 @@ export class SpacetimeDBClient {
         }
         this.#clientAddress = message.address;
         this.emitter.emit(
-          "connected",
+          'connected',
           this.token,
           this.identity,
           this.#clientAddress
@@ -342,11 +342,11 @@ export class SpacetimeDBClient {
     // as containing SQL strings,
     // but this code treats it as containing table name strings.
     this.#manualTableSubscriptions = this.#manualTableSubscriptions.filter(
-      (val) => val !== table
+      val => val !== table
     );
 
     this.subscribe(
-      this.#manualTableSubscriptions.map((val) => `SELECT * FROM ${val}`)
+      this.#manualTableSubscriptions.map(val => `SELECT * FROM ${val}`)
     );
   }
 
@@ -391,7 +391,7 @@ export class SpacetimeDBClient {
       return;
     }
 
-    stdbLogger("info", "Connecting to SpacetimeDB WS...");
+    stdbLogger('info', 'Connecting to SpacetimeDB WS...');
 
     if (host) {
       this.#runtime.host = host;
@@ -413,21 +413,21 @@ export class SpacetimeDBClient {
       this.#runtime.name_or_address
     }`;
     if (
-      !this.#runtime.host.startsWith("ws://") &&
-      !this.#runtime.host.startsWith("wss://")
+      !this.#runtime.host.startsWith('ws://') &&
+      !this.#runtime.host.startsWith('wss://')
     ) {
-      url = "ws://" + url;
+      url = 'ws://' + url;
     }
 
     let clientAddress = this.#clientAddress.toHexString();
     url += `?client_address=${clientAddress}`;
 
-    this.#ssl = url.startsWith("wss");
+    this.#ssl = url.startsWith('wss');
     this.#runtime.host = this.#runtime.host
-      .replace("ws://", "")
-      .replace("wss://", "");
+      .replace('ws://', '')
+      .replace('wss://', '');
 
-    this.#ws = await this.#createWSFn(url, "v1.bin.spacetimedb", {
+    this.#ws = await this.#createWSFn(url, 'v1.bin.spacetimedb', {
       host: this.#runtime.host,
       auth_token: this.#runtime.auth_token,
       ssl: this.#ssl,
@@ -446,7 +446,7 @@ export class SpacetimeDBClient {
     // Helpers for parsing message components which appear in multiple messages.
     const parseTableOperation = (
       rawRow: ws.EncodedValue,
-      type: "insert" | "delete"
+      type: 'insert' | 'delete'
     ): TableOperation => {
       // Our SDKs are architected around having a hashable, equality-comparable key
       // which uniquely identifies every row.
@@ -456,13 +456,13 @@ export class SpacetimeDBClient {
       // That's the second argument to the `TableRowOperation` constructor.
 
       switch (rawRow.tag) {
-        case "Binary":
+        case 'Binary':
           return new TableOperation(
             type,
             new TextDecoder().decode(rawRow.value),
             rawRow.value
           );
-        case "Text":
+        case 'Text':
           return new TableOperation(type, rawRow.value, rawRow.value);
       }
     };
@@ -470,10 +470,10 @@ export class SpacetimeDBClient {
       const tableName = rawTableUpdate.tableName;
       const operations: TableOperation[] = [];
       for (const insert of rawTableUpdate.inserts) {
-        operations.push(parseTableOperation(insert, "insert"));
+        operations.push(parseTableOperation(insert, 'insert'));
       }
       for (const del of rawTableUpdate.deletes) {
-        operations.push(parseTableOperation(del, "delete"));
+        operations.push(parseTableOperation(del, 'delete'));
       }
       return new TableUpdate(tableName, operations);
     };
@@ -488,37 +488,37 @@ export class SpacetimeDBClient {
     };
 
     switch (message.tag) {
-      case "InitialSubscription": {
+      case 'InitialSubscription': {
         const dbUpdate = message.value.databaseUpdate;
         const subscriptionUpdate = parseDatabaseUpdate(dbUpdate);
         callback(subscriptionUpdate);
         break;
       }
 
-      case "TransactionUpdate": {
+      case 'TransactionUpdate': {
         const txUpdate = message.value;
         const identity = txUpdate.callerIdentity;
         const address = Address.nullIfZero(txUpdate.callerAddress);
         const originalReducerName = txUpdate.reducerCall.reducerName;
         const reducerName: string = toPascalCase(originalReducerName);
         const rawArgs = txUpdate.reducerCall.args;
-        if (rawArgs.tag !== "Binary") {
+        if (rawArgs.tag !== 'Binary') {
           throw new Error(
             `Expected a binary EncodedValue but found ${rawArgs.tag} ${rawArgs.value}`
           );
         }
         const args = rawArgs.value;
         let subscriptionUpdate;
-        let errMessage = "";
+        let errMessage = '';
         switch (txUpdate.status.tag) {
-          case "Committed":
+          case 'Committed':
             subscriptionUpdate = parseDatabaseUpdate(txUpdate.status.value);
             break;
-          case "Failed":
+          case 'Failed':
             subscriptionUpdate = new SubscriptionUpdateMessage([]);
             errMessage = txUpdate.status.value;
             break;
-          case "OutOfEnergy":
+          case 'OutOfEnergy':
             subscriptionUpdate = new SubscriptionUpdateMessage([]);
             break;
         }
@@ -541,7 +541,7 @@ export class SpacetimeDBClient {
         break;
       }
 
-      case "IdentityToken": {
+      case 'IdentityToken': {
         const identityTokenMessage: IdentityTokenMessage =
           new IdentityTokenMessage(
             message.value.identity,
@@ -552,7 +552,7 @@ export class SpacetimeDBClient {
         break;
       }
 
-      case "OneOffQueryResponse": {
+      case 'OneOffQueryResponse': {
         throw new Error(
           `TypeScript SDK never sends one-off queries, but got OneOffQueryResponse ${message}`
         );
@@ -605,7 +605,7 @@ export class SpacetimeDBClient {
    * @param reducer Reducer to be registered
    */
   static registerReducer(reducer: ReducerClass) {
-    this.#reducerClasses.set(reducer.reducerName + "Reducer", reducer);
+    this.#reducerClasses.set(reducer.reducerName + 'Reducer', reducer);
   }
 
   /**
@@ -636,7 +636,7 @@ export class SpacetimeDBClient {
    */
   subscribe(queryOrQueries: string | string[]) {
     const queries =
-      typeof queryOrQueries === "string" ? [queryOrQueries] : queryOrQueries;
+      typeof queryOrQueries === 'string' ? [queryOrQueries] : queryOrQueries;
     if (this.live) {
       const message = ws.ClientMessage.Subscribe(
         new ws.Subscribe(
@@ -656,7 +656,7 @@ export class SpacetimeDBClient {
     const serializer = new BinarySerializer();
     serializer.write(ws.ClientMessage.getAlgebraicType(), message);
     const encoded = serializer.args();
-    this.emitter.emit("sendWSMessage", encoded);
+    this.emitter.emit('sendWSMessage', encoded);
     this.#ws.send(encoded);
   }
 
@@ -714,7 +714,7 @@ export class SpacetimeDBClient {
   onConnect(
     callback: (token: string, identity: Identity, address: Address) => void
   ) {
-    this.on("connected", callback);
+    this.on('connected', callback);
   }
 
   /**
@@ -729,7 +729,7 @@ export class SpacetimeDBClient {
    * ```
    */
   onError(callback: (...args: any[]) => void) {
-    this.on("client_error", callback);
+    this.on('client_error', callback);
   }
 
   _setCreateWSFn(fn: CreateWSFnType) {
@@ -747,7 +747,7 @@ g.__SPACETIMEDB__ = {
 };
 
 export const __SPACETIMEDB__ = (
-  typeof window === "undefined"
+  typeof window === 'undefined'
     ? global.__SPACETIMEDB__
     : window.__SPACETIMEDB__
 )!;

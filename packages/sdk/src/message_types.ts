@@ -1,5 +1,5 @@
-import { Address, Identity } from ".";
-import { TableUpdate } from "./table";
+import { Address, Identity } from '.';
+import { TableUpdate } from './table';
 
 export class SubscriptionUpdateMessage {
   tableUpdates: TableUpdate[];

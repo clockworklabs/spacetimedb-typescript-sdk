@@ -1,4 +1,4 @@
-import { SpacetimeDBClient } from "./spacetimedb";
+import { SpacetimeDBClient } from './spacetimedb';
 
 export type ReducerClass = {
   new (...args: any[]): Reducer;
@@ -7,10 +7,10 @@ export type ReducerClass = {
 export class Reducer {
   static reducerName: string;
   call(..._args: any[]): void {
-    throw "not implemented";
+    throw 'not implemented';
   }
   on(..._args: any[]): void {
-    throw "not implemented";
+    throw 'not implemented';
   }
 
   protected client: SpacetimeDBClient;
@@ -30,7 +30,7 @@ export class Reducer {
     if (this.reducer) {
       return this.reducer as InstanceType<T>;
     } else {
-      throw "You need to instantiate a client in order to use reducers.";
+      throw 'You need to instantiate a client in order to use reducers.';
     }
   }
 

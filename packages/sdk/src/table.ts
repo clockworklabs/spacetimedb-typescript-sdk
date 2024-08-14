@@ -1,16 +1,16 @@
-import { BinaryAdapter } from "./algebraic_value";
-import BinaryReader from "./binary_reader";
-import { EventEmitter } from "./events";
-import OperationsMap from "./operations_map";
-import { ReducerEvent } from "./reducer_event";
-import { AlgebraicValue, DatabaseTable } from "./spacetimedb";
+import { BinaryAdapter } from './algebraic_value';
+import BinaryReader from './binary_reader';
+import { EventEmitter } from './events';
+import OperationsMap from './operations_map';
+import { ReducerEvent } from './reducer_event';
+import { AlgebraicValue, DatabaseTable } from './spacetimedb';
 
 class DBOp {
-  type: "insert" | "delete";
+  type: 'insert' | 'delete';
   instance: any;
   rowPk: string;
 
-  constructor(type: "insert" | "delete", rowPk: string, instance: any) {
+  constructor(type: 'insert' | 'delete', rowPk: string, instance: any) {
     this.type = type;
     this.rowPk = rowPk;
     this.instance = instance;
@@ -23,11 +23,11 @@ export class TableOperation {
    *
    * NOTE: An update is a `delete` followed by a 'insert' internally.
    */
-  type: "insert" | "delete";
+  type: 'insert' | 'delete';
   rowPk: string;
   row: Uint8Array;
 
-  constructor(type: "insert" | "delete", rowPk: string, row: Uint8Array | any) {
+  constructor(type: 'insert' | 'delete', rowPk: string, row: Uint8Array | any) {
     this.type = type;
     this.rowPk = rowPk;
     this.row = row;
@@ -104,7 +104,7 @@ export class Table {
       const inserts: any[] = [];
       const deleteMap = new OperationsMap<any, DBOp>();
       for (const dbOp of dbOps) {
-        if (dbOp.type === "insert") {
+        if (dbOp.type === 'insert') {
           inserts.push(dbOp);
         } else {
           deleteMap.set(dbOp.instance[pkName], dbOp);
@@ -126,7 +126,7 @@ export class Table {
       }
     } else {
       for (const dbOp of dbOps) {
-        if (dbOp.type === "insert") {
+        if (dbOp.type === 'insert') {
           this.insert(dbOp, reducerEvent);
         } else {
           this.delete(dbOp, reducerEvent);
@@ -144,17 +144,17 @@ export class Table {
     const oldInstance = oldDbOp.instance;
     this.instances.delete(oldDbOp.rowPk);
     this.instances.set(newDbOp.rowPk, newInstance);
-    this.emitter.emit("update", oldInstance, newInstance, reducerEvent);
+    this.emitter.emit('update', oldInstance, newInstance, reducerEvent);
   };
 
   insert = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
     this.instances.set(dbOp.rowPk, dbOp.instance);
-    this.emitter.emit("insert", dbOp.instance, reducerEvent);
+    this.emitter.emit('insert', dbOp.instance, reducerEvent);
   };
 
   delete = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
     this.instances.delete(dbOp.rowPk);
-    this.emitter.emit("delete", dbOp.instance, reducerEvent);
+    this.emitter.emit('delete', dbOp.instance, reducerEvent);
   };
 
   /**
@@ -175,7 +175,7 @@ export class Table {
   onInsert = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
   ) => {
-    this.emitter.on("insert", cb);
+    this.emitter.on('insert', cb);
   };
 
   /**
@@ -196,7 +196,7 @@ export class Table {
   onDelete = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
   ) => {
-    this.emitter.on("delete", cb);
+    this.emitter.on('delete', cb);
   };
 
   /**
@@ -221,7 +221,7 @@ export class Table {
       reducerEvent: ReducerEvent | undefined
     ) => void
   ) => {
-    this.emitter.on("update", cb);
+    this.emitter.on('update', cb);
   };
 
   /**
@@ -231,7 +231,7 @@ export class Table {
   removeOnInsert = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
   ) => {
-    this.emitter.off("insert", cb);
+    this.emitter.off('insert', cb);
   };
 
   /**
@@ -241,7 +241,7 @@ export class Table {
   removeOnDelete = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
   ) => {
-    this.emitter.off("delete", cb);
+    this.emitter.off('delete', cb);
   };
 
   /**
@@ -255,6 +255,6 @@ export class Table {
       reducerEvent: ReducerEvent | undefined
     ) => void
   ) => {
-    this.emitter.off("update", cb);
+    this.emitter.off('update', cb);
   };
 }
