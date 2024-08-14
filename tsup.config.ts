@@ -13,8 +13,9 @@ export default defineConfig([
     },
     clean: true,
     platform: "browser",
-    noExternal: [/.+/, "ws"],
+    noExternal: ["brotli", "buffer", "events"],
     treeshake: "smallest",
+    external: ["undici"],
   },
   {
     entryPoints: {
@@ -25,9 +26,10 @@ export default defineConfig([
     outDir: "dist/min",
     dts: false,
     sourcemap: true,
-    noExternal: [/.*/],
+    noExternal: ["brotli", "buffer", "events"],
     treeshake: "smallest",
     minify: "terser",
     platform: "browser",
+    external: ["undici"],
   },
 ]);

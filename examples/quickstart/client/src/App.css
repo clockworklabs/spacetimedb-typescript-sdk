@@ -73,7 +73,9 @@ form {
 
 .new-message input:focus {
   outline: none;
-  box-shadow: var(--shadow), 0 0 0 2px var(--theme-color);
+  box-shadow:
+    var(--shadow),
+    0 0 0 2px var(--theme-color);
 }
 
 @media (prefers-color-scheme: dark) {

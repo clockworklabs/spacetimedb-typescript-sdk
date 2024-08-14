@@ -1,6 +1,5 @@
 import decompress from "brotli/decompress";
 import { Buffer } from "buffer";
-import WebSocket from "isomorphic-ws";
 
 export class WebsocketDecompressAdapter {
   onclose: Function | undefined;
@@ -68,32 +67,29 @@ export class WebsocketDecompressAdapter {
       ssl: boolean;
     }
   ): Promise<WebsocketDecompressAdapter> {
-    const headers: { [key: string]: string } = {};
+    const headers = new Headers();
     if (params.auth_token) {
-      headers["Authorization"] = `Basic ${btoa("token:" + params.auth_token)}`;
+      headers.set(
+        "Authorization",
+        `Basic ${btoa("token:" + params.auth_token)}`
+      );
     }
 
-    if (typeof window === "undefined" || !params.auth_token) {
-      // NodeJS environment
-      const ws = new WebSocket(url, protocol, {
-        // @ts-ignore
-        maxReceivedFrameSize: 100000000,
-        maxReceivedMessageSize: 100000000,
-        headers,
-      });
-      return new WebsocketDecompressAdapter(ws);
-    } else {
-      // In the browser we first have to get a short lived token and only then connect to the websocket
-      let httpProtocol = params.ssl ? "https://" : "http://";
-      let tokenUrl = `${httpProtocol}${params.host}/identity/websocket_token`;
+    const WS =
+      "WebSocket" in globalThis
+        ? WebSocket
+        : ((await import("undici")).WebSocket as unknown as typeof WebSocket);
 
-      const response = await fetch(tokenUrl, { method: "POST", headers });
-      if (response.ok) {
-        const { token } = await response.json();
-        url += "&token=" + btoa("token:" + token);
-      }
-      const ws = new WebSocket(url, protocol);
-      return new WebsocketDecompressAdapter(ws);
+    // In the browser we first have to get a short lived token and only then connect to the websocket
+    let httpProtocol = params.ssl ? "https://" : "http://";
+    let tokenUrl = `${httpProtocol}${params.host}/identity/websocket_token`;
+
+    const response = await fetch(tokenUrl, { method: "POST", headers });
+    if (response.ok) {
+      const { token } = await response.json();
+      url += "&token=" + btoa("token:" + token);
     }
+    const ws = new WS(url, protocol);
+    return new WebsocketDecompressAdapter(ws);
   }
 }

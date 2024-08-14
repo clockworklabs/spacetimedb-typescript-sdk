@@ -8,9 +8,11 @@
     "test": "pnpm -r test"
   },
   "devDependencies": {
-    "prettier": "2.8.7",
+    "brotli-size-cli": "^1.0.0",
+    "prettier": "3.3.3",
     "terser": "^5.31.2",
     "tsup": "^8.1.0",
+    "tsx": "^4.17.0",
     "typescript": "^5.5.3",
     "vitest": "^2.0.3"
   }

@@ -1,5 +1,5 @@
 [package]
-name = "spacetime-module"
+name = "spacetime-module-2"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,4 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-spacetimedb = { path = "../../../../SpacetimeDB/crates/bindings" }
-log = "0.4"
-anyhow = "1.0"
+spacetimedb = "0.11.0"
