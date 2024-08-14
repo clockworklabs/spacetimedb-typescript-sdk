@@ -30,11 +30,11 @@ importers:
         specifier: ^2.0.3
         version: 2.0.5(@types/node@22.3.0)(terser@5.31.6)
 
-  examples/quickstart/client:
+  examples/quickstart:
     dependencies:
       '@clockworklabs/spacetimedb-sdk':
         specifier: workspace:*
-        version: link:../../../packages/sdk
+        version: link:../../packages/sdk
       react:
         specifier: ^18.3.1
         version: 18.3.1
