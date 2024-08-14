@@ -15,7 +15,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       prettier:
-        specifier: 3.3.3
+        specifier: ^3.3.3
         version: 3.3.3
       terser:
         specifier: ^5.31.2
