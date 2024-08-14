@@ -35,5 +35,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Run tests
-        run: pnpm test
+      - name: Lint
+        run: pnpm lint
