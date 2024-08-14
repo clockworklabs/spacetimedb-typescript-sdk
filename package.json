@@ -1,6 +1,10 @@
 {
   "name": "spacetimedb-ts-sdk",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
   "scripts": {
     "compile": "cd packages/sdk && pnpm compile",
     "format": "prettier --write .",
