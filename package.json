@@ -2,7 +2,7 @@
   "name": "spacetimedb-ts-sdk",
   "private": true,
   "scripts": {
-    "compile": "pnpm -r compile",
+    "compile": "cd packages/sdk && pnpm compile",
     "format": "prettier --write .",
     "lint": "prettier . --check",
     "test": "pnpm -r test"
