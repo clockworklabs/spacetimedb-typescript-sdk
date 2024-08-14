@@ -7,10 +7,10 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 
 export class Subscribe {
-  static tableName = "Subscribe";
+  static tableName = 'Subscribe';
   queryStrings: string[];
   requestId: number;
 
@@ -28,13 +28,13 @@ export class Subscribe {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "queryStrings",
+        'queryStrings',
         AlgebraicType.createArrayType(
           AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
         )
       ),
       new ProductTypeElement(
-        "requestId",
+        'requestId',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U32)
       ),
     ]);
@@ -44,7 +44,7 @@ export class Subscribe {
     let productValue = value.asProductValue();
     let __query_strings = productValue.elements[0]
       .asArray()
-      .map((el) => el.asString()) as string[];
+      .map(el => el.asString()) as string[];
     let __request_id = productValue.elements[1].asNumber();
     return new this(__query_strings, __request_id);
   }

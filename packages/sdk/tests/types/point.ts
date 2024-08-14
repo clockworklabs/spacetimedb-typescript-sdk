@@ -17,11 +17,11 @@ import {
   Address,
   ClientDB,
   SpacetimeDBClient,
-} from "../../src/index";
+} from '../../src/index';
 
 export class Point extends DatabaseTable {
   public static db: ClientDB = __SPACETIMEDB__.clientDB;
-  public static tableName = "Point";
+  public static tableName = 'Point';
   public x: number;
   public y: number;
 
@@ -40,11 +40,11 @@ export class Point extends DatabaseTable {
   public static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "x",
+        'x',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U16)
       ),
       new ProductTypeElement(
-        "y",
+        'y',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U16)
       ),
     ]);

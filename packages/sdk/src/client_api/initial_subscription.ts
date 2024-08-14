@@ -7,12 +7,12 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { DatabaseUpdate } from "./database_update";
+import { DatabaseUpdate } from './database_update';
 
 export class InitialSubscription {
-  static tableName = "InitialSubscription";
+  static tableName = 'InitialSubscription';
   databaseUpdate: DatabaseUpdate;
   requestId: number;
   totalHostExecutionDurationMicros: BigInt;
@@ -40,15 +40,15 @@ export class InitialSubscription {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "databaseUpdate",
+        'databaseUpdate',
         DatabaseUpdate.getAlgebraicType()
       ),
       new ProductTypeElement(
-        "requestId",
+        'requestId',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U32)
       ),
       new ProductTypeElement(
-        "totalHostExecutionDurationMicros",
+        'totalHostExecutionDurationMicros',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U64)
       ),
     ]);

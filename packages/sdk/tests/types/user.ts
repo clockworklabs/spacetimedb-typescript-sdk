@@ -17,15 +17,15 @@ import {
   Address,
   ClientDB,
   SpacetimeDBClient,
-} from "../../src/index";
+} from '../../src/index';
 
 export class User extends DatabaseTable {
   public static db: ClientDB = __SPACETIMEDB__.clientDB;
-  public static tableName = "User";
+  public static tableName = 'User';
   public identity: Identity;
   public username: string;
 
-  public static primaryKey: string | undefined = "identity";
+  public static primaryKey: string | undefined = 'identity';
 
   constructor(identity: Identity, username: string) {
     super();
@@ -40,10 +40,10 @@ export class User extends DatabaseTable {
   public static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "identity",
+        'identity',
         AlgebraicType.createProductType([
           new ProductTypeElement(
-            "__identity_bytes",
+            '__identity_bytes',
             AlgebraicType.createArrayType(
               AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
             )
@@ -51,7 +51,7 @@ export class User extends DatabaseTable {
         ])
       ),
       new ProductTypeElement(
-        "username",
+        'username',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
     ]);
@@ -68,7 +68,7 @@ export class User extends DatabaseTable {
 
   public static filterByIdentity(value: Identity): User[] {
     let result: User[] = [];
-    for (let instance of this.db.getTable("User").getInstances()) {
+    for (let instance of this.db.getTable('User').getInstances()) {
       if (instance.identity.isEqual(value)) {
         result.push(instance);
       }
@@ -78,7 +78,7 @@ export class User extends DatabaseTable {
 
   public static filterByUsername(value: string): User[] {
     let result: User[] = [];
-    for (let instance of this.db.getTable("User").getInstances()) {
+    for (let instance of this.db.getTable('User').getInstances()) {
       if (instance.username === value) {
         result.push(instance);
       }

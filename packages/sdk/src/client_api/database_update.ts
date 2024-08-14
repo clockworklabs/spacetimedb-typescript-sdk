@@ -2,12 +2,12 @@
 // WILL NOT BE SAVED. MODIFY TABLES IN RUST INSTEAD.
 
 // @ts-ignore
-import { AlgebraicType, AlgebraicValue, ProductTypeElement } from "../index";
+import { AlgebraicType, AlgebraicValue, ProductTypeElement } from '../index';
 // @ts-ignore
-import { TableUpdate } from "./table_update";
+import { TableUpdate } from './table_update';
 
 export class DatabaseUpdate {
-  static tableName = "DatabaseUpdate";
+  static tableName = 'DatabaseUpdate';
   tables: TableUpdate[];
 
   static primaryKey: string | undefined = undefined;
@@ -17,13 +17,13 @@ export class DatabaseUpdate {
   }
 
   static serialize(value: DatabaseUpdate): object {
-    return [value.tables.map((el) => TableUpdate.serialize(el))];
+    return [value.tables.map(el => TableUpdate.serialize(el))];
   }
 
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "tables",
+        'tables',
         AlgebraicType.createArrayType(TableUpdate.getAlgebraicType())
       ),
     ]);
@@ -33,7 +33,7 @@ export class DatabaseUpdate {
     let productValue = value.asProductValue();
     let __tables = productValue.elements[0]
       .asArray()
-      .map((el) => TableUpdate.fromValue(el)) as TableUpdate[];
+      .map(el => TableUpdate.fromValue(el)) as TableUpdate[];
     return new this(__tables);
   }
 }

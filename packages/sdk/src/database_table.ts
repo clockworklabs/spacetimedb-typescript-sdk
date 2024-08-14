@@ -1,7 +1,7 @@
-import { ClientDB } from "./client_db";
-import { ReducerEvent } from "./reducer_event";
-import { SpacetimeDBClient } from "./spacetimedb";
-import { _tableProxy } from "./utils";
+import { ClientDB } from './client_db';
+import { ReducerEvent } from './reducer_event';
+import { SpacetimeDBClient } from './spacetimedb';
+import { _tableProxy } from './utils';
 
 export type DatabaseTableClass = {
   new (...args: any[]): any;

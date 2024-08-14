@@ -9,18 +9,18 @@ import {
   BuiltinType,
   Identity,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { UpdateStatus } from "./update_status";
+import { UpdateStatus } from './update_status';
 // @ts-ignore
-import { Timestamp } from "./timestamp";
+import { Timestamp } from './timestamp';
 // @ts-ignore
-import { ReducerCallInfo } from "./reducer_call_info";
+import { ReducerCallInfo } from './reducer_call_info';
 // @ts-ignore
-import { EnergyQuanta } from "./energy_quanta";
+import { EnergyQuanta } from './energy_quanta';
 
 export class TransactionUpdate {
-  static tableName = "TransactionUpdate";
+  static tableName = 'TransactionUpdate';
   status: UpdateStatus;
   timestamp: Timestamp;
   callerIdentity: Identity;
@@ -63,13 +63,13 @@ export class TransactionUpdate {
 
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("status", UpdateStatus.getAlgebraicType()),
-      new ProductTypeElement("timestamp", Timestamp.getAlgebraicType()),
+      new ProductTypeElement('status', UpdateStatus.getAlgebraicType()),
+      new ProductTypeElement('timestamp', Timestamp.getAlgebraicType()),
       new ProductTypeElement(
-        "callerIdentity",
+        'callerIdentity',
         AlgebraicType.createProductType([
           new ProductTypeElement(
-            "__identity_bytes",
+            '__identity_bytes',
             AlgebraicType.createArrayType(
               AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
             )
@@ -77,23 +77,23 @@ export class TransactionUpdate {
         ])
       ),
       new ProductTypeElement(
-        "callerAddress",
+        'callerAddress',
         AlgebraicType.createProductType([
           new ProductTypeElement(
-            "__address_bytes",
+            '__address_bytes',
             AlgebraicType.createArrayType(
               AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
             )
           ),
         ])
       ),
-      new ProductTypeElement("reducerCall", ReducerCallInfo.getAlgebraicType()),
+      new ProductTypeElement('reducerCall', ReducerCallInfo.getAlgebraicType()),
       new ProductTypeElement(
-        "energyQuantaUsed",
+        'energyQuantaUsed',
         EnergyQuanta.getAlgebraicType()
       ),
       new ProductTypeElement(
-        "hostExecutionDurationMicros",
+        'hostExecutionDurationMicros',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U64)
       ),
     ]);

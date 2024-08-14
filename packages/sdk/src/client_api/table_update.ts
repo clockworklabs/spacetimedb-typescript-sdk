@@ -7,13 +7,13 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { EncodedValue } from "./encoded_value";
+import { EncodedValue } from './encoded_value';
 // @ts-ignore
 
 export class TableUpdate {
-  static tableName = "TableUpdate";
+  static tableName = 'TableUpdate';
   tableId: number;
   tableName: string;
   deletes: EncodedValue[];
@@ -37,27 +37,27 @@ export class TableUpdate {
     return [
       value.tableId,
       value.tableName,
-      value.deletes.map((el) => EncodedValue.serialize(el)),
-      value.inserts.map((el) => EncodedValue.serialize(el)),
+      value.deletes.map(el => EncodedValue.serialize(el)),
+      value.inserts.map(el => EncodedValue.serialize(el)),
     ];
   }
 
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "tableId",
+        'tableId',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U32)
       ),
       new ProductTypeElement(
-        "tableName",
+        'tableName',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
       new ProductTypeElement(
-        "deletes",
+        'deletes',
         AlgebraicType.createArrayType(EncodedValue.getAlgebraicType())
       ),
       new ProductTypeElement(
-        "inserts",
+        'inserts',
         AlgebraicType.createArrayType(EncodedValue.getAlgebraicType())
       ),
     ]);
@@ -69,10 +69,10 @@ export class TableUpdate {
     let __table_name = productValue.elements[1].asString();
     let __deletes = productValue.elements[2]
       .asArray()
-      .map((el) => EncodedValue.fromValue(el)) as EncodedValue[];
+      .map(el => EncodedValue.fromValue(el)) as EncodedValue[];
     let __inserts = productValue.elements[3]
       .asArray()
-      .map((el) => EncodedValue.fromValue(el)) as EncodedValue[];
+      .map(el => EncodedValue.fromValue(el)) as EncodedValue[];
     return new this(__table_id, __table_name, __deletes, __inserts);
   }
 }

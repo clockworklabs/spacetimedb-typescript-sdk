@@ -9,10 +9,10 @@ import {
   BuiltinType,
   Identity,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 
 export class IdentityToken {
-  static tableName = "IdentityToken";
+  static tableName = 'IdentityToken';
   identity: Identity;
   token: string;
   address: Address;
@@ -36,10 +36,10 @@ export class IdentityToken {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "identity",
+        'identity',
         AlgebraicType.createProductType([
           new ProductTypeElement(
-            "__identity_bytes",
+            '__identity_bytes',
             AlgebraicType.createArrayType(
               AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
             )
@@ -47,14 +47,14 @@ export class IdentityToken {
         ])
       ),
       new ProductTypeElement(
-        "token",
+        'token',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
       new ProductTypeElement(
-        "address",
+        'address',
         AlgebraicType.createProductType([
           new ProductTypeElement(
-            "__address_bytes",
+            '__address_bytes',
             AlgebraicType.createArrayType(
               AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
             )

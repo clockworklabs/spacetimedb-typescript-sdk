@@ -7,12 +7,12 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { EncodedValue } from "./encoded_value";
+import { EncodedValue } from './encoded_value';
 
 export class ReducerCallInfo {
-  static tableName = "ReducerCallInfo";
+  static tableName = 'ReducerCallInfo';
   reducerName: string;
   reducerId: number;
   args: EncodedValue;
@@ -44,16 +44,16 @@ export class ReducerCallInfo {
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "reducerName",
+        'reducerName',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
       new ProductTypeElement(
-        "reducerId",
+        'reducerId',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U32)
       ),
-      new ProductTypeElement("args", EncodedValue.getAlgebraicType()),
+      new ProductTypeElement('args', EncodedValue.getAlgebraicType()),
       new ProductTypeElement(
-        "requestId",
+        'requestId',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.U32)
       ),
     ]);

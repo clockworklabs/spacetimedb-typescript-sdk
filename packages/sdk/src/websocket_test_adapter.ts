@@ -1,5 +1,5 @@
-import { ServerMessage } from "./client_api";
-import { BinarySerializer } from "./serializer";
+import { ServerMessage } from './client_api';
+import { BinarySerializer } from './serializer';
 
 class WebsocketTestAdapter {
   onclose: any;

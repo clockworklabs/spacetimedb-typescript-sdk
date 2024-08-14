@@ -7,12 +7,12 @@ import {
   AlgebraicValue,
   BuiltinType,
   ProductTypeElement,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { EncodedValue } from "./encoded_value";
+import { EncodedValue } from './encoded_value';
 
 export class OneOffTable {
-  static tableName = "OneOffTable";
+  static tableName = 'OneOffTable';
   tableName: string;
   rows: EncodedValue[];
 
@@ -24,20 +24,17 @@ export class OneOffTable {
   }
 
   static serialize(value: OneOffTable): object {
-    return [
-      value.tableName,
-      value.rows.map((el) => EncodedValue.serialize(el)),
-    ];
+    return [value.tableName, value.rows.map(el => EncodedValue.serialize(el))];
   }
 
   static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        "tableName",
+        'tableName',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
       new ProductTypeElement(
-        "rows",
+        'rows',
         AlgebraicType.createArrayType(EncodedValue.getAlgebraicType())
       ),
     ]);
@@ -48,7 +45,7 @@ export class OneOffTable {
     let __table_name = productValue.elements[0].asString();
     let __rows = productValue.elements[1]
       .asArray()
-      .map((el) => EncodedValue.fromValue(el)) as EncodedValue[];
+      .map(el => EncodedValue.fromValue(el)) as EncodedValue[];
     return new this(__table_name, __rows);
   }
 }

@@ -18,12 +18,12 @@ import {
   ReducerEvent,
   Reducer,
   SpacetimeDBClient,
-} from "../../src/index";
+} from '../../src/index';
 // @ts-ignore
-import { Point } from "./point";
+import { Point } from './point';
 
 export class CreatePlayerReducer extends Reducer {
-  public static reducerName: string = "CreatePlayer";
+  public static reducerName: string = 'CreatePlayer';
   public static call(_name: string, _location: Point) {
     this.getReducer().call(_name, _location);
   }
@@ -34,7 +34,7 @@ export class CreatePlayerReducer extends Reducer {
     serializer.write(_nameType, _name);
     let _locationType = Point.getAlgebraicType();
     serializer.write(_locationType, _location);
-    this.client.call("create_player", serializer);
+    this.client.call('create_player', serializer);
   }
 
   public static deserializeArgs(adapter: ReducerArgsAdapter): any[] {
@@ -66,7 +66,7 @@ export class CreatePlayerReducer extends Reducer {
       _location: Point
     ) => void
   ) {
-    this.client.on("reducer:CreatePlayer", callback);
+    this.client.on('reducer:CreatePlayer', callback);
   }
 }
 

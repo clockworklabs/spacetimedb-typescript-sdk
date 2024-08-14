@@ -7,59 +7,59 @@ import {
   AlgebraicValue,
   BuiltinType,
   SumTypeVariant,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { DatabaseUpdate as __DatabaseUpdate } from "./database_update";
+import { DatabaseUpdate as __DatabaseUpdate } from './database_update';
 
 export namespace UpdateStatus {
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant("Committed", __DatabaseUpdate.getAlgebraicType()),
+      new SumTypeVariant('Committed', __DatabaseUpdate.getAlgebraicType()),
       new SumTypeVariant(
-        "Failed",
+        'Failed',
         AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
       ),
-      new SumTypeVariant("OutOfEnergy", AlgebraicType.createProductType([])),
+      new SumTypeVariant('OutOfEnergy', AlgebraicType.createProductType([])),
     ]);
   }
 
   export function serialize(value: UpdateStatus): object {
     switch (value.tag) {
-      case "Committed":
+      case 'Committed':
         return { Committed: __DatabaseUpdate.serialize(value.value) };
-      case "Failed":
+      case 'Failed':
         return { Failed: value.value };
-      case "OutOfEnergy":
+      case 'OutOfEnergy':
         return { OutOfEnergy: [] };
       default:
-        throw "unreachable";
+        throw 'unreachable';
     }
   }
 
-  export type Committed = { tag: "Committed"; value: __DatabaseUpdate };
+  export type Committed = { tag: 'Committed'; value: __DatabaseUpdate };
   export const Committed = (value: __DatabaseUpdate): Committed => ({
-    tag: "Committed",
+    tag: 'Committed',
     value,
   });
-  export type Failed = { tag: "Failed"; value: string };
-  export const Failed = (value: string): Failed => ({ tag: "Failed", value });
-  export type OutOfEnergy = { tag: "OutOfEnergy"; value: undefined };
-  export const OutOfEnergy = { tag: "OutOfEnergy", value: undefined };
+  export type Failed = { tag: 'Failed'; value: string };
+  export const Failed = (value: string): Failed => ({ tag: 'Failed', value });
+  export type OutOfEnergy = { tag: 'OutOfEnergy'; value: undefined };
+  export const OutOfEnergy = { tag: 'OutOfEnergy', value: undefined };
 
   export function fromValue(value: AlgebraicValue): UpdateStatus {
     let sumValue = value.asSumValue();
     switch (sumValue.tag) {
       case 0:
         return {
-          tag: "Committed",
+          tag: 'Committed',
           value: __DatabaseUpdate.fromValue(sumValue.value),
         };
       case 1:
-        return { tag: "Failed", value: sumValue.value.asString() };
+        return { tag: 'Failed', value: sumValue.value.asString() };
       case 2:
-        return { tag: "OutOfEnergy", value: undefined };
+        return { tag: 'OutOfEnergy', value: undefined };
       default:
-        throw "unreachable";
+        throw 'unreachable';
     }
   }
 }

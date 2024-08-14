@@ -1,5 +1,5 @@
-import { Address } from "./address";
-import { Identity } from "./identity";
+import { Address } from './address';
+import { Identity } from './identity';
 
 export class ReducerEvent {
   callerIdentity: Identity;

@@ -1,8 +1,8 @@
 export type EventType =
-  | "update"
-  | "insert"
-  | "delete"
-  | "initialStateSync"
-  | "connected"
-  | "disconnected"
-  | "client_error";
+  | 'update'
+  | 'insert'
+  | 'delete'
+  | 'initialStateSync'
+  | 'connected'
+  | 'disconnected'
+  | 'client_error';

@@ -8,8 +8,8 @@ function hexStringToUint8Array(str: string): Uint8Array {
 // Helper function for converting Uint8Array to hex string
 function uint8ArrayToHexString(array: Uint8Array): string {
   return Array.prototype.map
-    .call(array, (x) => ("00" + x.toString(16)).slice(-2))
-    .join("");
+    .call(array, x => ('00' + x.toString(16)).slice(-2))
+    .join('');
 }
 
 /**
