@@ -78,7 +78,9 @@ export class WebsocketDecompressAdapter {
     const WS =
       'WebSocket' in globalThis
         ? WebSocket
-        : ((await import('undici')).WebSocket as unknown as typeof WebSocket);
+        : // This weird trick is needed so that bundlers dont try to bundle undici
+          ((await import(/* webpackIgnore: true */ 'undici'))
+            .WebSocket as unknown as typeof WebSocket);
 
     // In the browser we first have to get a short lived token and only then connect to the websocket
     let httpProtocol = params.ssl ? 'https://' : 'http://';
