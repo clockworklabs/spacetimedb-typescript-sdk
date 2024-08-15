@@ -79,7 +79,7 @@ export class WebsocketDecompressAdapter {
       'WebSocket' in globalThis
         ? WebSocket
         : // This weird trick is needed so that bundlers dont try to bundle undici
-          ((await import('und' + 'ici'))
+          ((await import(/* webpackIgnore: true */ 'undici'))
             .WebSocket as unknown as typeof WebSocket);
 
     // In the browser we first have to get a short lived token and only then connect to the websocket
