@@ -493,14 +493,15 @@ export class SpacetimeDBClient {
 
     switch (message.tag) {
       case 'InitialSubscription': {
-        const dbUpdate = message.value.databaseUpdate;
+        const dbUpdate = (message.value as ws.InitialSubscription)
+          .databaseUpdate;
         const subscriptionUpdate = parseDatabaseUpdate(dbUpdate);
         callback(subscriptionUpdate);
         break;
       }
 
       case 'TransactionUpdate': {
-        const txUpdate = message.value;
+        const txUpdate = message.value as ws.TransactionUpdate;
         const identity = txUpdate.callerIdentity;
         const address = Address.nullIfZero(txUpdate.callerAddress);
         const originalReducerName = txUpdate.reducerCall.reducerName;
@@ -546,12 +547,9 @@ export class SpacetimeDBClient {
       }
 
       case 'IdentityToken': {
+        const value = message.value as ws.IdentityToken;
         const identityTokenMessage: IdentityTokenMessage =
-          new IdentityTokenMessage(
-            message.value.identity,
-            message.value.token,
-            message.value.address
-          );
+          new IdentityTokenMessage(value.identity, value.token, value.address);
         callback(identityTokenMessage);
         break;
       }
