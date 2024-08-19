@@ -3,7 +3,8 @@
     "target": "ESNext",
     "module": "ESNext",
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -12,8 +13,10 @@
     "strict": true,
     "noImplicitAny": false,
     "moduleResolution": "Bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "isolatedDeclarations": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/__tests__/*", "dist"]
+  "exclude": ["node_modules", "**/__tests__/*", "dist/**/*"]
 }

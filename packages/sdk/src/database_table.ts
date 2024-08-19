@@ -1,7 +1,7 @@
-import { ClientDB } from './client_db';
-import { ReducerEvent } from './reducer_event';
-import { SpacetimeDBClient } from './spacetimedb';
-import { _tableProxy } from './utils';
+import { ClientDB } from './client_db.ts';
+import { ReducerEvent } from './reducer_event.ts';
+import { SpacetimeDBClient } from './spacetimedb.ts';
+import { _tableProxy } from './utils.ts';
 
 export type DatabaseTableClass = {
   new (...args: any[]): any;
@@ -44,7 +44,7 @@ export class DatabaseTable {
   static onInsert<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
-  ) {
+  ): void {
     this.getDB().getTable(this.tableName).onInsert(callback);
   }
 
@@ -55,21 +55,21 @@ export class DatabaseTable {
       newValue: T,
       reducerEvent: ReducerEvent | undefined
     ) => void
-  ) {
+  ): void {
     this.getDB().getTable(this.tableName).onUpdate(callback);
   }
 
   static onDelete<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
-  ) {
+  ): void {
     this.getDB().getTable(this.tableName).onDelete(callback);
   }
 
   static removeOnInsert<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
-  ) {
+  ): void {
     this.getDB().getTable(this.tableName).removeOnInsert(callback);
   }
 
@@ -80,14 +80,14 @@ export class DatabaseTable {
       newValue: T,
       reducerEvent: ReducerEvent | undefined
     ) => void
-  ) {
+  ): void {
     this.getDB().getTable(this.tableName).removeOnUpdate(callback);
   }
 
   static removeOnDelete<T extends DatabaseTable>(
     this: ThisDatabaseType<T>,
     callback: (value: T, reducerEvent: ReducerEvent | undefined) => void
-  ) {
+  ): void {
     this.getDB().getTable(this.tableName).removeOnDelete(callback);
   }
 }

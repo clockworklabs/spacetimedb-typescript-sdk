@@ -1,5 +1,5 @@
-import { type DatabaseTableClass } from './index.ts';
-import { Table } from './table';
+import type { DatabaseTableClass } from './database_table.ts';
+import { Table } from './table.ts';
 
 export class ClientDB {
   /**
@@ -34,7 +34,7 @@ export class ClientDB {
     tableName: string,
     pkCol: number | undefined,
     entityClass: DatabaseTableClass
-  ) {
+  ): Table {
     let table: Table;
     if (!this.tables.has(tableName)) {
       table = new Table(tableName, pkCol, entityClass);
