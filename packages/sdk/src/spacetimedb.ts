@@ -516,11 +516,13 @@ export class SpacetimeDBClient {
         let errMessage = '';
         switch (txUpdate.status.tag) {
           case 'Committed':
-            subscriptionUpdate = parseDatabaseUpdate(txUpdate.status.value);
+            subscriptionUpdate = parseDatabaseUpdate(
+              txUpdate.status.value as ws.DatabaseUpdate
+            );
             break;
           case 'Failed':
             subscriptionUpdate = new SubscriptionUpdateMessage([]);
-            errMessage = txUpdate.status.value;
+            errMessage = txUpdate.status.value as string;
             break;
           case 'OutOfEnergy':
             subscriptionUpdate = new SubscriptionUpdateMessage([]);
