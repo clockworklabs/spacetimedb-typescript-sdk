@@ -463,11 +463,11 @@ export class SpacetimeDBClient {
         case 'Binary':
           return new TableOperation(
             type,
-            new TextDecoder().decode(rawRow.value),
+            new TextDecoder().decode(rawRow.value as Uint8Array),
             rawRow.value
           );
         case 'Text':
-          return new TableOperation(type, rawRow.value, rawRow.value);
+          return new TableOperation(type, rawRow.value as string, rawRow.value);
       }
     };
     const parseTableUpdate = (rawTableUpdate: ws.TableUpdate): TableUpdate => {
@@ -532,7 +532,7 @@ export class SpacetimeDBClient {
             address,
             originalReducerName,
             reducerName,
-            args,
+            args as Uint8Array,
             txUpdate.status.tag.toLowerCase(),
             errMessage
           );
