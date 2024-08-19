@@ -83,8 +83,7 @@ export class WebsocketDecompressAdapter {
         'WebSocket' in globalThis
           ? WebSocket
           : // This weird trick is needed so that bundlers dont try to bundle undici
-            ((await import(/* webpackIgnore: true */ 'undici'))
-              .WebSocket as unknown as typeof WebSocket);
+            ((await import('undici')).WebSocket as unknown as typeof WebSocket);
     } else {
       WS = WebSocket;
     }
