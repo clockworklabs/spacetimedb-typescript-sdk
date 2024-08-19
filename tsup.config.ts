@@ -13,9 +13,30 @@ export default defineConfig([
     },
     clean: true,
     platform: 'browser',
-    noExternal: ['brotli', 'buffer', 'events'],
+    noExternal: ['brotli', 'buffer'],
     treeshake: 'smallest',
     external: ['undici'],
+    env: {
+      BROWSER: 'false',
+    },
+  },
+  {
+    entryPoints: {
+      index: 'src/index.ts',
+    },
+    format: ['esm'],
+    target: 'es2022',
+    legacyOutput: false,
+    dts: false,
+    outDir: 'dist/browser',
+    clean: true,
+    platform: 'browser',
+    noExternal: ['brotli', 'buffer'],
+    treeshake: 'smallest',
+    external: ['undici'],
+    env: {
+      BROWSER: 'true',
+    },
   },
   {
     entryPoints: {
