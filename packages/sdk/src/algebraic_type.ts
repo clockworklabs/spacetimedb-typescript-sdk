@@ -112,6 +112,10 @@ export class MapType {
   }
 }
 
+export declare namespace BuiltinType {
+  export type Type = (typeof BuiltinType.Type)[keyof typeof BuiltinType.Type];
+}
+
 export class BuiltinType {
   type: BuiltinType.Type;
   arrayType: AlgebraicType | undefined;
@@ -141,32 +145,23 @@ export class BuiltinType {
   static string_ty(): BuiltinType {
     return new BuiltinType(BuiltinType.Type.String, undefined);
   }
-}
 
-// exporting BuiltinType as a namespace as well as a class allows to add
-// export types on the namespace, so we can use BuiltinType.Type
-/*
- * Represents the built-in types in SATS.
- *
- * Some of these types are nominal in our otherwise structural type system.
- */
-export namespace BuiltinType {
-  export enum Type {
-    Bool = 'Bool',
-    I8 = 'I8',
-    U8 = 'U8',
-    I16 = 'I16',
-    U16 = 'U16',
-    I32 = 'I32',
-    U32 = 'U32',
-    I64 = 'I64',
-    U64 = 'U64',
-    I128 = 'I128',
-    U128 = 'U128',
-    F32 = 'F32',
-    F64 = 'F64',
+  static Type = {
+    Bool: 'Bool',
+    I8: 'I8',
+    U8: 'U8',
+    I16: 'I16',
+    U16: 'U16',
+    I32: 'I32',
+    U32: 'U32',
+    I64: 'I64',
+    U64: 'U64',
+    I128: 'I128',
+    U128: 'U128',
+    F32: 'F32',
+    F64: 'F64',
     /** UTF-8 encoded */
-    String = 'String',
+    String: 'String',
     /** This is a SATS `ArrayType`
      *
      * An array type is a **homogeneous** product type of dynamic length.
@@ -175,10 +170,10 @@ export namespace BuiltinType {
      * where every element / factor / field is of the same type
      * and where the length is statically unknown.
      */
-    Array = 'Array',
+    Array: 'Array',
     /** This is a SATS `MapType` */
-    Map = 'Map',
-  }
+    Map: 'Map',
+  } as const;
 }
 
 type TypeRef = null;
@@ -207,7 +202,10 @@ export class AlgebraicType {
 
   set product(value: ProductType | undefined) {
     this.type_ = value;
-    this.type = value == undefined ? Type.None : Type.ProductType;
+    this.type =
+      value == undefined
+        ? AlgebraicType.Type.None
+        : AlgebraicType.Type.ProductType;
   }
 
   get sum(): SumType {
@@ -294,18 +292,16 @@ export class AlgebraicType {
   isAddress(): boolean {
     return this.#isBytesNewtype('__address_bytes');
   }
-}
 
-export namespace AlgebraicType {
-  export enum Type {
-    SumType = 'SumType',
-    ProductType = 'ProductType',
-    BuiltinType = 'BuiltinType',
-    None = 'None',
-  }
+  static Type = {
+    SumType: 'SumType',
+    ProductType: 'ProductType',
+    BuiltinType: 'BuiltinType',
+    None: 'None',
+  } as const;
 }
 
 // No idea why but in order to have a local alias for both of these
 // need to be present
-type Type = AlgebraicType.Type;
+type Type = keyof typeof AlgebraicType.Type;
 let Type: typeof AlgebraicType.Type = AlgebraicType.Type;
