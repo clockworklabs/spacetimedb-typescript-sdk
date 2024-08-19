@@ -9,6 +9,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
+  "browser": "./dist/browser/index.js",
   "type": "module",
   "files": [
     "dist"
@@ -16,6 +17,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "browser": "./dist/browser/index.js",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
