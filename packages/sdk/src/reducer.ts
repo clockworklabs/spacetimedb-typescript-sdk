@@ -1,4 +1,4 @@
-import { SpacetimeDBClient } from './spacetimedb';
+import { SpacetimeDBClient } from './spacetimedb.ts';
 
 export type ReducerClass = {
   new (...args: any[]): Reducer;

@@ -4,7 +4,7 @@
 export class Address {
   #data: Uint8Array;
 
-  get __address_bytes() {
+  get __address_bytes(): Uint8Array {
     return this.toUint8Array();
   }
 

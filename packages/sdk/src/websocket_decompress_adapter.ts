@@ -34,11 +34,11 @@ export class WebsocketDecompressAdapter {
     }
   }
 
-  send(msg: any) {
+  send(msg: any): void {
     this.#ws.send(msg);
   }
 
-  close() {
+  close(): void {
     this.#ws.close();
   }
 

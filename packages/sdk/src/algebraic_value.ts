@@ -1,12 +1,11 @@
 import {
   AlgebraicType,
   BuiltinType,
-  // EnumLabel,
   MapType,
   ProductType,
   SumType,
-} from './algebraic_type';
-import BinaryReader from './binary_reader';
+} from './algebraic_type.ts';
+import BinaryReader from './binary_reader.ts';
 
 export interface ReducerArgsAdapter {
   next: () => ValueAdapter;
@@ -334,7 +333,10 @@ export class AlgebraicValue {
     return (this[methodName] as Function)();
   }
 
-  static deserialize(type: AlgebraicType, adapter: ValueAdapter) {
+  static deserialize(
+    type: AlgebraicType,
+    adapter: ValueAdapter
+  ): AlgebraicValue {
     switch (type.type) {
       case AlgebraicType.Type.ProductType:
         return new this(ProductValue.deserialize(type.product, adapter));

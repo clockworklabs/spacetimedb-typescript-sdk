@@ -27,7 +27,7 @@ const LogTextStyle = {
   debug: 'color: #28a745;',
 };
 
-export const stdbLogger = (level: LogLevel, message: any) => {
+export const stdbLogger = (level: LogLevel, message: any): void => {
   console.log(
     `%c${LogLevelIdentifierIcon[level]} ${level.toUpperCase()}%c ${message}`,
     LogStyle[level],

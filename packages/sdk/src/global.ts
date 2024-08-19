@@ -1,5 +1,5 @@
-import { ClientDB } from './client_db';
-import { SpacetimeDBClient } from './spacetimedb';
+import { ClientDB } from './client_db.ts';
+import { SpacetimeDBClient } from './spacetimedb.ts';
 
 export type SpacetimeDBGlobals = {
   clientDB: ClientDB;

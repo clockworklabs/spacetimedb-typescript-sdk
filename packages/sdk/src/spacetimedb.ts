@@ -1,9 +1,9 @@
-import { EventEmitter } from './events';
+import { EventEmitter } from './events.ts';
 
-import { WebsocketDecompressAdapter } from './websocket_decompress_adapter';
-import type { WebsocketTestAdapter } from './websocket_test_adapter';
+import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
+import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
 
-import { Address } from './address';
+import { Address } from './address.ts';
 import {
   AlgebraicType,
   BuiltinType,
@@ -11,7 +11,7 @@ import {
   ProductTypeElement,
   SumType,
   SumTypeVariant,
-} from './algebraic_type';
+} from './algebraic_type.ts';
 import {
   AlgebraicValue,
   BinaryAdapter,
@@ -20,27 +20,27 @@ import {
   ProductValue,
   type ReducerArgsAdapter,
   type ValueAdapter,
-} from './algebraic_value';
-import BinaryReader from './binary_reader';
-import * as ws from './client_api';
-import { ClientDB } from './client_db';
-import { DatabaseTable, type DatabaseTableClass } from './database_table';
-import type { SpacetimeDBGlobals } from './global';
-import { Identity } from './identity';
-import { stdbLogger } from './logger';
+} from './algebraic_value.ts';
+import BinaryReader from './binary_reader.ts';
+import * as ws from './client_api.ts';
+import { ClientDB } from './client_db.ts';
+import { DatabaseTable, type DatabaseTableClass } from './database_table.ts';
+import type { SpacetimeDBGlobals } from './global.ts';
+import { Identity } from './identity.ts';
+import { stdbLogger } from './logger.ts';
 import {
   IdentityTokenMessage,
   SubscriptionUpdateMessage,
   TransactionUpdateEvent,
   TransactionUpdateMessage,
   type Message,
-} from './message_types';
-import { Reducer, type ReducerClass } from './reducer';
-import { ReducerEvent } from './reducer_event';
-import { BinarySerializer, type Serializer } from './serializer';
-import { TableOperation, TableUpdate } from './table';
-import type { EventType } from './types';
-import { toPascalCase } from './utils';
+} from './message_types.ts';
+import { Reducer, type ReducerClass } from './reducer.ts';
+import { ReducerEvent } from './reducer_event.ts';
+import { BinarySerializer, type Serializer } from './serializer.ts';
+import { TableOperation, TableUpdate } from './table.ts';
+import type { EventType } from './types.ts';
+import { toPascalCase } from './utils.ts';
 
 export {
   AlgebraicType,
@@ -324,7 +324,7 @@ export class SpacetimeDBClient {
    * @param table The table to subscribe to
    * @param query The query to subscribe to. If not provided, the default is `SELECT * FROM {table}`
    */
-  registerManualTable(table: string, query?: string) {
+  registerManualTable(table: string, query?: string): void {
     this.#manualTableSubscriptions.push(
       query ? query : `SELECT * FROM ${table}`
     );
@@ -337,7 +337,7 @@ export class SpacetimeDBClient {
    *
    * @param table The table to unsubscribe from
    */
-  removeManualTable(table: string) {
+  removeManualTable(table: string): void {
     // pgoldman 2024-06-25: Is this broken? `registerManualTable` treats `manualTableSubscriptions`
     // as containing SQL strings,
     // but this code treats it as containing table name strings.
@@ -361,7 +361,7 @@ export class SpacetimeDBClient {
    * spacetimeDBClient.disconnect()
    * ```
    */
-  disconnect() {
+  disconnect(): void {
     this.#ws.close();
   }
 
@@ -386,7 +386,11 @@ export class SpacetimeDBClient {
    * spacetimeDBClient.connect(undefined, undefined, NEW_TOKEN);
    * ```
    */
-  async connect(host?: string, name_or_address?: string, auth_token?: string) {
+  async connect(
+    host?: string,
+    name_or_address?: string,
+    auth_token?: string
+  ): Promise<void> {
     if (this.live) {
       return;
     }
@@ -585,7 +589,7 @@ export class SpacetimeDBClient {
    * new clients
    * @param table Component to be registered
    */
-  static registerTable(table: DatabaseTableClass) {
+  static registerTable(table: DatabaseTableClass): void {
     this.#tableClasses.set(table.tableName, table);
   }
 
@@ -593,7 +597,7 @@ export class SpacetimeDBClient {
    *  Register a list of components to be used with any SpacetimeDB client. The components will be automatically registered to any new clients
    * @param tables A list of tables to register globally with SpacetimeDBClient
    */
-  static registerTables(...tables: DatabaseTableClass[]) {
+  static registerTables(...tables: DatabaseTableClass[]): void {
     for (const table of tables) {
       this.registerTable(table);
     }
@@ -604,7 +608,7 @@ export class SpacetimeDBClient {
    * new clients
    * @param reducer Reducer to be registered
    */
-  static registerReducer(reducer: ReducerClass) {
+  static registerReducer(reducer: ReducerClass): void {
     this.#reducerClasses.set(reducer.reducerName + 'Reducer', reducer);
   }
 
@@ -612,7 +616,7 @@ export class SpacetimeDBClient {
    * Register a list of reducers to be used with any SpacetimeDB client. The reducers will be automatically registered to any new clients
    * @param reducers A list of reducers to register globally with SpacetimeDBClient
    */
-  static registerReducers(...reducers: ReducerClass[]) {
+  static registerReducers(...reducers: ReducerClass[]): void {
     for (const reducer of reducers) {
       this.registerReducer(reducer);
     }
@@ -634,7 +638,7 @@ export class SpacetimeDBClient {
    * spacetimeDBClient.subscribe(["SELECT * FROM User","SELECT * FROM Message"]);
    * ```
    */
-  subscribe(queryOrQueries: string | string[]) {
+  subscribe(queryOrQueries: string | string[]): void {
     const queries =
       typeof queryOrQueries === 'string' ? [queryOrQueries] : queryOrQueries;
     if (this.live) {
@@ -666,7 +670,7 @@ export class SpacetimeDBClient {
    * @param reducerName The name of the reducer to call
    * @param argsSerializer The arguments to pass to the reducer
    */
-  call(reducerName: string, argsSerializer: Serializer) {
+  call(reducerName: string, argsSerializer: Serializer): void {
     const message = ws.ClientMessage.CallReducer(
       new ws.CallReducer(
         reducerName,
@@ -679,11 +683,11 @@ export class SpacetimeDBClient {
     this.#sendMessage(message);
   }
 
-  on(eventName: EventType | string, callback: (...args: any[]) => void) {
+  on(eventName: EventType | string, callback: (...args: any[]) => void): void {
     this.emitter.on(eventName, callback);
   }
 
-  off(eventName: EventType | string, callback: (...args: any[]) => void) {
+  off(eventName: EventType | string, callback: (...args: any[]) => void): void {
     this.emitter.off(eventName, callback);
   }
 
@@ -713,7 +717,7 @@ export class SpacetimeDBClient {
    */
   onConnect(
     callback: (token: string, identity: Identity, address: Address) => void
-  ) {
+  ): void {
     this.on('connected', callback);
   }
 
@@ -728,11 +732,11 @@ export class SpacetimeDBClient {
    * });
    * ```
    */
-  onError(callback: (...args: any[]) => void) {
+  onError(callback: (...args: any[]) => void): void {
     this.on('client_error', callback);
   }
 
-  _setCreateWSFn(fn: CreateWSFnType) {
+  _setCreateWSFn(fn: CreateWSFnType): void {
     this.#createWSFn = fn;
   }
 
@@ -746,7 +750,7 @@ g.__SPACETIMEDB__ = {
   spacetimeDBClient: undefined,
 };
 
-export const __SPACETIMEDB__ = (
+export const __SPACETIMEDB__: SpacetimeDBGlobals = (
   typeof window === 'undefined'
     ? global.__SPACETIMEDB__
     : window.__SPACETIMEDB__

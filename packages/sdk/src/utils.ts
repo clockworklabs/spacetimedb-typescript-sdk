@@ -1,4 +1,4 @@
-import { SpacetimeDBClient } from './spacetimedb';
+import { SpacetimeDBClient } from './spacetimedb.ts';
 
 // Helper function for creating a proxy for a table class
 export function _tableProxy<T>(t: any, client: SpacetimeDBClient): T {

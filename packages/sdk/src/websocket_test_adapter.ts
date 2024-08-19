@@ -1,5 +1,5 @@
-import { ServerMessage } from './client_api';
-import { BinarySerializer } from './serializer';
+import { ServerMessage } from './client_api.ts';
+import { BinarySerializer } from './serializer.ts';
 
 class WebsocketTestAdapter {
   onclose: any;
@@ -15,19 +15,19 @@ class WebsocketTestAdapter {
     this.closed = false;
   }
 
-  send(message: any) {
+  send(message: any): void {
     this.messageQueue.push(message);
   }
 
-  close() {
+  close(): void {
     this.closed = true;
   }
 
-  acceptConnection() {
+  acceptConnection(): void {
     this.onopen();
   }
 
-  sendToClient(message: ServerMessage) {
+  sendToClient(message: ServerMessage): void {
     const serializer = new BinarySerializer();
     serializer.write(ServerMessage.getAlgebraicType(), message);
     const rawBytes = serializer.args();
@@ -40,9 +40,9 @@ class WebsocketTestAdapter {
   }
 
   async createWebSocketFn(
-    _url,
-    _protocol,
-    _params
+    _url: string,
+    _protocol: string,
+    _params: any
   ): Promise<WebsocketTestAdapter> {
     return this;
   }

@@ -1,9 +1,9 @@
-import { BinaryAdapter } from './algebraic_value';
-import BinaryReader from './binary_reader';
-import { EventEmitter } from './events';
-import OperationsMap from './operations_map';
-import { ReducerEvent } from './reducer_event';
-import { AlgebraicValue, DatabaseTable } from './spacetimedb';
+import { BinaryAdapter } from './algebraic_value.ts';
+import BinaryReader from './binary_reader.ts';
+import { EventEmitter } from './events.ts';
+import OperationsMap from './operations_map.ts';
+import { ReducerEvent } from './reducer_event.ts';
+import { AlgebraicValue, DatabaseTable } from './spacetimedb.ts';
 
 class DBOp {
   type: 'insert' | 'delete';
@@ -85,7 +85,7 @@ export class Table {
   applyOperations = (
     operations: TableOperation[],
     reducerEvent: ReducerEvent | undefined
-  ) => {
+  ): void => {
     let dbOps: DBOp[] = [];
     for (let operation of operations) {
       const pk: string = operation.rowPk;
@@ -139,7 +139,7 @@ export class Table {
     newDbOp: DBOp,
     oldDbOp: DBOp,
     reducerEvent: ReducerEvent | undefined
-  ) => {
+  ): void => {
     const newInstance = newDbOp.instance;
     const oldInstance = oldDbOp.instance;
     this.instances.delete(oldDbOp.rowPk);
@@ -147,12 +147,12 @@ export class Table {
     this.emitter.emit('update', oldInstance, newInstance, reducerEvent);
   };
 
-  insert = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
+  insert = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined): void => {
     this.instances.set(dbOp.rowPk, dbOp.instance);
     this.emitter.emit('insert', dbOp.instance, reducerEvent);
   };
 
-  delete = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined) => {
+  delete = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined): void => {
     this.instances.delete(dbOp.rowPk);
     this.emitter.emit('delete', dbOp.instance, reducerEvent);
   };
@@ -174,7 +174,7 @@ export class Table {
    */
   onInsert = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
+  ): void => {
     this.emitter.on('insert', cb);
   };
 
@@ -195,7 +195,7 @@ export class Table {
    */
   onDelete = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
+  ): void => {
     this.emitter.on('delete', cb);
   };
 
@@ -220,7 +220,7 @@ export class Table {
       oldValue: any,
       reducerEvent: ReducerEvent | undefined
     ) => void
-  ) => {
+  ): void => {
     this.emitter.on('update', cb);
   };
 
@@ -230,7 +230,7 @@ export class Table {
    */
   removeOnInsert = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
+  ): void => {
     this.emitter.off('insert', cb);
   };
 
@@ -240,7 +240,7 @@ export class Table {
    */
   removeOnDelete = (
     cb: (value: any, reducerEvent: ReducerEvent | undefined) => void
-  ) => {
+  ): void => {
     this.emitter.off('delete', cb);
   };
 
@@ -254,7 +254,7 @@ export class Table {
       oldValue: any,
       reducerEvent: ReducerEvent | undefined
     ) => void
-  ) => {
+  ): void => {
     this.emitter.off('update', cb);
   };
 }

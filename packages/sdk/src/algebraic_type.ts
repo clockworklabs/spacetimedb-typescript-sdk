@@ -238,7 +238,7 @@ export class AlgebraicType {
     return type;
   }
 
-  static createArrayType(elementType: AlgebraicType) {
+  static createArrayType(elementType: AlgebraicType): AlgebraicType {
     let type = new AlgebraicType();
     type.builtin = new BuiltinType(BuiltinType.Type.Array, elementType);
     return type;
@@ -250,7 +250,7 @@ export class AlgebraicType {
     return type;
   }
 
-  static createPrimitiveType(type: BuiltinType.Type) {
+  static createPrimitiveType(type: BuiltinType.Type): AlgebraicType {
     let algebraicType = new AlgebraicType();
     algebraicType.builtin = new BuiltinType(type, undefined);
     return algebraicType;
@@ -308,4 +308,4 @@ export namespace AlgebraicType {
 // No idea why but in order to have a local alias for both of these
 // need to be present
 type Type = AlgebraicType.Type;
-let Type = AlgebraicType.Type;
+let Type: typeof AlgebraicType.Type = AlgebraicType.Type;

@@ -1,5 +1,5 @@
-import { AlgebraicType, BuiltinType } from './algebraic_type';
-import BinaryWriter from './binary_writer';
+import { AlgebraicType, BuiltinType } from './algebraic_type.ts';
+import BinaryWriter from './binary_writer.ts';
 
 export interface Serializer {
   write(type: AlgebraicType, value: any): any;
@@ -21,7 +21,7 @@ export class BinarySerializer {
     return this.#writer.getBuffer();
   }
 
-  write(type: AlgebraicType, value: any) {
+  write(type: AlgebraicType, value: any): void {
     switch (type.type) {
       case AlgebraicType.Type.BuiltinType:
         this.writeBuiltinType(type.builtin, value);
@@ -59,7 +59,7 @@ export class BinarySerializer {
     }
   }
 
-  writeBuiltinType(type: BuiltinType, value: any) {
+  writeBuiltinType(type: BuiltinType, value: any): void {
     switch (type.type) {
       case BuiltinType.Type.Array:
         const array = value as any[];
@@ -115,7 +115,7 @@ export class BinarySerializer {
     }
   }
 
-  writeByte(byte: number) {
+  writeByte(byte: number): void {
     this.#writer.writeU8(byte);
   }
 }

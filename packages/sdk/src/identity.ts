@@ -18,7 +18,7 @@ function uint8ArrayToHexString(array: Uint8Array): string {
 export class Identity {
   #data: string;
 
-  get __identity_bytes() {
+  get __identity_bytes(): Uint8Array {
     return this.toUint8Array();
   }
 

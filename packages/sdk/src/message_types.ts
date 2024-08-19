@@ -1,5 +1,6 @@
-import { Address, Identity } from '.';
-import { TableUpdate } from './table';
+import { Address } from './address.ts';
+import { Identity } from './identity.ts';
+import { TableUpdate } from './table.ts';
 
 export class SubscriptionUpdateMessage {
   tableUpdates: TableUpdate[];
