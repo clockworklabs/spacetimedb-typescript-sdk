@@ -6,12 +6,11 @@ import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
 import { Address } from './address.ts';
 import {
   AlgebraicType,
-  BuiltinType,
   ProductType,
   ProductTypeElement,
   SumType,
   SumTypeVariant,
-} from './algebraic_type.ts';
+} from './algebraic_type';
 import {
   AlgebraicValue,
   BinaryAdapter,
@@ -23,10 +22,10 @@ import {
 } from './algebraic_value.ts';
 import BinaryReader from './binary_reader.ts';
 import * as ws from './client_api.ts';
-import { ClientDB } from './client_db.ts';
+import { ClientDB } from './client_db';
 import { DatabaseTable, type DatabaseTableClass } from './database_table.ts';
 import type { SpacetimeDBGlobals } from './global.ts';
-import { Identity } from './identity.ts';
+import type { Identity } from './identity.ts';
 import { stdbLogger } from './logger.ts';
 import {
   IdentityTokenMessage,
@@ -46,7 +45,6 @@ export {
   AlgebraicType,
   AlgebraicValue,
   BinarySerializer,
-  BuiltinType,
   DatabaseTable,
   ProductType,
   ProductTypeElement,
@@ -56,9 +54,10 @@ export {
   SumType,
   SumTypeVariant,
   type DatabaseTableClass,
-  type ReducerClass,
+  type ReducerArgsAdapter,
+  type Serializer,
+  type ValueAdapter,
 };
-export type { ReducerArgsAdapter, Serializer, ValueAdapter };
 
 const g = (typeof window === 'undefined' ? global : window)!;
 

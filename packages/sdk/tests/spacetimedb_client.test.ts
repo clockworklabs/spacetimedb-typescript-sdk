@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { Address } from '../src/address';
-import { AlgebraicType, BuiltinType } from '../src/algebraic_type';
+import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import * as ws from '../src/client_api';
+import { ClientDB } from '../src/client_db';
 import { Identity } from '../src/identity';
 import { BinarySerializer } from '../src/serializer';
 import {
@@ -15,9 +16,6 @@ import CreatePlayerReducer from './types/create_player_reducer';
 import Player from './types/player';
 import Point from './types/point';
 import User from './types/user';
-
-// For some reason tests fail if this is imported before the SpacetimeDBClient
-import { ClientDB } from '../src/client_db';
 
 SpacetimeDBClient.registerTables(Player, User);
 SpacetimeDBClient.registerReducers(CreatePlayerReducer);
@@ -47,10 +45,7 @@ function encodeCreatePlayerArgs(
   location: Point
 ): ws.EncodedValue {
   const encoder = new BinarySerializer();
-  encoder.write(
-    AlgebraicType.createPrimitiveType(BuiltinType.Type.String),
-    name
-  );
+  encoder.write(AlgebraicType.createStringType(), name);
   encoder.write(Point.getAlgebraicType(), location);
   return ws.EncodedValue.Binary(encoder.args());
 }

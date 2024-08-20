@@ -2,11 +2,7 @@
 // WILL NOT BE SAVED. MODIFY TABLES IN RUST INSTEAD.
 
 import { Address } from '../address.ts';
-import {
-  AlgebraicType,
-  BuiltinType,
-  ProductTypeElement,
-} from '../algebraic_type.ts';
+import { AlgebraicType, ProductTypeElement } from '../algebraic_type.ts';
 import type { AlgebraicValue } from '../algebraic_value.ts';
 import { Identity } from '../identity.ts';
 
@@ -39,24 +35,17 @@ export class IdentityToken {
         AlgebraicType.createProductType([
           new ProductTypeElement(
             '__identity_bytes',
-            AlgebraicType.createArrayType(
-              AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
-            )
+            AlgebraicType.createBytesType()
           ),
         ])
       ),
-      new ProductTypeElement(
-        'token',
-        AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
-      ),
+      new ProductTypeElement('token', AlgebraicType.createStringType()),
       new ProductTypeElement(
         'address',
         AlgebraicType.createProductType([
           new ProductTypeElement(
             '__address_bytes',
-            AlgebraicType.createArrayType(
-              AlgebraicType.createPrimitiveType(BuiltinType.Type.U8)
-            )
+            AlgebraicType.createBytesType()
           ),
         ])
       ),
@@ -65,13 +54,9 @@ export class IdentityToken {
 
   static fromValue(value: AlgebraicValue): IdentityToken {
     let productValue = value.asProductValue();
-    let __identity = new Identity(
-      productValue.elements[0].asProductValue().elements[0].asBytes()
-    );
+    let __identity = productValue.elements[0].asIdentity();
     let __token = productValue.elements[1].asString();
-    let __address = new Address(
-      productValue.elements[2].asProductValue().elements[0].asBytes()
-    );
+    let __address = productValue.elements[2].asAddress();
     return new this(__identity, __token, __address);
   }
 }

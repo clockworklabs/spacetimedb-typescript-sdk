@@ -5,18 +5,10 @@
 import {
   __SPACETIMEDB__,
   AlgebraicType,
-  ProductType,
-  BuiltinType,
-  ProductTypeElement,
-  SumType,
-  SumTypeVariant,
-  DatabaseTable,
   AlgebraicValue,
-  ReducerEvent,
-  Identity,
-  Address,
   ClientDB,
-  SpacetimeDBClient,
+  DatabaseTable,
+  ProductTypeElement,
 } from '../../src/index';
 // @ts-ignore
 import { Point } from './point';
@@ -43,14 +35,8 @@ export class Player extends DatabaseTable {
 
   public static getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement(
-        'ownerId',
-        AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
-      ),
-      new ProductTypeElement(
-        'name',
-        AlgebraicType.createPrimitiveType(BuiltinType.Type.String)
-      ),
+      new ProductTypeElement('ownerId', AlgebraicType.createStringType()),
+      new ProductTypeElement('name', AlgebraicType.createStringType()),
       new ProductTypeElement('location', Point.getAlgebraicType()),
     ]);
   }
