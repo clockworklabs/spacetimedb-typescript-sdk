@@ -1,8 +1,5 @@
-import {
-  AlgebraicType,
-  SumTypeVariant,
-  AlgebraicValue,
-} from "./algebraic_type";
+import { AlgebraicType, SumTypeVariant } from "./algebraic_type";
+import { AlgebraicValue } from "./algebraic_value";
 
 export namespace ScheduleAt {
   export function getAlgebraicType(): AlgebraicType {
