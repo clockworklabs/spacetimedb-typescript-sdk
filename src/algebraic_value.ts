@@ -8,6 +8,7 @@ import {
 } from "./algebraic_type";
 import BinaryReader from "./binary_reader";
 import { Identity } from "./identity";
+import { ScheduleAt } from "./schedule_at";
 
 export interface ReducerArgsAdapter {
   next: () => ValueAdapter;
@@ -330,6 +331,10 @@ export class AlgebraicValue {
 
   public asAddress(): Address {
     return new Address(this.asField(0).asBytes());
+  }
+
+  public asScheduleAt(): ScheduleAt {
+    return ScheduleAt.fromValue(this);
   }
 }
 

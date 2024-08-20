@@ -1,3 +1,5 @@
+import ScheduleAt from "./schedule_at";
+
 /**
  * A variant of a sum type.
  *
@@ -258,6 +260,9 @@ export class AlgebraicType {
   public static createBytesType(): AlgebraicType {
     return this.createArrayType(this.createU8Type());
   }
+  public static createScheduleAtType(): AlgebraicType {
+    return ScheduleAt.getAlgebraicType();
+  }
 
   public isProductType(): boolean {
     return this.type === Type.ProductType;
@@ -294,6 +299,17 @@ export class AlgebraicType {
 
   public isAddress(): boolean {
     return this.isBytesNewtype("__address_bytes");
+  }
+
+  public isScheduleAt(): boolean {
+    return (
+      this.isSumType() &&
+      this.sum.variants.length === 2 &&
+      this.sum.variants[0].name === "Interval" &&
+      this.sum.variants[0].algebraicType.type === Type.U64 &&
+      this.sum.variants[1].name === "Time" &&
+      this.sum.variants[1].algebraicType.type === Type.U64
+    );
   }
 }
 
