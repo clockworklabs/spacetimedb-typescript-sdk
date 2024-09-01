@@ -144,7 +144,7 @@ export class SpacetimeDBClient {
    * const name_or_address = "database_name"
    * const auth_token = undefined;
    *
-   * var spacetimeDBClient = new SpacetimeDBClient(host, name_or_address, auth_token, protocol);
+   * var spacetimeDBClient = new SpacetimeDBClient(host, name_or_address, auth_token);
    * ```
    */
   constructor(host: string, name_or_address: string, auth_token?: string) {
