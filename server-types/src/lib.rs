@@ -1,8 +1,8 @@
-use spacetimedb::{spacetimedb, ReducerContext, SpacetimeType, Identity};
+use spacetimedb::{reducer, table, Identity, ReducerContext, SpacetimeType, Table};
 
-#[spacetimedb(table)]
+#[table(name = player)]
 pub struct Player {
-    #[primarykey]
+    #[primary_key]
     owner_id: String,
     name: String,
     location: Point,
@@ -14,14 +14,14 @@ pub struct Point {
     pub y: u16,
 }
 
-#[spacetimedb(table)]
+#[table(name = user)]
 pub struct User {
-    #[primarykey]
+    #[primary_key]
     pub identity: Identity,
     pub username: String,
 }
 
-#[spacetimedb(reducer)]
-pub fn create_player(ctx: ReducerContext, name: String, location: Point) {
-    Player::insert(Player { owner_id: ctx.sender.to_hex().to_string(), name, location });
+#[reducer]
+pub fn create_player(ctx: &ReducerContext, name: String, location: Point) {
+    ctx.db.player().insert(Player { owner_id: ctx.sender.to_hex().to_string(), name, location });
 }
