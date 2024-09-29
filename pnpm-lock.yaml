@@ -75,6 +75,9 @@ importers:
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
+      tsup:
+        specifier: ^8.1.0
+        version: 8.2.4(postcss@8.4.41)(tsx@4.17.0)(typescript@5.5.4)
       undici:
         specifier: ^6.19.2
         version: 6.19.7
