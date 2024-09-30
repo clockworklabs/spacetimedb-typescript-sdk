@@ -2,14 +2,12 @@ import { BinaryAdapter } from './algebraic_value.ts';
 import BinaryReader from './binary_reader.ts';
 import { EventEmitter } from './event_emitter.ts';
 import OperationsMap from './operations_map.ts';
-import { ReducerEvent } from './reducer_event.ts';
+import type { ReducerEvent } from './reducer_event.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
+import type { Event } from './event.ts';
 
 import {
-  AlgebraicValue,
-  AlgebraicType,
-  DbContext,
-  type CallbackInit,
+  type EventContext,
 } from './db_connection.ts';
 
 export type Operation = {
@@ -65,14 +63,14 @@ export class TableCache<RowType = any> {
 
   applyOperations = (
     rawOperations: RawOperation[],
-    reducerEvent: ReducerEvent | undefined
+    ctx: EventContext
   ): void => {
     let operations: Operation[] = [];
-    for (let operation of rawOperations) {
-      const rowId: string = operation.rowId;
-      const reader = new BinaryReader(operation.row);
+    for (let rawOperation of rawOperations) {
+      const rowId: string = rawOperation.rowId;
+      const reader = new BinaryReader(rawOperation.row);
       const row = this.tableTypeInfo.rowType.deserialize(reader);
-      operations.push({ type: operation.type, rowPk: rowId, row });
+      operations.push({ type: rawOperation.type, rowPk: rowId, row });
     }
         
     if (this.tableTypeInfo.primaryKey !== undefined) {
@@ -90,47 +88,47 @@ export class TableCache<RowType = any> {
         const deleteOp = deleteMap.get(insertOp.row[primaryKey]);
         if (deleteOp) {
           // the pk for updates will differ between insert/delete, so we have to
-          // use the instance from delete
-          this.update(insertOp, deleteOp, reducerEvent);
+          // use the row from delete
+          this.update(ctx, insertOp, deleteOp);
           deleteMap.delete(insertOp.row[primaryKey]);
         } else {
-          this.insert(insertOp, reducerEvent);
+          this.insert(ctx, insertOp);
         }
       }
       for (const deleteOp of deleteMap.values()) {
-        this.delete(deleteOp, reducerEvent);
+        this.delete(ctx, deleteOp);
       }
     } else {
       for (const op of operations) {
         if (op.type === 'insert') {
-          this.insert(op, reducerEvent);
+          this.insert(ctx, op);
         } else {
-          this.delete(op, reducerEvent);
+          this.delete(ctx, op);
         }
       }
     }
   };
 
   update = (
+    ctx: EventContext,
     newDbOp: Operation,
     oldDbOp: Operation,
-    reducerEvent: ReducerEvent | undefined
   ): void => {
-    const newInstance = newDbOp.row;
-    const oldInstance = oldDbOp.row;
+    const newRow = newDbOp.row;
+    const oldRow = oldDbOp.row;
     this.rows.delete(oldDbOp.rowPk);
-    this.rows.set(newDbOp.rowPk, newInstance);
-    this.emitter.emit('update', oldInstance, newInstance, reducerEvent);
+    this.rows.set(newDbOp.rowPk, newRow);
+    this.emitter.emit('update', ctx, oldRow, newRow,);
   };
 
-  insert = (operation: Operation, reducerEvent: ReducerEvent | undefined): void => {
+  insert = (ctx: EventContext, operation: Operation): void => {
     this.rows.set(operation.rowPk, operation.row);
-    this.emitter.emit('insert', operation.row, reducerEvent);
+    this.emitter.emit('insert', ctx, operation.row);
   };
 
-  delete = (dbOp: Operation, reducerEvent: ReducerEvent | undefined): void => {
+  delete = (ctx: EventContext, dbOp: Operation): void => {
     this.rows.delete(dbOp.rowPk);
-    this.emitter.emit('delete', dbOp.row, reducerEvent);
+    this.emitter.emit('delete', ctx, dbOp.row);
   };
 
   /**
@@ -151,18 +149,10 @@ export class TableCache<RowType = any> {
   onInsert = <EventContext>(
     cb: (
       ctx: EventContext,
-      value: any,
-      reducerEvent: ReducerEvent | undefined
+      row: RowType,
     ) => void,
-    init?: CallbackInit
   ): void => {
     this.emitter.on('insert', cb);
-
-    if (init?.signal) {
-      init.signal.addEventListener('abort', () => {
-        this.emitter.off('insert', cb);
-      });
-    }
   };
 
   /**
@@ -183,18 +173,10 @@ export class TableCache<RowType = any> {
   onDelete = <EventContext>(
     cb: (
       ctx: EventContext,
-      value: any,
-      reducerEvent: ReducerEvent | undefined
+      row: RowType,
     ) => void,
-    init?: CallbackInit
   ): void => {
     this.emitter.on('delete', cb);
-
-    if (init?.signal) {
-      init.signal.addEventListener('abort', () => {
-        this.emitter.off('delete', cb);
-      });
-    }
   };
 
   /**
@@ -215,18 +197,10 @@ export class TableCache<RowType = any> {
   onUpdate = <EventContext>(
     cb: (
       ctx: EventContext,
-      value: any,
-      oldValue: any,
-      reducerEvent: ReducerEvent | undefined
+      oldRow: RowType,
+      row: RowType,
     ) => void,
-    init?: CallbackInit
   ): void => {
     this.emitter.on('update', cb);
-
-    if (init?.signal) {
-      init.signal.addEventListener('abort', () => {
-        this.emitter.off('update', cb);
-      });
-    }
   };
 }

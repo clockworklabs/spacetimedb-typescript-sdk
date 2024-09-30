@@ -17,38 +17,29 @@ import BinaryReader from './binary_reader.ts';
 import BinaryWriter from './binary_writer.ts';
 import * as ws from './client_api.ts';
 import { ClientCache } from './client_cache.ts';
-import { DbContext } from './db_context.ts';
+import { SubscriptionBuilder, type DBContext, type EventContext } from './db_context.ts';
 import { EventEmitter } from './event_emitter.ts';
 import type { Identity } from './identity.ts';
 import { stdbLogger } from './logger.ts';
-import {
+import type {
   IdentityTokenMessage,
-  SubscriptionUpdateMessage,
-  TransactionUpdateEvent,
-  TransactionUpdateMessage,
-  type Message,
+  Message
 } from './message_types.ts';
-import { Reducer } from './reducer.ts';
-import { ReducerEvent } from './reducer_event.ts';
+import type { ReducerEvent } from './reducer_event.ts';
 import type SpacetimeModule from './spacetime_module.ts';
 import { TableCache, type RawOperation, type TableUpdate } from './table_cache.ts';
-import type { CallbackInit, EventType } from './types.ts';
 import { toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
+import type { Event } from './event.ts';
 
 export {
   AlgebraicType,
-  AlgebraicValue,
-  DbContext,
-  ProductType,
+  AlgebraicValue, ProductType,
   ProductTypeElement,
   ProductValue,
-  Reducer,
-  ReducerEvent,
   SumType,
   SumTypeVariant,
-  type CallbackInit,
   type ReducerArgsAdapter,
   type ValueAdapter,
   BinaryReader,
@@ -56,7 +47,12 @@ export {
   TableCache
 };
 
-export class DBConnection {
+export type { DBContext, EventContext };
+export type { ReducerEvent };
+
+type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
+
+export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBView, Reducers> {
   isActive = false;
   /**
    * The user's public identity.
@@ -73,8 +69,7 @@ export class DBConnection {
   clientCache: ClientCache;
   remoteModule: SpacetimeModule;
   #emitter: EventEmitter = new EventEmitter();
-
-  queriesQueue: string[] = [];
+  #onApplied?: (ctx: EventContext) => void;
 
   wsPromise!: Promise<WebsocketDecompressAdapter | WebsocketTestAdapter>;
   ws?: WebsocketDecompressAdapter | WebsocketTestAdapter;
@@ -89,8 +84,16 @@ export class DBConnection {
 
   constructor(remoteModule: SpacetimeModule) {
     this.clientCache = new ClientCache();
+    this.db = remoteModule.createRemoteTables(this.clientCache);
+    this.reducers = remoteModule.createRemoteReducers();
     this.remoteModule = remoteModule;
     this.createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
+  }
+
+  db: DBView;
+  reducers: Reducers;
+  subscriptionBuilder = (): SubscriptionBuilder => {
+    return new SubscriptionBuilder(this)
   }
 
   /**
@@ -157,18 +160,22 @@ export class DBConnection {
     };
     const parseDatabaseUpdate = (
       dbUpdate: ws.DatabaseUpdate
-    ): SubscriptionUpdateMessage => {
+    ): TableUpdate[] => {
       const tableUpdates: TableUpdate[] = [];
       for (const rawTableUpdate of dbUpdate.tables) {
         tableUpdates.push(parseTableUpdate(rawTableUpdate));
       }
-      return new SubscriptionUpdateMessage(tableUpdates);
+      return tableUpdates;
     };
 
     switch (message.tag) {
       case 'InitialSubscription': {
         const dbUpdate = message.value.databaseUpdate;
-        const subscriptionUpdate = parseDatabaseUpdate(dbUpdate);
+        const tableUpdates = parseDatabaseUpdate(dbUpdate);
+        const subscriptionUpdate: Message = {
+          tag: 'InitialSubscription',
+          tableUpdates,
+        };
         callback(subscriptionUpdate);
         break;
       }
@@ -188,48 +195,44 @@ export class DBConnection {
           );
         }
         const args = rawArgs.value;
-        let subscriptionUpdate: SubscriptionUpdateMessage;
+        let tableUpdates: TableUpdate[];
         let errMessage = '';
         switch (txUpdate.status.tag) {
           case 'Committed':
-            subscriptionUpdate = parseDatabaseUpdate(txUpdate.status.value);
+            tableUpdates = parseDatabaseUpdate(txUpdate.status.value);
             break;
           case 'Failed':
-            subscriptionUpdate = new SubscriptionUpdateMessage([]);
+            tableUpdates = [];
             errMessage = txUpdate.status.value;
             break;
           case 'OutOfEnergy':
-            subscriptionUpdate = new SubscriptionUpdateMessage([]);
+            tableUpdates = [];
             break;
         }
-        const transactionUpdateEvent: TransactionUpdateEvent =
-          new TransactionUpdateEvent({
-            identity,
-            address,
-            originalReducerName,
-            reducerName,
-            args,
-            status: txUpdate.status,
-            energyConsumed: energyQuantaUsed.quanta,
-            message: errMessage,
-            timestamp: txUpdate.timestamp,
-          });
-
-        const transactionUpdate = new TransactionUpdateMessage(
-          subscriptionUpdate.tableUpdates,
-          transactionUpdateEvent
-        );
+        const transactionUpdate: Message = {
+          tag: 'TransactionUpdate',
+          tableUpdates,
+          identity,
+          address,
+          originalReducerName,
+          reducerName,
+          args,
+          status: txUpdate.status,
+          energyConsumed: energyQuantaUsed.quanta,
+          message: errMessage,
+          timestamp: txUpdate.timestamp,
+        };
         callback(transactionUpdate);
         break;
       }
 
       case 'IdentityToken': {
-        const identityTokenMessage: IdentityTokenMessage =
-          new IdentityTokenMessage(
-            message.value.identity,
-            message.value.token,
-            message.value.address
-          );
+        const identityTokenMessage: IdentityTokenMessage = {
+          tag: 'IdentityToken',
+          identity: message.value.identity,
+          token: message.value.token,
+          address: message.value.address,
+        };
         callback(identityTokenMessage);
         break;
       }
@@ -263,22 +266,19 @@ export class DBConnection {
    * spacetimeDBClient.subscribe(["SELECT * FROM User","SELECT * FROM Message"]);
    * ```
    */
-  subscribe(queryOrQueries: string | string[]): void {
+  subscribe(queryOrQueries: string | string[], onApplied?: (ctx: EventContext) => void, _onError?: (ctx: EventContext) => void): void {
+    this.#onApplied = onApplied;
     const queries =
       typeof queryOrQueries === 'string' ? [queryOrQueries] : queryOrQueries;
-    if (this.isActive) {
-      const message = ws.ClientMessage.Subscribe(
-        new ws.Subscribe(
-          queries,
-          // The TypeScript SDK doesn't currently track `request_id`s,
-          // so always use 0.
-          0
-        )
-      );
-      this.#sendMessage(message);
-    } else {
-      this.queriesQueue = this.queriesQueue.concat(queries);
-    }
+    const message = ws.ClientMessage.Subscribe(
+      new ws.Subscribe(
+        queries,
+        // The TypeScript SDK doesn't currently track `request_id`s,
+        // so always use 0.
+        0
+      )
+    );
+    this.#sendMessage(message);
   }
 
   #sendMessage(message: ws.ClientMessage) {
@@ -286,7 +286,6 @@ export class DBConnection {
       const writer = new BinaryWriter(1024);
       ws.ClientMessage.getAlgebraicType().serialize(writer, message);
       const encoded = writer.getBuffer();
-      this.#emitter.emit('sendWSMessage', encoded);
       wsResolved.send(encoded);
     });
   }
@@ -316,8 +315,7 @@ export class DBConnection {
    */
   handleOnClose(event: CloseEvent): void {
     stdbLogger('warn', 'Closed: ' + event);
-    this.#emitter.emit('disconnected');
-    this.#emitter.emit('client_error', event);
+    this.#emitter.emit('disconnect', this, event);
   }
 
   /**
@@ -326,8 +324,7 @@ export class DBConnection {
    */
   handleOnError(event: ErrorEvent): void {
     stdbLogger('warn', 'WS Error: ' + event);
-    this.#emitter.emit('disconnected');
-    this.#emitter.emit('client_error', event);
+    this.#emitter.emit('disconnect', this, event);
   }
 
   /**
@@ -335,11 +332,6 @@ export class DBConnection {
    */
   handleOnOpen(): void {
     this.isActive = true;
-
-    if (this.queriesQueue.length > 0) {
-      this.subscribe(this.queriesQueue);
-      this.queriesQueue = [];
-    }
   }
 
   /**
@@ -347,10 +339,13 @@ export class DBConnection {
    * @param wsMessage MessageEvent object.
    */
   handleOnMessage(wsMessage: { data: Uint8Array }): void {
-    this.#emitter.emit('receiveWSMessage', wsMessage);
-
     this.processMessage(wsMessage.data, message => {
-      if (message instanceof SubscriptionUpdateMessage) {
+      if (message.tag === 'InitialSubscription') {
+        let event: Event = { tag: 'SubscribeApplied' };
+        const eventContext = {
+          ...this,
+          event,
+        };
         for (let tableUpdate of message.tableUpdates) {
           // Get table information for the table being updated
           const tableName = tableUpdate.tableName;
@@ -358,35 +353,38 @@ export class DBConnection {
           const table = this.clientCache.getOrCreateTable(
             tableTypeInfo
           );
-          table.applyOperations(tableUpdate.operations, undefined);
+          table.applyOperations(tableUpdate.operations, eventContext);
         }
 
         if (this.#emitter) {
-          this.#emitter.emit('initialStateSync');
+          this.#onApplied?.(eventContext);
         }
-      } else if (message instanceof TransactionUpdateMessage) {
-        const reducerName = message.event.reducerName;
+      } else if (message.tag === 'TransactionUpdate') {
+        const reducerName = message.reducerName;
         const reducerTypeInfo = this.remoteModule.reducers[reducerName]!;
 
         if (reducerName == '<none>') {
-          let errorMessage = message.event.message;
+          let errorMessage = message.message;
           console.error(`Received an error from the database: ${errorMessage}`);
         } else {
-          let reducerEvent: ReducerEvent | undefined;
-          let reducerArgs: any;
-          if (message.event.status.tag === 'Committed') {
-            const reader = new BinaryReader(message.event.args as Uint8Array)
-            reducerArgs = reducerTypeInfo.reducerArgsType.deserialize(reader);
-          }
-
-          reducerEvent = new ReducerEvent({
-            callerIdentity: message.event.identity,
-            status: message.event.status,
-            message: message.event.message,
-            callerAddress: message.event.address as Address,
-            timestamp: message.event.timestamp,
-            energyConsumed: message.event.energyConsumed,
-          });
+          const reader = new BinaryReader(message.args as Uint8Array)
+          const reducerArgs = reducerTypeInfo.reducerArgsType.deserialize(reader);
+          const reducerEvent = {
+            callerIdentity: message.identity,
+            status: message.status,
+            callerAddress: message.address as Address,
+            timestamp: message.timestamp,
+            energyConsumed: message.energyConsumed,
+            reducer: {
+              name: reducerName,
+              args: reducerArgs
+            } 
+          };
+          const event: Event = { tag: 'Reducer', value: reducerEvent };
+          const eventContext = {
+            ...this,
+            event,
+          };
 
           for (let tableUpdate of message.tableUpdates) {
             // Get table information for the table being updated
@@ -395,7 +393,7 @@ export class DBConnection {
             const table = this.clientCache.getOrCreateTable(
               tableTypeInfo
             );
-            table.applyOperations(tableUpdate.operations, reducerEvent);
+            table.applyOperations(tableUpdate.operations, eventContext);
           }
 
           this.#emitter.emit(
@@ -404,7 +402,7 @@ export class DBConnection {
             ...(reducerArgs || [])
           );
         }
-      } else if (message instanceof IdentityTokenMessage) {
+      } else if (message.tag === 'IdentityToken') {
         this.identity = message.identity;
         if (this.runtime.authToken) {
           this.token = this.runtime.authToken;
@@ -413,7 +411,7 @@ export class DBConnection {
         }
         this.clientAddress = message.address;
         this.#emitter.emit(
-          'connected',
+          'connect',
           this.token,
           this.identity,
           this.clientAddress
@@ -423,15 +421,15 @@ export class DBConnection {
   }
 
   on(
-    eventName: EventType | (string & {}),
-    callback: (ctx: any /* EventContext */, ...args: any[]) => void
+    eventName: ConnectionEvent,
+    callback: (connection: DBConnection, ...args: any[]) => void
   ): void {
     this.#emitter.on(eventName, callback);
   }
 
   off(
-    eventName: EventType | (string & {}),
-    callback: (ctx: any /* EventContext */, ...args: any[]) => void
+    eventName: ConnectionEvent, 
+    callback: (connection: DBConnection, ...args: any[]) => void
   ): void {
     this.#emitter.off(eventName, callback);
   }

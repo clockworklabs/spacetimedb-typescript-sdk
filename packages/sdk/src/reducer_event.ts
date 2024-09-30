@@ -2,7 +2,7 @@ import { Address } from './address.ts';
 import type { Timestamp, UpdateStatus } from './client_api.ts';
 import { Identity } from './identity.ts';
 
-export class ReducerEvent {
+export type ReducerEvent<R extends {name: string, args: any}> = {
   /**
    * The time when the reducer started running.
    *
@@ -36,24 +36,5 @@ export class ReducerEvent {
    */
   energyConsumed?: bigint;
 
-  constructor({
-    callerIdentity,
-    callerAddress,
-    status,
-    timestamp,
-    energyConsumed,
-  }: {
-    callerIdentity: Identity;
-    status: UpdateStatus;
-    message: string;
-    callerAddress?: Address;
-    timestamp: Timestamp;
-    energyConsumed?: bigint;
-  }) {
-    this.callerIdentity = callerIdentity;
-    this.callerAddress = callerAddress;
-    this.status = status;
-    this.timestamp = timestamp;
-    this.energyConsumed = energyConsumed;
-  }
-}
+  reducer: R;
+};

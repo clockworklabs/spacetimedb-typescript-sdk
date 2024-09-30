@@ -5,8 +5,8 @@
 //   player: PlayerTable;
 // };
 
-import type { CallbackInit, DBConnection } from "./db_connection";
-import type { DbContext } from "./db_context";
+import type { DBConnection } from "./db_connection";
+import type { DBContext } from "./db_context";
 import type { Identity } from "./identity";
 import { stdbLogger } from "./logger";
 
@@ -50,7 +50,7 @@ export class DBConnectionBuilder<
   DBView,
   ReducerView,
   ReducerEnum,
-  EventContext extends DbContext<DBView, ReducerView>,
+  EventContext extends DBContext<DBView, ReducerView>,
 > {
   #connection!: DBConnection;
 
@@ -151,6 +151,12 @@ export class DBConnectionBuilder<
         this.#connection.ws.onmessage = this.#connection.handleOnMessage.bind(this);
 
         return v;
+      }).catch((e) => {
+        stdbLogger('error', 'Error connecting to SpacetimeDB WS');
+        this.#connection.on("connectError", e);
+        // TODO(cloutiertyler): I don't know but this makes it compile and
+        // I don't have time to investigate how to do this properly.
+        throw e;
       });
 
     return this.#connection;
@@ -181,17 +187,9 @@ export class DBConnectionBuilder<
    * ```
    */
   onConnect(
-    callback: (identity: Identity, token: string) => void,
-    init: CallbackInit = {}
+    callback: (connection: DBConnection, identity: Identity, token: string) => void,
   ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.on('connected', callback);
-
-    if (init.signal) {
-      init.signal.addEventListener('abort', () => {
-        this.#connection.off('connected', callback);
-      });
-    }
-
+    this.#connection.on('connect', callback);
     return this;
   }
 
@@ -208,16 +206,8 @@ export class DBConnectionBuilder<
    */
   onConnectError(
     callback: (...args: any[]) => void,
-    init: CallbackInit = {}
   ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.on('client_error', callback);
-
-    if (init.signal) {
-      init.signal.addEventListener('abort', () => {
-        this.#connection.off('client_error', callback);
-      });
-    }
-
+    this.#connection.on('connectError', callback);
     return this;
   }
 
@@ -249,16 +239,8 @@ export class DBConnectionBuilder<
    */
   onDisconnect(
     callback: (...args: any[]) => void,
-    init: CallbackInit = {}
   ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.on('disconnected', callback);
-
-    if (init.signal) {
-      init.signal.addEventListener('abort', () => {
-        this.#connection.off('disconnected', callback);
-      });
-    }
-
+    this.#connection.on('disconnect', callback);
     return this;
   }
 }
