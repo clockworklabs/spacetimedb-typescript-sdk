@@ -70,12 +70,8 @@ export class TableCache<RowType = any> {
     let operations: Operation[] = [];
     for (let operation of rawOperations) {
       const rowId: string = operation.rowId;
-      const adapter = new BinaryAdapter(new BinaryReader(operation.row));
-      const entry = AlgebraicValue.deserialize(
-        this.tableTypeInfo.rowType,
-        adapter
-      );
-      const row = this.tableTypeInfo.rowFromValue(entry);
+      const reader = new BinaryReader(operation.row);
+      const row = this.tableTypeInfo.rowType.deserialize(reader);
       operations.push({ type: operation.type, rowPk: rowId, row });
     }
         

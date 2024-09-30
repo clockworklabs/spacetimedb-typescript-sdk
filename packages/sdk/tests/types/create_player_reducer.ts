@@ -32,7 +32,7 @@ export class CreatePlayerReducer extends Reducer {
     serializer.write(_nameType, _name);
     let _locationType = Point.getAlgebraicType();
     serializer.write(_locationType, _location);
-    this.client.call('create_player', serializer);
+    this.client.callReducer('create_player', serializer);
   }
 
   public static deserializeArgs(adapter: ReducerArgsAdapter): any[] {

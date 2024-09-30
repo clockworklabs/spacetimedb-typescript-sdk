@@ -16,6 +16,7 @@ import {
   type ValueAdapter,
 } from './algebraic_value.ts';
 import BinaryReader from './binary_reader.ts';
+import BinaryWriter from './binary_writer.ts';
 import * as ws from './client_api.ts';
 import { ClientCache } from './client_cache.ts';
 import { DbContext } from './db_context.ts';
@@ -31,7 +32,6 @@ import {
 } from './message_types.ts';
 import { Reducer } from './reducer.ts';
 import { ReducerEvent } from './reducer_event.ts';
-import { BinarySerializer, type Serializer } from './serializer.ts';
 import type SpacetimeModule from './spacetime_module.ts';
 import { TableCache, type RawOperation, type TableUpdate } from './table_cache.ts';
 import type { CallbackInit, EventType } from './types.ts';
@@ -42,7 +42,6 @@ import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
 export {
   AlgebraicType,
   AlgebraicValue,
-  BinarySerializer,
   DbContext,
   ProductType,
   ProductTypeElement,
@@ -53,7 +52,6 @@ export {
   SumTypeVariant,
   type CallbackInit,
   type ReducerArgsAdapter,
-  type Serializer,
   type ValueAdapter,
 };
 
@@ -284,9 +282,9 @@ export class DBConnection {
 
   #sendMessage(message: ws.ClientMessage) {
     this.wsPromise.then(wsResolved => {
-      const serializer = new BinarySerializer();
-      serializer.write(ws.ClientMessage.getAlgebraicType(), message);
-      const encoded = serializer.args();
+      const writer = new BinaryWriter(1024);
+      ws.ClientMessage.getAlgebraicType().serialize(writer, message);
+      const encoded = writer.getBuffer();
       this.#emitter.emit('sendWSMessage', encoded);
       wsResolved.send(encoded);
     });
@@ -298,11 +296,11 @@ export class DBConnection {
    * @param reducerName The name of the reducer to call
    * @param argsSerializer The arguments to pass to the reducer
    */
-  call(reducerName: string, argsSerializer: Serializer): void {
+  callReducer(reducerName: string, argsBuffer: Uint8Array): void {
     const message = ws.ClientMessage.CallReducer(
       new ws.CallReducer(
         reducerName,
-        ws.EncodedValue.Binary(argsSerializer.args()),
+        ws.EncodedValue.Binary(argsBuffer),
         // The TypeScript SDK doesn't currently track `request_id`s,
         // so always use 0.
         0
@@ -426,13 +424,6 @@ export class DBConnection {
         );
       }
     });
-  }
-
-  /**
-   * @private
-   */
-  getSerializer(): Serializer {
-    return new BinarySerializer();
   }
 
   on(

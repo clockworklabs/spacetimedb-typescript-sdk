@@ -58,8 +58,7 @@ export class BinaryAdapter implements ValueAdapter {
   }
 
   readUInt8Array(): Uint8Array {
-    const length = this.#reader.readU32();
-    return this.#reader.readUInt8Array(length);
+    return this.#reader.readUInt8Array();
   }
 
   readArray(type: AlgebraicType): AlgebraicValue[] {
@@ -85,8 +84,7 @@ export class BinaryAdapter implements ValueAdapter {
   }
 
   readString(): string {
-    const strLength = this.#reader.readU32();
-    return this.#reader.readString(strLength);
+    return this.#reader.readString();
   }
 
   readSum(type: SumType): SumValue {
@@ -167,14 +165,9 @@ export class SumValue {
   }
 
   static deserialize(
-    type: SumType | undefined,
+    type: SumType,
     adapter: ValueAdapter
   ): SumValue {
-    if (type === undefined) {
-      // TODO: get rid of undefined here
-      throw 'sum type is undefined';
-    }
-
     return adapter.readSum(type);
   }
 }
@@ -193,13 +186,9 @@ export class ProductValue {
   }
 
   static deserialize(
-    type: ProductType | undefined,
+    type: ProductType,
     adapter: ValueAdapter
   ): ProductValue {
-    if (type === undefined) {
-      throw 'type is undefined';
-    }
-
     return adapter.readProduct(type);
   }
 }

@@ -5,13 +5,13 @@ import { parseValue } from '../src/algebraic_value';
 import * as ws from '../src/client_api';
 import { ClientCache } from '../src/client_cache';
 import { Identity } from '../src/identity';
-import { BinarySerializer } from '../src/serializer';
 import { ReducerEvent, DBConnection } from '../src/db-connection';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 import CreatePlayerReducer from './types/create_player_reducer';
 import Player from './types/player';
 import Point from './types/point';
 import User from './types/user';
+import BinaryWriter from '../src/binary_writer';
 
 DBConnection.registerTables(Player, User);
 DBConnection.registerReducers(CreatePlayerReducer);
@@ -25,25 +25,25 @@ beforeEach(() => {
 });
 
 function encodePlayer(value: Player): ws.EncodedValue {
-  const encoder = new BinarySerializer();
-  encoder.write(Player.getAlgebraicType(), value);
-  return ws.EncodedValue.Binary(encoder.args());
+  const writer = new BinaryWriter(1024);
+  Player.getAlgebraicType().serialize(writer, value);
+  return ws.EncodedValue.Binary(writer.getBuffer());
 }
 
 function encodeUser(value: User): ws.EncodedValue {
-  const encoder = new BinarySerializer();
-  encoder.write(User.getAlgebraicType(), value);
-  return ws.EncodedValue.Binary(encoder.args());
+  const writer = new BinaryWriter(1024);
+  User.getAlgebraicType().serialize(writer, value);
+  return ws.EncodedValue.Binary(writer.getBuffer());
 }
 
 function encodeCreatePlayerArgs(
   name: string,
   location: Point
 ): ws.EncodedValue {
-  const encoder = new BinarySerializer();
-  encoder.write(AlgebraicType.createStringType(), name);
-  encoder.write(Point.getAlgebraicType(), location);
-  return ws.EncodedValue.Binary(encoder.args());
+  const writer = new BinaryWriter(1024);
+  AlgebraicType.createStringType().serialize(writer, name);
+  Point.getAlgebraicType().serialize(writer, location);
+  return ws.EncodedValue.Binary(writer.getBuffer());
 }
 
 describe('SpacetimeDBClient', () => {
