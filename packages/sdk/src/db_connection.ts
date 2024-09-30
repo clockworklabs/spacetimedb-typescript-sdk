@@ -374,13 +374,8 @@ export class DBConnection {
           let reducerEvent: ReducerEvent | undefined;
           let reducerArgs: any;
           if (message.event.status.tag === 'Committed') {
-            let adapter: ReducerArgsAdapter = new BinaryReducerArgsAdapter(
-              new BinaryAdapter(
-                new BinaryReader(message.event.args as Uint8Array)
-              )
-            );
-
-            reducerArgs = reducerTypeInfo.deserializeArgs(adapter);
+            const reader = new BinaryReader(message.event.args as Uint8Array)
+            reducerArgs = reducerTypeInfo.reducerArgsType.deserialize(reader);
           }
 
           reducerEvent = new ReducerEvent({

@@ -5,15 +5,14 @@ export interface TableRuntimeTypeInfo {
     tableName: string;
     rowType: AlgebraicType;
     primaryKey: string | undefined;
-    rowFromValue: (value: AlgebraicValue) => any;
 }
 
 export interface ReducerRuntimeTypeInfo {
     reducerName: string;
-    deserializeArgs: (args: ReducerArgsAdapter) => any[];
+    reducerArgsType: AlgebraicType;
 }
 
 export default interface SpacetimeModule {
-    tables: Map<string, TableRuntimeTypeInfo>;
-    reducers: Map<string, ReducerRuntimeTypeInfo>;
+    tables: {[name: string]: TableRuntimeTypeInfo};
+    reducers: {[name: string]: ReducerRuntimeTypeInfo};
 }
