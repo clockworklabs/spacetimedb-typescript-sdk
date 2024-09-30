@@ -32,13 +32,6 @@ export namespace SetName {
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): SetName {
-		let productValue = value.asProductValue();
-		return {
-			name: productValue.elements[0].asString(),
-		};
-	}
-
 	export function serialize(writer: BinaryWriter, value: SetName): void {
 	    SetName.getAlgebraicType().serialize(writer, value);
 	}

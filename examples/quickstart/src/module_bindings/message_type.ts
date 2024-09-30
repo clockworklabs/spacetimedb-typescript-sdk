@@ -29,19 +29,10 @@ export namespace Message {
 	// This function is derived from the AlgebraicType used to generate this type.
 	export function getAlgebraicType(): AlgebraicType {
 		return AlgebraicType.createProductType([
-			new ProductTypeElement("sender", Identity.getAlgebraicType()),
+			new ProductTypeElement("sender", AlgebraicType.createIdentityType()),
 			new ProductTypeElement("sent", AlgebraicType.createU64Type()),
 			new ProductTypeElement("text", AlgebraicType.createStringType()),
 		]);
-	}
-
-	export function fromAlgebraicValue(value: AlgebraicValue): Message {
-		let productValue = value.asProductValue();
-		return {
-			sender: productValue.elements[0].asIdentity(),
-			sent: productValue.elements[1].asBigInt(),
-			text: productValue.elements[2].asString(),
-		};
 	}
 
 	export function serialize(writer: BinaryWriter, value: Message): void {

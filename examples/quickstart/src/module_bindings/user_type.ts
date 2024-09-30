@@ -35,15 +35,6 @@ export namespace User {
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): User {
-		let productValue = value.asProductValue();
-		return {
-			identity: productValue.elements[0].asIdentity(),
-			name: function() { const value = productValue.elements[1].asSumValue() == 1 ? null; productValue.elements[1].asSumValue(); return value ? value.asString() : null; }(),
-			online: productValue.elements[2].asBoolean(),
-		};
-	}
-
 	export function serialize(writer: BinaryWriter, value: User): void {
 	    User.getAlgebraicType().serialize(writer, value);
 	}

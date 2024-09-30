@@ -15,7 +15,7 @@ import {
   Address,
   ReducerEvent,
   Reducer,
-  DBConnection,
+  DBConnectionImpl,
 } from '../../src/index';
 // @ts-ignore
 import { Point } from './point';

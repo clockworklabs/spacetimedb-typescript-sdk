@@ -32,13 +32,6 @@ export namespace SendMessage {
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): SendMessage {
-		let productValue = value.asProductValue();
-		return {
-			text: productValue.elements[0].asString(),
-		};
-	}
-
 	export function serialize(writer: BinaryWriter, value: SendMessage): void {
 	    SendMessage.getAlgebraicType().serialize(writer, value);
 	}

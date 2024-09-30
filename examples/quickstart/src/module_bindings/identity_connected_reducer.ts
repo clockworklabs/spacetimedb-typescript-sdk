@@ -30,12 +30,6 @@ export namespace IdentityConnected {
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): IdentityConnected {
-		let productValue = value.asProductValue();
-		return {
-		};
-	}
-
 	export function serialize(writer: BinaryWriter, value: IdentityConnected): void {
 	    IdentityConnected.getAlgebraicType().serialize(writer, value);
 	}

@@ -32,6 +32,7 @@ import { toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
 import type { Event } from './event.ts';
+import type { DBConnectionBuilder } from './db_connection_builder.ts';
 
 export {
   AlgebraicType,
@@ -44,15 +45,18 @@ export {
   type ValueAdapter,
   BinaryReader,
   BinaryWriter,
-  TableCache
+  TableCache,
+  type DBConnectionBuilder,
+  SubscriptionBuilder,
+  type Event,
 };
 
 export type { DBContext, EventContext };
 export type { ReducerEvent };
 
-type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
+export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
 
-export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBView, Reducers> {
+export class DBConnectionImpl<DBView = any, Reducers = any> {
   isActive = false;
   /**
    * The user's public identity.
@@ -68,30 +72,27 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
    */
   clientCache: ClientCache;
   remoteModule: SpacetimeModule;
-  #emitter: EventEmitter = new EventEmitter();
+  #emitter: EventEmitter;
+  #reducerEmitter: EventEmitter = new EventEmitter();
   #onApplied?: (ctx: EventContext) => void;
 
   wsPromise!: Promise<WebsocketDecompressAdapter | WebsocketTestAdapter>;
   ws?: WebsocketDecompressAdapter | WebsocketTestAdapter;
   createWSFn: typeof WebsocketDecompressAdapter.createWebSocketFn;
+  db: DBView;
+  reducers: Reducers;
 
-  runtime!: {
-    uri: URL;
-    nameOrAddress: string;
-    authToken?: string;
-  };
   clientAddress: Address = Address.random();
 
-  constructor(remoteModule: SpacetimeModule) {
+  constructor(remoteModule: SpacetimeModule, emitter: EventEmitter) {
     this.clientCache = new ClientCache();
-    this.db = remoteModule.createRemoteTables(this.clientCache);
-    this.reducers = remoteModule.createRemoteReducers();
+    this.#emitter = emitter;
     this.remoteModule = remoteModule;
+    this.db = this.remoteModule.dbViewConstructor(this)
+    this.reducers = this.remoteModule.reducersConstructor(this)
     this.createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
   }
 
-  db: DBView;
-  reducers: Reducers;
   subscriptionBuilder = (): SubscriptionBuilder => {
     return new SubscriptionBuilder(this)
   }
@@ -310,24 +311,6 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
   }
 
   /**
-   * Handles WebSocket onClose event.
-   * @param event CloseEvent object.
-   */
-  handleOnClose(event: CloseEvent): void {
-    stdbLogger('warn', 'Closed: ' + event);
-    this.#emitter.emit('disconnect', this, event);
-  }
-
-  /**
-   * Handles WebSocket onError event.
-   * @param event ErrorEvent object.
-   */
-  handleOnError(event: ErrorEvent): void {
-    stdbLogger('warn', 'WS Error: ' + event);
-    this.#emitter.emit('disconnect', this, event);
-  }
-
-  /**
    * Handles WebSocket onOpen event.
    */
   handleOnOpen(): void {
@@ -342,10 +325,7 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
     this.processMessage(wsMessage.data, message => {
       if (message.tag === 'InitialSubscription') {
         let event: Event = { tag: 'SubscribeApplied' };
-        const eventContext = {
-          ...this,
-          event,
-        };
+        const eventContext = this.remoteModule.eventContextConstructor(this, event);
         for (let tableUpdate of message.tableUpdates) {
           // Get table information for the table being updated
           const tableName = tableUpdate.tableName;
@@ -368,7 +348,7 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
           console.error(`Received an error from the database: ${errorMessage}`);
         } else {
           const reader = new BinaryReader(message.args as Uint8Array)
-          const reducerArgs = reducerTypeInfo.reducerArgsType.deserialize(reader);
+          const reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
           const reducerEvent = {
             callerIdentity: message.identity,
             status: message.status,
@@ -381,10 +361,7 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
             } 
           };
           const event: Event = { tag: 'Reducer', value: reducerEvent };
-          const eventContext = {
-            ...this,
-            event,
-          };
+          const eventContext = this.remoteModule.eventContextConstructor(this, event);
 
           for (let tableUpdate of message.tableUpdates) {
             // Get table information for the table being updated
@@ -396,17 +373,15 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
             table.applyOperations(tableUpdate.operations, eventContext);
           }
 
-          this.#emitter.emit(
-            'reducer:' + reducerName,
-            reducerEvent,
-            ...(reducerArgs || [])
+          this.#reducerEmitter.emit(
+            reducerName,
+            eventContext,
+            ...reducerArgs
           );
         }
       } else if (message.tag === 'IdentityToken') {
         this.identity = message.identity;
-        if (this.runtime.authToken) {
-          this.token = this.runtime.authToken;
-        } else {
+        if (!this.token && message.token) {
           this.token = message.token;
         }
         this.clientAddress = message.address;
@@ -422,15 +397,29 @@ export class DBConnection<DBView = any, Reducers = any> implements DBContext<DBV
 
   on(
     eventName: ConnectionEvent,
-    callback: (connection: DBConnection, ...args: any[]) => void
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
   ): void {
     this.#emitter.on(eventName, callback);
   }
 
   off(
     eventName: ConnectionEvent, 
-    callback: (connection: DBConnection, ...args: any[]) => void
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
   ): void {
     this.#emitter.off(eventName, callback);
+  }
+
+  onReducer<ReducerArgs extends any[] = any[]> (
+    reducerName: string,
+    callback: (ctx: any, ...args: ReducerArgs) => void
+  ): void {
+    this.#reducerEmitter.on(reducerName, callback);
+  }
+
+  offReducer<ReducerArgs extends any[] = any[]> (
+    reducerName: string,
+    callback: (ctx: any, ...args: ReducerArgs) => void
+  ): void {
+    this.#reducerEmitter.off(reducerName, callback);
   }
 }

@@ -1,4 +1,4 @@
-import type { DBConnection } from './db_connection.ts';
+import type { DBConnectionImpl } from './db_connection.ts';
 import type { Event } from './event.ts';
 
 type Result<T = undefined> = {
@@ -42,7 +42,7 @@ export class SubscriptionBuilder {
   #onApplied?: ((ctx: EventContext) => void) = undefined;
   #onError?: ((ctx: EventContext) => void) = undefined;
 
-  constructor(private db: DBConnection) {
+  constructor(private db: DBConnectionImpl) {
 
   }
 
@@ -107,7 +107,7 @@ export interface DBContext<DBView = any, Reducers = any> {
 export interface EventContext<
   DBView = any,
   Reducers = any,
-  Reducer extends { name: string, args: any } = { name: string, args: any }
+  Reducer extends { name: string, args?: any } = { name: string, args?: any }
 > extends DBContext<DBView, Reducers> {
     /// Enum with variants for all possible events.
     event: Event<Reducer>,

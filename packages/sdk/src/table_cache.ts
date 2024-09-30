@@ -57,7 +57,7 @@ export class TableCache<RowType = any> {
   /**
    * @returns The values of the rows in the table
    */
-  getRows(): any[] {
+  iter(): any[] {
     return Array.from(this.rows.values());
   }
 

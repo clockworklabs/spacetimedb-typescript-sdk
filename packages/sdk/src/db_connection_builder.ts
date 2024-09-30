@@ -5,10 +5,12 @@
 //   player: PlayerTable;
 // };
 
-import type { DBConnection } from "./db_connection";
+import { DBConnectionImpl, type ConnectionEvent } from "./db_connection";
 import type { DBContext } from "./db_context";
+import { EventEmitter } from "./event_emitter";
 import type { Identity } from "./identity";
 import { stdbLogger } from "./logger";
+import type SpacetimeModule from "./spacetime_module";
 
 // type RemoteReducers = {
 //   createPlayer: CreatePlayerReducer;
@@ -46,13 +48,12 @@ import { stdbLogger } from "./logger";
 /**
  * The database client connection to a SpacetimeDB server.
  */
-export class DBConnectionBuilder<
-  DBView,
-  ReducerView,
-  ReducerEnum,
-  EventContext extends DBContext<DBView, ReducerView>,
-> {
-  #connection!: DBConnection;
+export class DBConnectionBuilder<DBConnection> {
+  #uri?: URL;
+  #nameOrAddress?: string;
+  #identity?: Identity;
+  #token?: string;
+  #emitter: EventEmitter = new EventEmitter();
 
   /**
    * Creates a new `SpacetimeDBClient` database client and set the initial parameters.
@@ -72,32 +73,30 @@ export class DBConnectionBuilder<
    * ```
    */
   constructor(
-    base: DBConnection,
-  ) {
-    this.#connection = base;
-  }
+    private spacetimeModule: SpacetimeModule,
+    private dbConnectionConstructor: (imp: DBConnectionImpl) => DBConnection
+  ) {}
 
   withUri(
     uri: string | URL
-  ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.runtime.uri = new URL(uri);
+  ): DBConnectionBuilder<DBConnection> {
+    this.#uri = new URL(uri);
     return this;
   }
 
   withModuleName(
     nameOrAddress: string
-  ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.runtime.nameOrAddress = nameOrAddress;
+  ): DBConnectionBuilder<DBConnection> {
+    this.#nameOrAddress = nameOrAddress;
     return this;
   }
 
   withCredentials(
     creds: [identity: Identity, token: string]
-  ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
+  ): DBConnectionBuilder<DBConnection> {
     const [identity, token] = creds;
-    this.#connection.identity = identity;
-    this.#connection.token = token;
-
+    this.#identity = identity;
+    this.#token = token;
     return this;
   }
 
@@ -126,40 +125,53 @@ export class DBConnectionBuilder<
     stdbLogger('info', 'Connecting to SpacetimeDB WS...');
 
     let url = new URL(
-      `database/subscribe/${this.#connection.runtime.nameOrAddress}`,
-      this.#connection.runtime.uri
+      `database/subscribe/${this.#nameOrAddress}`,
+      this.#uri
     );
-    if (!/^wss?:/.test(this.#connection.runtime.uri.protocol)) {
+
+    if (!this.#uri) {
+        throw new Error('URI is required to connect to SpacetimeDB');
+    }
+
+    if (!/^wss?:/.test(this.#uri.protocol)) {
       url.protocol = 'ws:';
     }
 
-    let clientAddress = this.#connection.clientAddress.toHexString();
+    const connection = new DBConnectionImpl(this.spacetimeModule, this.#emitter);
+    connection.identity = this.#identity;
+    connection.token = this.#token;
+
+    let clientAddress = connection.clientAddress.toHexString();
     url.searchParams.set('client_address', clientAddress);
 
-    this.#connection.wsPromise = this.#connection
+    connection.wsPromise = connection
       .createWSFn({
         url,
         wsProtocol: 'v1.bin.spacetimedb',
-        authToken: this.#connection.runtime.authToken,
+        authToken: connection.token,
       })
       .then(v => {
-        this.#connection.ws = v;
+        connection.ws = v;
 
-        this.#connection.ws.onclose = this.#connection.handleOnClose.bind(this);
-        this.#connection.ws.onerror = this.#connection.handleOnError.bind(this);
-        this.#connection.ws.onopen = this.#connection.handleOnOpen.bind(this);
-        this.#connection.ws.onmessage = this.#connection.handleOnMessage.bind(this);
+        connection.ws.onclose = () => {
+          this.#emitter.emit("disconnect", connection);
+        }
+        connection.ws.onerror = (e: ErrorEvent) => {
+          this.#emitter.emit("connectError", connection, e); 
+        };
+        connection.ws.onopen = connection.handleOnOpen.bind(this);
+        connection.ws.onmessage = connection.handleOnMessage.bind(this);
 
         return v;
       }).catch((e) => {
         stdbLogger('error', 'Error connecting to SpacetimeDB WS');
-        this.#connection.on("connectError", e);
+        connection.on("connectError", e);
         // TODO(cloutiertyler): I don't know but this makes it compile and
         // I don't have time to investigate how to do this properly.
         throw e;
       });
 
-    return this.#connection;
+    return this.dbConnectionConstructor(connection);
   }
 
   /**
@@ -187,9 +199,9 @@ export class DBConnectionBuilder<
    * ```
    */
   onConnect(
-    callback: (connection: DBConnection, identity: Identity, token: string) => void,
-  ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.on('connect', callback);
+    callback: (connection: DBConnectionImpl, identity: Identity, token: string) => void,
+  ): DBConnectionBuilder<DBConnection> {
+    this.#emitter.on("connect", callback);
     return this;
   }
 
@@ -206,8 +218,8 @@ export class DBConnectionBuilder<
    */
   onConnectError(
     callback: (...args: any[]) => void,
-  ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.on('connectError', callback);
+  ): DBConnectionBuilder<DBConnection> {
+    this.#emitter.on("connectError", callback);
     return this;
   }
 
@@ -239,8 +251,8 @@ export class DBConnectionBuilder<
    */
   onDisconnect(
     callback: (...args: any[]) => void,
-  ): DBConnectionBuilder<DBView, ReducerView, ReducerEnum, EventContext> {
-    this.#connection.on('disconnect', callback);
+  ): DBConnectionBuilder<DBConnection> {
+    this.#emitter.on("disconnect", callback);
     return this;
   }
 }

@@ -54,7 +54,7 @@ export class User extends DatabaseTable {
 
   public static filterByIdentity(value: Identity): User[] {
     let result: User[] = [];
-    for (let instance of this.db.getTable('User').getRows()) {
+    for (let instance of this.db.getTable('User').iter()) {
       if (instance.identity.isEqual(value)) {
         result.push(instance);
       }
@@ -64,7 +64,7 @@ export class User extends DatabaseTable {
 
   public static filterByUsername(value: string): User[] {
     let result: User[] = [];
-    for (let instance of this.db.getTable('User').getRows()) {
+    for (let instance of this.db.getTable('User').iter()) {
       if (instance.username === value) {
         result.push(instance);
       }

@@ -18,7 +18,6 @@ import {
     BinaryReader,
     DBConnectionImpl,
     DBContext,
-    Event,
 } from "@clockworklabs/spacetimedb-sdk";
 
 import { User } from "./user_type";
@@ -65,16 +64,10 @@ const REMOTE_MODULE = {
       argsType: SendMessage.getAlgebraicType(),
     },
   },
-  eventContextConstructor: (imp: DBConnectionImpl, event: Event<Reducer>) => {
-    return {
-      ...new DBConnection(imp),
-      event
-    }
-  },
-  dbViewConstructor: (connection: DBConnectionImpl) => {
+  createRemoteTables: (connection: DBConnectionImpl) => {
     return new RemoteTables(connection);
   },
-  reducersConstructor: (connection: DBConnectionImpl) => {
+  createRemoteReducers: (connection: DBConnectionImpl) => {
     return new RemoteReducers(connection);
   }
 }
@@ -163,32 +156,26 @@ class RemoteTables {
 
 export class DBConnection implements DBContext<RemoteTables, RemoteReducers> {
   imp: DBConnectionImpl;
+  db: RemoteTables;
+  reducers: RemoteReducers;
+  isActive: boolean;
 
   constructor(imp: DBConnectionImpl) {
     this.imp = imp;
-  }
-
-  get db() {
-    return this.imp.db;
-  }
-
-  get reducers() {
-    return this.imp.reducers;
-  }
-
-  get isActive() {
-    return this.imp.isActive;
+    this.db = new RemoteTables(imp);
+    this.reducers = new RemoteReducers(imp);
+    this.isActive = false;
   }
 
   disconnect = () => {
-    return this.imp.disconnect();
+    this.imp.disconnect();
   };
 
   subscriptionBuilder = () => {
     return this.imp.subscriptionBuilder();
   };
 
-  static builder = () => {
+  builder = () => {
     return new DBConnectionBuilder<DBConnection>(REMOTE_MODULE, (imp: DBConnectionImpl) => new DBConnection(imp));
   }
 }

@@ -38,7 +38,7 @@ export class UserTableHandle {
     }
 
     iter(): Iterable<User> {
-        return this.tableCache().iter();
+        return this.tableCache.iter();
     }
 
     // Access to the `identity` unique index on the table `User`,

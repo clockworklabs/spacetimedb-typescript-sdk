@@ -50,7 +50,7 @@ export class Player extends DatabaseTable {
   }
 
   public static filterByOwnerId(value: string): Player | null {
-    for (let instance of this.db.getTable('Player').getRows()) {
+    for (let instance of this.db.getTable('Player').iter()) {
       if (instance.ownerId === value) {
         return instance;
       }
@@ -60,7 +60,7 @@ export class Player extends DatabaseTable {
 
   public static filterByName(value: string): Player[] {
     let result: Player[] = [];
-    for (let instance of this.db.getTable('Player').getRows()) {
+    for (let instance of this.db.getTable('Player').iter()) {
       if (instance.name === value) {
         result.push(instance);
       }

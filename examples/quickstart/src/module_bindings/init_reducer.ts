@@ -30,12 +30,6 @@ export namespace Init {
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): Init {
-		let productValue = value.asProductValue();
-		return {
-		};
-	}
-
 	export function serialize(writer: BinaryWriter, value: Init): void {
 	    Init.getAlgebraicType().serialize(writer, value);
 	}
