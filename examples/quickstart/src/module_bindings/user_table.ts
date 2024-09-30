@@ -98,7 +98,7 @@ export class UserTableHandle {
         return this.tableCache.removeOnDelete(cb);
     }
 
-// Updates are only defined for tables with primary keys.
+   // Updates are only defined for tables with primary keys.
     onUpdate = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, oldRow: User, newRow: User) => void) => {
          return this.tableCache.onUpdate(cb);
     }
