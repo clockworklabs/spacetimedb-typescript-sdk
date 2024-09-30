@@ -319,6 +319,28 @@ export class AlgebraicType {
   static createBytesType(): AlgebraicType {
     return this.createArrayType(this.createU8Type());
   }
+  static createOptionType(innerType: AlgebraicType): AlgebraicType {
+    return this.createSumType([
+      new SumTypeVariant('some', innerType),
+      new SumTypeVariant('none', this.createProductType([])),
+    ]);
+  }
+  static createIdentityType(): AlgebraicType {
+    return this.createProductType([
+      new ProductTypeElement('__identity_bytes', this.createBytesType()),
+    ]);
+  }
+  static createAddressType(): AlgebraicType {
+    return this.createProductType([
+      new ProductTypeElement('__address_bytes', this.createBytesType()),
+    ]);
+  }
+  static createScheduleAtType(): AlgebraicType {
+    return AlgebraicType.createSumType([
+      new SumTypeVariant("Interval", AlgebraicType.createU64Type()),
+      new SumTypeVariant("Time", AlgebraicType.createU64Type())
+    ]);
+  }
 
   isProductType(): boolean {
     return this.type === Type.ProductType;

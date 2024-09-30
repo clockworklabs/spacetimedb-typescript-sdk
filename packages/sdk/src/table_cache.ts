@@ -1,14 +1,11 @@
-import { BinaryAdapter } from './algebraic_value.ts';
 import BinaryReader from './binary_reader.ts';
 import { EventEmitter } from './event_emitter.ts';
 import OperationsMap from './operations_map.ts';
-import type { ReducerEvent } from './reducer_event.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
-import type { Event } from './event.ts';
 
 import {
   type EventContext,
-} from './db_connection.ts';
+} from './db_connection_impl.ts';
 
 export type Operation = {
   type: 'insert' | 'delete';
@@ -203,4 +200,47 @@ export class TableCache<RowType = any> {
   ): void => {
     this.emitter.on('update', cb);
   };
+
+  /**
+   * Remove a callback for when a row is newly inserted into the database.
+   *
+   * @param cb Callback to be removed
+   */
+  removeOnInsert = <EventContext>(
+    cb: (
+      ctx: EventContext,
+      row: RowType,
+    ) => void,
+  ): void => {
+    this.emitter.off('insert', cb);
+  }
+
+  /**
+   * Remove a callback for when a row is deleted from the database.
+   *
+   * @param cb Callback to be removed
+   */
+  removeOnDelete = <EventContext>(
+    cb: (
+      ctx: EventContext,
+      row: RowType,
+    ) => void,
+  ): void => {
+    this.emitter.off('delete', cb);
+  }
+
+  /**
+   * Remove a callback for when a row is updated into the database.
+   *
+   * @param cb Callback to be removed
+   */
+  removeOnUpdate = <EventContext>(
+    cb: (
+      ctx: EventContext,
+      oldRow: RowType,
+      row: RowType,
+    ) => void,
+  ): void => {
+    this.emitter.off('update', cb);
+  }
 }

@@ -5,7 +5,7 @@
 //   player: PlayerTable;
 // };
 
-import { DBConnectionImpl, type ConnectionEvent } from "./db_connection";
+import { DBConnectionImpl, type ConnectionEvent } from "./db_connection_impl";
 import type { DBContext } from "./db_context";
 import { EventEmitter } from "./event_emitter";
 import type { Identity } from "./identity";
@@ -147,6 +147,7 @@ export class DBConnectionBuilder<DBConnection> {
     connection.wsPromise = connection
       .createWSFn({
         url,
+        // TODO: This update this to bsatn
         wsProtocol: 'v1.bin.spacetimedb',
         authToken: connection.token,
       })

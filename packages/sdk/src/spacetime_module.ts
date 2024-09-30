@@ -1,5 +1,5 @@
 import type { AlgebraicType } from "./algebraic_type";
-import type { DBConnectionImpl } from "./db_connection";
+import type { DBConnectionImpl } from "./db_connection_impl";
 import type { Event } from "./event";
 
 export interface TableRuntimeTypeInfo {

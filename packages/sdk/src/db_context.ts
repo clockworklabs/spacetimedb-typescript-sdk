@@ -1,4 +1,4 @@
-import type { DBConnectionImpl } from './db_connection.ts';
+import type { DBConnectionImpl } from './db_connection_impl.ts';
 import type { Event } from './event.ts';
 
 type Result<T = undefined> = {

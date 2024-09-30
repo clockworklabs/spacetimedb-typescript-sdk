@@ -56,7 +56,7 @@ export type { ReducerEvent };
 
 export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
 
-export class DBConnectionImpl<DBView = any, Reducers = any> {
+export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext<DBView, Reducers>  {
   isActive = false;
   /**
    * The user's public identity.
@@ -148,6 +148,13 @@ export class DBConnectionImpl<DBView = any, Reducers = any> {
     const parseTableUpdate = (rawTableUpdate: ws.TableUpdate): TableUpdate => {
       const tableName = rawTableUpdate.tableName;
       const operations: RawOperation[] = [];
+      // TODO(cloutiertyler)
+      // This is going to be a list of query updates
+      // rawTableUpdate.updates is a list of CompressibleQueryUpdates
+      // decompress these into a list of `QueryUpdate`s
+      // `QueryUpdate` has a BSatnRowList of inserts and and one of deletes
+      // BSatnRowList has size hint and the rows themselves
+      // I will just use the rows themselves and decode them one by one
       for (const insert of rawTableUpdate.inserts) {
         operations.push(parseTableOperation(insert, 'insert'));
       }
@@ -247,6 +254,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any> {
   }
 
   processMessage(data: Uint8Array, callback: (message: Message) => void): void {
+    ws.ServerMessage.getAlgebraicType().deserialize(new BinaryReader(data));
     const message = parseValue(ws.ServerMessage, data);
     this.#processParsedMessage(message, callback);
   }
@@ -301,6 +309,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any> {
     const message = ws.ClientMessage.CallReducer(
       new ws.CallReducer(
         reducerName,
+        // TODO(cloutiertyler): Remove this once updated to Mazdak's
         ws.EncodedValue.Binary(argsBuffer),
         // The TypeScript SDK doesn't currently track `request_id`s,
         // so always use 0.
