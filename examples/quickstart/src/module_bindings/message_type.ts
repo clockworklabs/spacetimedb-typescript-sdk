@@ -17,42 +17,40 @@ import {
     BinaryReader,
 } from "@clockworklabs/spacetimedb-sdk";
 
-
-export type SendMessage = {
+export type Message = {
+	sender: Identity,
+	sent: BigInt,
 	text: string,
 };
 
 // A namespace for generated helper functions.
-export namespace SendMessage {
+export namespace Message {
 	// A function which returns this type represented as an AlgebraicType.
 	// This function is derived from the AlgebraicType used to generate this type.
 	export function getAlgebraicType(): AlgebraicType {
 		return AlgebraicType.createProductType([
+			new ProductTypeElement("sender", Identity.getAlgebraicType()),
+			new ProductTypeElement("sent", AlgebraicType.createU64Type()),
 			new ProductTypeElement("text", AlgebraicType.createStringType()),
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): SendMessage {
+	export function fromAlgebraicValue(value: AlgebraicValue): Message {
 		let productValue = value.asProductValue();
 		return {
-			text: productValue.elements[0].asString(),
+			sender: productValue.elements[0].asIdentity(),
+			sent: productValue.elements[1].asBigInt(),
+			text: productValue.elements[2].asString(),
 		};
 	}
 
-	export function serialize(writer: BinaryWriter, value: SendMessage): void {
-	    SendMessage.getAlgebraicType().serialize(writer, value);
+	export function serialize(writer: BinaryWriter, value: Message): void {
+	    Message.getAlgebraicType().serialize(writer, value);
 	}
 
-	export function deserialize(reader: BinaryReader): SendMessage {
-	    return SendMessage.getAlgebraicType().deserialize(reader);
+	export function deserialize(reader: BinaryReader): Message {
+	    return Message.getAlgebraicType().deserialize(reader);
 	}
 }
 
-// Implements the serialization of the reducer arguments `send_message`.
-export default (connection: DBConnection, args: SendMessage) => {
-    const writer = new BinaryWriter(1024);
-    SendMessage.serialize(writer, args);
-    const argsBuffer = writer.getBuffer();
-    connection.callReducer("send_message", argsBuffer);
-}
 

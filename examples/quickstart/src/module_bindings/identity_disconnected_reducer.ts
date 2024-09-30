@@ -18,41 +18,38 @@ import {
 } from "@clockworklabs/spacetimedb-sdk";
 
 
-export type SendMessage = {
-	text: string,
-};
+export type IdentityDisconnected = {
+	};
 
 // A namespace for generated helper functions.
-export namespace SendMessage {
+export namespace IdentityDisconnected {
 	// A function which returns this type represented as an AlgebraicType.
 	// This function is derived from the AlgebraicType used to generate this type.
 	export function getAlgebraicType(): AlgebraicType {
 		return AlgebraicType.createProductType([
-			new ProductTypeElement("text", AlgebraicType.createStringType()),
 		]);
 	}
 
-	export function fromAlgebraicValue(value: AlgebraicValue): SendMessage {
+	export function fromAlgebraicValue(value: AlgebraicValue): IdentityDisconnected {
 		let productValue = value.asProductValue();
 		return {
-			text: productValue.elements[0].asString(),
 		};
 	}
 
-	export function serialize(writer: BinaryWriter, value: SendMessage): void {
-	    SendMessage.getAlgebraicType().serialize(writer, value);
+	export function serialize(writer: BinaryWriter, value: IdentityDisconnected): void {
+	    IdentityDisconnected.getAlgebraicType().serialize(writer, value);
 	}
 
-	export function deserialize(reader: BinaryReader): SendMessage {
-	    return SendMessage.getAlgebraicType().deserialize(reader);
+	export function deserialize(reader: BinaryReader): IdentityDisconnected {
+	    return IdentityDisconnected.getAlgebraicType().deserialize(reader);
 	}
 }
 
-// Implements the serialization of the reducer arguments `send_message`.
-export default (connection: DBConnection, args: SendMessage) => {
+// Implements the serialization of the reducer arguments `__identity_disconnected__`.
+export default (connection: DBConnection, args: IdentityDisconnected) => {
     const writer = new BinaryWriter(1024);
-    SendMessage.serialize(writer, args);
+    IdentityDisconnected.serialize(writer, args);
     const argsBuffer = writer.getBuffer();
-    connection.callReducer("send_message", argsBuffer);
+    connection.callReducer("__identity_disconnected__", argsBuffer);
 }
 

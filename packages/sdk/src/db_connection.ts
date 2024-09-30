@@ -8,8 +8,6 @@ import {
 } from './algebraic_type.ts';
 import {
   AlgebraicValue,
-  BinaryAdapter,
-  BinaryReducerArgsAdapter,
   parseValue,
   ProductValue,
   type ReducerArgsAdapter,
@@ -53,6 +51,9 @@ export {
   type CallbackInit,
   type ReducerArgsAdapter,
   type ValueAdapter,
+  BinaryReader,
+  BinaryWriter,
+  TableCache
 };
 
 export class DBConnection {
@@ -353,7 +354,7 @@ export class DBConnection {
         for (let tableUpdate of message.tableUpdates) {
           // Get table information for the table being updated
           const tableName = tableUpdate.tableName;
-          const tableTypeInfo = this.remoteModule.tables.get(tableName)!;
+          const tableTypeInfo = this.remoteModule.tables[tableName]!;
           const table = this.clientCache.getOrCreateTable(
             tableTypeInfo
           );
@@ -365,7 +366,7 @@ export class DBConnection {
         }
       } else if (message instanceof TransactionUpdateMessage) {
         const reducerName = message.event.reducerName;
-        const reducerTypeInfo = this.remoteModule.reducers.get(reducerName)!;
+        const reducerTypeInfo = this.remoteModule.reducers[reducerName]!;
 
         if (reducerName == '<none>') {
           let errorMessage = message.event.message;
@@ -390,7 +391,7 @@ export class DBConnection {
           for (let tableUpdate of message.tableUpdates) {
             // Get table information for the table being updated
             const tableName = tableUpdate.tableName;
-            const tableTypeInfo = this.remoteModule.tables.get(tableName)!;
+            const tableTypeInfo = this.remoteModule.tables[tableName]!;
             const table = this.clientCache.getOrCreateTable(
               tableTypeInfo
             );
