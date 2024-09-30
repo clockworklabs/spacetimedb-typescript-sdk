@@ -3,7 +3,7 @@ import { Address } from '../src/address';
 import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import * as ws from '../src/client_api';
-import { ClientDB } from '../src/client_db';
+import { ClientCache } from '../src/client_cache';
 import { Identity } from '../src/identity';
 import { BinarySerializer } from '../src/serializer';
 import { ReducerEvent, DBConnection } from '../src/db-connection';

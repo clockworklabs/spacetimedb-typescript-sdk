@@ -1,18 +1,11 @@
-import type { DbContext } from './db_context.ts';
-import { DBConnectionBase } from './spacetimedb.ts';
+import { DBConnection } from './db_connection.ts';
 import type { CallbackInit } from './types.ts';
-export class Reducer<
-  Args extends Array<string> = [],
-  DBView = {},
-  ReducerView = {},
-  EventContext = DbContext<DBView, ReducerView>,
-  ReducerEnum = {},
-> {
+
+export class Reducer {
   reducerName: string;
+  client: DBConnection;
 
-  client: DBConnectionBase<ReducerEnum>;
-
-  constructor(client: DBConnectionBase<ReducerEnum>, reducerName: string) {
+  constructor(client: DBConnection, reducerName: string) {
     this.reducerName = reducerName;
     this.client = client;
   }
@@ -22,7 +15,7 @@ export class Reducer<
   }
 
   on(
-    callback: (ctx: EventContext, ...args: Args) => void,
+    callback: (ctx: any /* EventContext */, ...args: any[]) => void,
     init?: CallbackInit
   ): void {
     this.client.on('reducer:' + this.reducerName, callback);

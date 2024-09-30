@@ -3,166 +3,138 @@ import BinaryReader from './binary_reader.ts';
 import { EventEmitter } from './event_emitter.ts';
 import OperationsMap from './operations_map.ts';
 import { ReducerEvent } from './reducer_event.ts';
+import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
+
 import {
   AlgebraicValue,
-  DatabaseTable,
+  AlgebraicType,
   DbContext,
   type CallbackInit,
-} from './spacetimedb.ts';
+} from './db_connection.ts';
 
-class DBOp {
-  type: 'insert' | 'delete';
-  instance: any;
-  rowPk: string;
-
-  constructor(type: 'insert' | 'delete', rowPk: string, instance: any) {
-    this.type = type;
-    this.rowPk = rowPk;
-    this.instance = instance;
-  }
-}
-
-export class TableOperation {
-  /**
-   * The type of CRUD operation.
-   *
-   * NOTE: An update is a `delete` followed by a 'insert' internally.
-   */
+export type Operation = {
   type: 'insert' | 'delete';
   rowPk: string;
+  row: any;
+};
+
+export type RawOperation = {
+  type: 'insert' | 'delete';
+  rowId: string;
   row: Uint8Array;
+};
 
-  constructor(type: 'insert' | 'delete', rowPk: string, row: Uint8Array | any) {
-    this.type = type;
-    this.rowPk = rowPk;
-    this.row = row;
-  }
-}
-
-export class TableUpdate {
+export type TableUpdate = {
   tableName: string;
-  operations: TableOperation[];
-
-  constructor(tableName: string, operations: TableOperation[]) {
-    this.tableName = tableName;
-    this.operations = operations;
-  }
-}
+  operations: RawOperation[];
+};
 
 /**
  * Builder to generate calls to query a `table` in the database
  */
-export class Table<
-  TableType = any,
-  EventContext extends DbContext<any, any> = any,
-> {
-  // TODO: most of this stuff should be probably private
-  name: string;
-  instances: Map<string, DatabaseTable<TableType, EventContext>>;
-  emitter: EventEmitter;
-  #entityClass: any;
-  pkCol?: number;
+export class TableCache<RowType = any> {
+  private rows: Map<string, RowType>;
+  private tableTypeInfo: TableRuntimeTypeInfo;
+  private emitter: EventEmitter;
 
   /**
    * @param name the table name
-   * @param pkCol column designated as `#[primarykey]`
+   * @param primaryKeyCol column index designated as `#[primarykey]`
+   * @param primaryKey column name designated as `#[primarykey]`
    * @param entityClass the entityClass
    */
-  constructor(name: string, pkCol: number | undefined, entityClass: any) {
-    this.name = name;
-    this.instances = new Map();
+  constructor(tableTypeInfo: TableRuntimeTypeInfo) {
+    this.tableTypeInfo = tableTypeInfo;
+    this.rows = new Map();
     this.emitter = new EventEmitter();
-    this.pkCol = pkCol;
-    this.#entityClass = entityClass;
   }
 
   /**
-   * @returns number of entries in the table
+   * @returns number of rows in the table
    */
   count(): number {
-    return this.instances.size;
+    return this.rows.size;
   }
 
   /**
-   * @returns The values of the entries in the table
+   * @returns The values of the rows in the table
    */
-  getInstances(): any[] {
-    return Array.from(this.instances.values());
+  getRows(): any[] {
+    return Array.from(this.rows.values());
   }
 
   applyOperations = (
-    operations: TableOperation[],
+    rawOperations: RawOperation[],
     reducerEvent: ReducerEvent | undefined
   ): void => {
-    let dbOps: DBOp[] = [];
-    for (let operation of operations) {
-      const pk: string = operation.rowPk;
+    let operations: Operation[] = [];
+    for (let operation of rawOperations) {
+      const rowId: string = operation.rowId;
       const adapter = new BinaryAdapter(new BinaryReader(operation.row));
       const entry = AlgebraicValue.deserialize(
-        this.#entityClass.getAlgebraicType(),
+        this.tableTypeInfo.rowType,
         adapter
       );
-      const instance = this.#entityClass.fromValue(entry);
-
-      dbOps.push(new DBOp(operation.type, pk, instance));
+      const row = this.tableTypeInfo.rowFromValue(entry);
+      operations.push({ type: operation.type, rowPk: rowId, row });
     }
-
-    if (this.#entityClass.primaryKey !== undefined) {
-      const pkName = this.#entityClass.primaryKey;
-      const inserts: any[] = [];
-      const deleteMap = new OperationsMap<any, DBOp>();
-      for (const dbOp of dbOps) {
-        if (dbOp.type === 'insert') {
-          inserts.push(dbOp);
+        
+    if (this.tableTypeInfo.primaryKey !== undefined) {
+      const primaryKey = this.tableTypeInfo.primaryKey;
+      const inserts: Operation[] = [];
+      const deleteMap = new OperationsMap<any, Operation>();
+      for (const op of operations) {
+        if (op.type === 'insert') {
+          inserts.push(op);
         } else {
-          deleteMap.set(dbOp.instance[pkName], dbOp);
+          deleteMap.set(op.row[primaryKey], op);
         }
       }
-      for (const dbOp of inserts) {
-        const deleteOp = deleteMap.get(dbOp.instance[pkName]);
+      for (const insertOp of inserts) {
+        const deleteOp = deleteMap.get(insertOp.row[primaryKey]);
         if (deleteOp) {
           // the pk for updates will differ between insert/delete, so we have to
           // use the instance from delete
-          this.update(dbOp, deleteOp, reducerEvent);
-          deleteMap.delete(dbOp.instance[pkName]);
+          this.update(insertOp, deleteOp, reducerEvent);
+          deleteMap.delete(insertOp.row[primaryKey]);
         } else {
-          this.insert(dbOp, reducerEvent);
+          this.insert(insertOp, reducerEvent);
         }
       }
-      for (const dbOp of deleteMap.values()) {
-        this.delete(dbOp, reducerEvent);
+      for (const deleteOp of deleteMap.values()) {
+        this.delete(deleteOp, reducerEvent);
       }
     } else {
-      for (const dbOp of dbOps) {
-        if (dbOp.type === 'insert') {
-          this.insert(dbOp, reducerEvent);
+      for (const op of operations) {
+        if (op.type === 'insert') {
+          this.insert(op, reducerEvent);
         } else {
-          this.delete(dbOp, reducerEvent);
+          this.delete(op, reducerEvent);
         }
       }
     }
   };
 
   update = (
-    newDbOp: DBOp,
-    oldDbOp: DBOp,
+    newDbOp: Operation,
+    oldDbOp: Operation,
     reducerEvent: ReducerEvent | undefined
   ): void => {
-    const newInstance = newDbOp.instance;
-    const oldInstance = oldDbOp.instance;
-    this.instances.delete(oldDbOp.rowPk);
-    this.instances.set(newDbOp.rowPk, newInstance);
+    const newInstance = newDbOp.row;
+    const oldInstance = oldDbOp.row;
+    this.rows.delete(oldDbOp.rowPk);
+    this.rows.set(newDbOp.rowPk, newInstance);
     this.emitter.emit('update', oldInstance, newInstance, reducerEvent);
   };
 
-  insert = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined): void => {
-    this.instances.set(dbOp.rowPk, dbOp.instance);
-    this.emitter.emit('insert', dbOp.instance, reducerEvent);
+  insert = (operation: Operation, reducerEvent: ReducerEvent | undefined): void => {
+    this.rows.set(operation.rowPk, operation.row);
+    this.emitter.emit('insert', operation.row, reducerEvent);
   };
 
-  delete = (dbOp: DBOp, reducerEvent: ReducerEvent | undefined): void => {
-    this.instances.delete(dbOp.rowPk);
-    this.emitter.emit('delete', dbOp.instance, reducerEvent);
+  delete = (dbOp: Operation, reducerEvent: ReducerEvent | undefined): void => {
+    this.rows.delete(dbOp.rowPk);
+    this.emitter.emit('delete', dbOp.row, reducerEvent);
   };
 
   /**
@@ -180,7 +152,7 @@ export class Table<
    *
    * @param cb Callback to be called when a new row is inserted
    */
-  onInsert = (
+  onInsert = <EventContext>(
     cb: (
       ctx: EventContext,
       value: any,
@@ -212,7 +184,7 @@ export class Table<
    *
    * @param cb Callback to be called when a new row is inserted
    */
-  onDelete = (
+  onDelete = <EventContext>(
     cb: (
       ctx: EventContext,
       value: any,
@@ -244,7 +216,7 @@ export class Table<
    *
    * @param cb Callback to be called when a new row is inserted
    */
-  onUpdate = (
+  onUpdate = <EventContext>(
     cb: (
       ctx: EventContext,
       value: any,

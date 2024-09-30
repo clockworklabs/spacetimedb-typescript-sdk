@@ -1,11 +1,11 @@
-import type { DatabaseTable } from './database_table.ts';
-import { Table } from './table.ts';
+import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
+import { TableCache } from './table_cache.ts';
 
-export class ClientDB {
+export class ClientCache {
   /**
    * The tables in the database.
    */
-  tables: Map<string, Table>;
+  tables: Map<string, TableCache>;
 
   constructor() {
     this.tables = new Map();
@@ -16,7 +16,7 @@ export class ClientDB {
    * @param name The name of the table.
    * @returns The table
    */
-  getTable(name: string): Table {
+  getTable(name: string): TableCache {
     const table = this.tables.get(name);
 
     // ! This should not happen as the table should be available but an exception is thrown just in case.
@@ -30,17 +30,15 @@ export class ClientDB {
     return table;
   }
 
-  getOrCreateTable<TableType>(
-    tableName: string,
-    pkCol: number | undefined,
-    entityClass: DatabaseTable<TableType>
-  ): Table {
-    let table: Table;
-    if (!this.tables.has(tableName)) {
-      table = new Table(tableName, pkCol, entityClass);
-      this.tables.set(tableName, table);
+  getOrCreateTable<RowType>(
+    tableTypeInfo: TableRuntimeTypeInfo,
+  ): TableCache<RowType> {
+    let table: TableCache;
+    if (!this.tables.has(tableTypeInfo.tableName)) {
+      table = new TableCache<RowType>(tableTypeInfo);
+      this.tables.set(tableTypeInfo.tableName, table);
     } else {
-      table = this.tables.get(tableName)!;
+      table = this.tables.get(tableTypeInfo.tableName)!;
     }
     return table;
   }

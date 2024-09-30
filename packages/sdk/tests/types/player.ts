@@ -6,7 +6,7 @@ import {
   __SPACETIMEDB__,
   AlgebraicType,
   AlgebraicValue,
-  ClientDB,
+  ClientCache,
   DatabaseTable,
   ProductTypeElement,
 } from '../../src/index';
@@ -14,7 +14,7 @@ import {
 import { Point } from './point';
 
 export class Player extends DatabaseTable {
-  public static db: ClientDB = __SPACETIMEDB__.clientDB;
+  public static db: ClientCache = __SPACETIMEDB__.clientDB;
   public static tableName = 'Player';
   public ownerId: string;
   public name: string;
@@ -50,7 +50,7 @@ export class Player extends DatabaseTable {
   }
 
   public static filterByOwnerId(value: string): Player | null {
-    for (let instance of this.db.getTable('Player').getInstances()) {
+    for (let instance of this.db.getTable('Player').getRows()) {
       if (instance.ownerId === value) {
         return instance;
       }
@@ -60,7 +60,7 @@ export class Player extends DatabaseTable {
 
   public static filterByName(value: string): Player[] {
     let result: Player[] = [];
-    for (let instance of this.db.getTable('Player').getInstances()) {
+    for (let instance of this.db.getTable('Player').getRows()) {
       if (instance.name === value) {
         result.push(instance);
       }

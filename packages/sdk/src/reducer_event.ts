@@ -2,7 +2,7 @@ import { Address } from './address.ts';
 import type { Timestamp, UpdateStatus } from './client_api.ts';
 import { Identity } from './identity.ts';
 
-export class ReducerEvent<ReducerEnum extends any = any> {
+export class ReducerEvent {
   /**
    * The time when the reducer started running.
    *
@@ -36,18 +36,12 @@ export class ReducerEvent<ReducerEnum extends any = any> {
    */
   energyConsumed?: bigint;
 
-  /**
-   * The `Reducer` enum defined by the `module_bindings`, which encodes which reducer ran and its arguments.
-   */
-  reducer: ReducerEnum;
-
   constructor({
     callerIdentity,
     callerAddress,
     status,
     timestamp,
     energyConsumed,
-    reducer,
   }: {
     callerIdentity: Identity;
     status: UpdateStatus;
@@ -55,13 +49,11 @@ export class ReducerEvent<ReducerEnum extends any = any> {
     callerAddress?: Address;
     timestamp: Timestamp;
     energyConsumed?: bigint;
-    reducer: ReducerEnum;
   }) {
     this.callerIdentity = callerIdentity;
     this.callerAddress = callerAddress;
     this.status = status;
     this.timestamp = timestamp;
     this.energyConsumed = energyConsumed;
-    this.reducer = reducer;
   }
 }

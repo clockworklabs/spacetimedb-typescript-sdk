@@ -1,7 +1,7 @@
 import { Address } from './address.ts';
 import type { Timestamp, UpdateStatus } from './client_api.ts';
 import { Identity } from './identity.ts';
-import { TableUpdate } from './table.ts';
+import type { TableUpdate } from './table_cache.ts';
 
 export class SubscriptionUpdateMessage {
   tableUpdates: TableUpdate[];

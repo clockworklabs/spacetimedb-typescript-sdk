@@ -6,14 +6,14 @@ import {
   __SPACETIMEDB__,
   AlgebraicType,
   AlgebraicValue,
-  ClientDB,
+  ClientCache,
   DatabaseTable,
   Identity,
   ProductTypeElement,
 } from '../../src/index';
 
 export class User extends DatabaseTable {
-  public static db: ClientDB = __SPACETIMEDB__.clientDB;
+  public static db: ClientCache = __SPACETIMEDB__.clientDB;
   public static tableName = 'User';
   public identity: Identity;
   public username: string;
@@ -54,7 +54,7 @@ export class User extends DatabaseTable {
 
   public static filterByIdentity(value: Identity): User[] {
     let result: User[] = [];
-    for (let instance of this.db.getTable('User').getInstances()) {
+    for (let instance of this.db.getTable('User').getRows()) {
       if (instance.identity.isEqual(value)) {
         result.push(instance);
       }
@@ -64,7 +64,7 @@ export class User extends DatabaseTable {
 
   public static filterByUsername(value: string): User[] {
     let result: User[] = [];
-    for (let instance of this.db.getTable('User').getInstances()) {
+    for (let instance of this.db.getTable('User').getRows()) {
       if (instance.username === value) {
         result.push(instance);
       }

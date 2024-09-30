@@ -1,7 +1,7 @@
-import type { DBConnectionBase } from './spacetimedb.ts';
+import type { DBConnection } from './db_connection.ts';
 
 export class DbContext<DbView, ReducerView> {
-  #client: DBConnectionBase;
+  #client: DBConnection;
 
   readonly db: DbView;
   readonly reducers: ReducerView;
@@ -11,7 +11,7 @@ export class DbContext<DbView, ReducerView> {
 
   isActive: boolean;
 
-  constructor(client: DBConnectionBase, db: DbView, reducers: ReducerView) {
+  constructor(client: DBConnection, db: DbView, reducers: ReducerView) {
     this.#client = client;
     this.db = db;
     this.reducers = reducers;

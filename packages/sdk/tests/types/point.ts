@@ -6,13 +6,13 @@ import {
   __SPACETIMEDB__,
   AlgebraicType,
   AlgebraicValue,
-  ClientDB,
+  ClientCache,
   DatabaseTable,
   ProductTypeElement,
 } from '../../src/index';
 
 export class Point extends DatabaseTable {
-  public static db: ClientDB = __SPACETIMEDB__.clientDB;
+  public static db: ClientCache = __SPACETIMEDB__.clientDB;
   public static tableName = 'Point';
   public x: number;
   public y: number;
