@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type OneOffQuery = {
-  messageId: number[],
-  queryString: string,
+  messageId: Uint8Array;
+  queryString: string;
 };
 
 /**
@@ -45,13 +45,16 @@ export type OneOffQuery = {
  */
 export namespace OneOffQuery {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("message_id", AlgebraicType.createArrayType(AlgebraicType.createU8Type())),
-      new ProductTypeElement("query_string", AlgebraicType.createStringType()),
+      new ProductTypeElement(
+        'message_id',
+        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
+      ),
+      new ProductTypeElement('query_string', AlgebraicType.createStringType()),
     ]);
   }
 
@@ -70,7 +73,4 @@ export namespace OneOffQuery {
       queryString: value.query_string,
     };
   }
-
 }
-
-

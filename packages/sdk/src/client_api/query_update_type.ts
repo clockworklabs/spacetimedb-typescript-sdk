@@ -34,13 +34,13 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { BsatnRowList as __BsatnRowList } from "./bsatn_row_list_type";
+import { BsatnRowList as __BsatnRowList } from './bsatn_row_list_type';
 
 export type QueryUpdate = {
-  deletes: __BsatnRowList,
-  inserts: __BsatnRowList,
+  deletes: __BsatnRowList;
+  inserts: __BsatnRowList;
 };
 
 /**
@@ -48,13 +48,13 @@ export type QueryUpdate = {
  */
 export namespace QueryUpdate {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("deletes", __BsatnRowList.getAlgebraicType()),
-      new ProductTypeElement("inserts", __BsatnRowList.getAlgebraicType()),
+      new ProductTypeElement('deletes', __BsatnRowList.getAlgebraicType()),
+      new ProductTypeElement('inserts', __BsatnRowList.getAlgebraicType()),
     ]);
   }
 
@@ -73,7 +73,4 @@ export namespace QueryUpdate {
       inserts: value.inserts,
     };
   }
-
 }
-
-

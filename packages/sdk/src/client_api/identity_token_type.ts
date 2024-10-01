@@ -34,11 +34,11 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type IdentityToken = {
-  identity: Identity,
-  token: string,
-  address: Address,
+  identity: Identity;
+  token: string;
+  address: Address;
 };
 
 /**
@@ -46,14 +46,14 @@ export type IdentityToken = {
  */
 export namespace IdentityToken {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("token", AlgebraicType.createStringType()),
-      new ProductTypeElement("address", AlgebraicType.createAddressType()),
+      new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
+      new ProductTypeElement('token', AlgebraicType.createStringType()),
+      new ProductTypeElement('address', AlgebraicType.createAddressType()),
     ]);
   }
 
@@ -74,7 +74,4 @@ export namespace IdentityToken {
       address: value.address,
     };
   }
-
 }
-
-

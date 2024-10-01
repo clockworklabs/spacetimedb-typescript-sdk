@@ -34,9 +34,9 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type EnergyQuanta = {
-  quanta: BigInt,
+  quanta: bigint;
 };
 
 /**
@@ -44,12 +44,12 @@ export type EnergyQuanta = {
  */
 export namespace EnergyQuanta {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("quanta", AlgebraicType.createU128Type()),
+      new ProductTypeElement('quanta', AlgebraicType.createU128Type()),
     ]);
   }
 
@@ -66,7 +66,4 @@ export namespace EnergyQuanta {
       quanta: value.quanta,
     };
   }
-
 }
-
-

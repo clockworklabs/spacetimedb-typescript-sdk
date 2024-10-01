@@ -1,5 +1,5 @@
 import { Address } from './address.ts';
-import type { Timestamp, UpdateStatus } from './client_api.ts';
+import type { Timestamp, UpdateStatus } from './client_api/index.ts';
 import { Identity } from './identity.ts';
 import type { TableUpdate } from './table_cache.ts';
 

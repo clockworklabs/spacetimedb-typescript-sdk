@@ -34,15 +34,15 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { OneOffTable as __OneOffTable } from "./one_off_table_type";
+import { OneOffTable as __OneOffTable } from './one_off_table_type';
 
 export type OneOffQueryResponse = {
-  messageId: number[],
-  error: string | undefined,
-  tables: __OneOffTable[],
-  totalHostExecutionDurationMicros: BigInt,
+  messageId: Uint8Array;
+  error: string | undefined;
+  tables: __OneOffTable[];
+  totalHostExecutionDurationMicros: bigint;
 };
 
 /**
@@ -50,24 +50,40 @@ export type OneOffQueryResponse = {
  */
 export namespace OneOffQueryResponse {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("message_id", AlgebraicType.createArrayType(AlgebraicType.createU8Type())),
-      new ProductTypeElement("error", AlgebraicType.createOptionType(AlgebraicType.createStringType())),
-      new ProductTypeElement("tables", AlgebraicType.createArrayType(__OneOffTable.getAlgebraicType())),
-      new ProductTypeElement("total_host_execution_duration_micros", AlgebraicType.createU64Type()),
+      new ProductTypeElement(
+        'message_id',
+        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
+      ),
+      new ProductTypeElement(
+        'error',
+        AlgebraicType.createOptionType(AlgebraicType.createStringType())
+      ),
+      new ProductTypeElement(
+        'tables',
+        AlgebraicType.createArrayType(__OneOffTable.getAlgebraicType())
+      ),
+      new ProductTypeElement(
+        'total_host_execution_duration_micros',
+        AlgebraicType.createU64Type()
+      ),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: OneOffQueryResponse): void {
+  export function serialize(
+    writer: BinaryWriter,
+    value: OneOffQueryResponse
+  ): void {
     const converted = {
       message_id: value.messageId,
       error: value.error,
       tables: value.tables,
-      total_host_execution_duration_micros: value.totalHostExecutionDurationMicros,
+      total_host_execution_duration_micros:
+        value.totalHostExecutionDurationMicros,
     };
     OneOffQueryResponse.getAlgebraicType().serialize(writer, converted);
   }
@@ -78,10 +94,8 @@ export namespace OneOffQueryResponse {
       messageId: value.message_id,
       error: value.error,
       tables: value.tables,
-      totalHostExecutionDurationMicros: value.total_host_execution_duration_micros,
+      totalHostExecutionDurationMicros:
+        value.total_host_execution_duration_micros,
     };
   }
-
 }
-
-

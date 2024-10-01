@@ -34,15 +34,15 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { CompressableQueryUpdate as __CompressableQueryUpdate } from "./compressable_query_update_type";
+import { CompressableQueryUpdate as __CompressableQueryUpdate } from './compressable_query_update_type';
 
 export type TableUpdate = {
-  tableId: number,
-  tableName: string,
-  numRows: BigInt,
-  updates: __CompressableQueryUpdate[],
+  tableId: number;
+  tableName: string;
+  numRows: bigint;
+  updates: __CompressableQueryUpdate[];
 };
 
 /**
@@ -50,15 +50,20 @@ export type TableUpdate = {
  */
 export namespace TableUpdate {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("table_id", AlgebraicType.createU32Type()),
-      new ProductTypeElement("table_name", AlgebraicType.createStringType()),
-      new ProductTypeElement("num_rows", AlgebraicType.createU64Type()),
-      new ProductTypeElement("updates", AlgebraicType.createArrayType(__CompressableQueryUpdate.getAlgebraicType())),
+      new ProductTypeElement('table_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement('table_name', AlgebraicType.createStringType()),
+      new ProductTypeElement('num_rows', AlgebraicType.createU64Type()),
+      new ProductTypeElement(
+        'updates',
+        AlgebraicType.createArrayType(
+          __CompressableQueryUpdate.getAlgebraicType()
+        )
+      ),
     ]);
   }
 
@@ -81,7 +86,4 @@ export namespace TableUpdate {
       updates: value.updates,
     };
   }
-
 }
-
-

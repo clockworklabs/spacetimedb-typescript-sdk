@@ -10,7 +10,18 @@ export class WebsocketDecompressAdapter {
   #ws: WebSocket;
 
   #handleOnMessage(msg: MessageEvent) {
-    const decompressed = decompress(new Buffer(msg.data));
+    const buffer = new Uint8Array(msg.data);
+    let decompressed: Uint8Array;
+    switch (buffer[0]) {
+      case 0:
+        decompressed = msg.data.slice(1);
+        break;
+      case 1:
+        decompressed = decompress(new Buffer(buffer.slice(1)));
+        break;
+      default:
+        throw new Error('Invalid message type');
+    }
 
     this.onmessage?.({ data: decompressed });
   }

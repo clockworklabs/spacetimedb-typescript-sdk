@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type Subscribe = {
-  queryStrings: string[],
-  requestId: number,
+  queryStrings: string[];
+  requestId: number;
 };
 
 /**
@@ -45,13 +45,16 @@ export type Subscribe = {
  */
 export namespace Subscribe {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("query_strings", AlgebraicType.createArrayType(AlgebraicType.createStringType())),
-      new ProductTypeElement("request_id", AlgebraicType.createU32Type()),
+      new ProductTypeElement(
+        'query_strings',
+        AlgebraicType.createArrayType(AlgebraicType.createStringType())
+      ),
+      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
     ]);
   }
 
@@ -70,7 +73,4 @@ export namespace Subscribe {
       requestId: value.request_id,
     };
   }
-
 }
-
-

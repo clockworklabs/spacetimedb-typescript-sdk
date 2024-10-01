@@ -1,4 +1,5 @@
 import { Address } from './address.ts';
+import decompress from 'brotli/decompress';
 import {
   AlgebraicType,
   ProductType,
@@ -28,11 +29,7 @@ import { stdbLogger } from './logger.ts';
 import type { IdentityTokenMessage, Message } from './message_types.ts';
 import type { ReducerEvent } from './reducer_event.ts';
 import type SpacetimeModule from './spacetime_module.ts';
-import {
-  TableCache,
-  type RawOperation,
-  type TableUpdate,
-} from './table_cache.ts';
+import { TableCache, type Operation, type TableUpdate } from './table_cache.ts';
 import { toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
@@ -126,48 +123,42 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     message: ws.ServerMessage,
     callback: (message: Message) => void
   ) {
-    // Helpers for parsing message components which appear in multiple messages.
-    const parseTableOperation = (
-      rawRow: ws.EncodedValue,
-      type: 'insert' | 'delete'
-    ): RawOperation => {
-      // Our SDKs are architected around having a hashable, equality-comparable key
-      // which uniquely identifies every row.
-      // This used to be a strong content-addressed hash computed by the DB,
-      // but the DB no longer computes those hashes,
-      // so now we just use the serialized row as the identifier.
-      // That's the second argument to the `TableRowOperation` constructor.
-
-      switch (rawRow.tag) {
-        case 'Binary':
-          return {
-            type,
-            rowId: new TextDecoder().decode(rawRow.value),
-            row: rawRow.value,
-          };
-        case 'Text':
-          return {
-            type,
-            rowId: rawRow.value,
-            row: new TextEncoder().encode(rawRow.value),
-          };
+    const parseRowList = (
+      type: 'insert' | 'delete',
+      tableName: string,
+      rowList: ws.BsatnRowList
+    ): Operation[] => {
+      const buffer = rowList.rowsData;
+      const reader = new BinaryReader(buffer);
+      const rows: any[] = [];
+      while (!reader.done()) {
+        rows.push({
+          type,
+          rowId: new TextDecoder().decode(buffer),
+          row: this.remoteModule.tables[tableName]!.rowType.deserialize(reader),
+        });
       }
+      return rows;
     };
     const parseTableUpdate = (rawTableUpdate: ws.TableUpdate): TableUpdate => {
       const tableName = rawTableUpdate.tableName;
-      const operations: RawOperation[] = [];
-      // TODO(cloutiertyler)
-      // This is going to be a list of query updates
-      // rawTableUpdate.updates is a list of CompressibleQueryUpdates
-      // decompress these into a list of `QueryUpdate`s
-      // `QueryUpdate` has a BSatnRowList of inserts and and one of deletes
-      // BSatnRowList has size hint and the rows themselves
-      // I will just use the rows themselves and decode them one by one
-      for (const insert of rawTableUpdate.inserts) {
-        operations.push(parseTableOperation(insert, 'insert'));
-      }
-      for (const del of rawTableUpdate.deletes) {
-        operations.push(parseTableOperation(del, 'delete'));
+      const operations: Operation[] = [];
+      for (const update of rawTableUpdate.updates) {
+        let decompressed: ws.QueryUpdate;
+        if (update.tag === 'Brotli') {
+          const decompressedBuffer = decompress(new Buffer(update.value));
+          decompressed = ws.QueryUpdate.deserialize(
+            new BinaryReader(decompressedBuffer)
+          );
+        } else {
+          decompressed = update.value;
+        }
+        operations.concat(
+          parseRowList('insert', tableName, decompressed.inserts)
+        );
+        operations.concat(
+          parseRowList('delete', tableName, decompressed.deletes)
+        );
       }
       return {
         tableName,
@@ -202,15 +193,9 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
         const address = Address.nullIfZero(txUpdate.callerAddress);
         const originalReducerName = txUpdate.reducerCall.reducerName;
         const reducerName: string = toPascalCase(originalReducerName);
-        const rawArgs = txUpdate.reducerCall.args;
+        const args = txUpdate.reducerCall.args;
         const energyQuantaUsed = txUpdate.energyQuantaUsed;
 
-        if (rawArgs.tag !== 'Binary') {
-          throw new Error(
-            `Expected a binary EncodedValue but found ${rawArgs.tag} ${rawArgs.value}`
-          );
-        }
-        const args = rawArgs.value;
         let tableUpdates: TableUpdate[];
         let errMessage = '';
         switch (txUpdate.status.tag) {
@@ -262,7 +247,6 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
   }
 
   processMessage(data: Uint8Array, callback: (message: Message) => void): void {
-    ws.ServerMessage.getAlgebraicType().deserialize(new BinaryReader(data));
     const message = parseValue(ws.ServerMessage, data);
     this.#processParsedMessage(message, callback);
   }
@@ -291,14 +275,12 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     this.#onApplied = onApplied;
     const queries =
       typeof queryOrQueries === 'string' ? [queryOrQueries] : queryOrQueries;
-    const message = ws.ClientMessage.Subscribe(
-      {
-        queryStrings: queries,
-        // The TypeScript SDK doesn't currently track `request_id`s,
-        // so always use 0.
-        requestId: 0,
-      }
-    );
+    const message = ws.ClientMessage.Subscribe({
+      queryStrings: queries,
+      // The TypeScript SDK doesn't currently track `request_id`s,
+      // so always use 0.
+      requestId: 0,
+    });
     this.#sendMessage(message);
   }
 
@@ -318,16 +300,13 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
    * @param argsSerializer The arguments to pass to the reducer
    */
   callReducer(reducerName: string, argsBuffer: Uint8Array): void {
-    const message = ws.ClientMessage.CallReducer(
-      new ws.CallReducer(
-        reducerName,
-        // TODO(cloutiertyler): Remove this once updated to Mazdak's
-        ws.EncodedValue.Binary(argsBuffer),
-        // The TypeScript SDK doesn't currently track `request_id`s,
-        // so always use 0.
-        0
-      )
-    );
+    const message = ws.ClientMessage.CallReducer({
+      reducer: reducerName,
+      args: argsBuffer,
+      // The TypeScript SDK doesn't currently track `request_id`s,
+      // so always use 0.
+      requestId: 0,
+    });
     this.#sendMessage(message);
   }
 

@@ -313,17 +313,11 @@ export class AlgebraicValue {
   }
 }
 
-export interface ParseableType<ParsedType> {
-  getAlgebraicType: () => AlgebraicType;
-  fromValue: (value: AlgebraicValue) => ParsedType;
+export interface ParseableType<T> {
+  deserialize: (reader: BinaryReader) => T;
 }
 
-export function parseValue<ParsedType>(
-  ty: ParseableType<ParsedType>,
-  src: Uint8Array
-): ParsedType {
-  const algebraicType = ty.getAlgebraicType();
-  const adapter = new BinaryAdapter(new BinaryReader(src));
-  const algebraicValue = AlgebraicValue.deserialize(algebraicType, adapter);
-  return ty.fromValue(algebraicValue);
+export function parseValue<T>(ty: ParseableType<T>, src: Uint8Array): T {
+  const reader = new BinaryReader(src);
+  return ty.deserialize(reader);
 }

@@ -7,19 +7,13 @@ import { type EventContext } from './db_connection_impl.ts';
 
 export type Operation = {
   type: 'insert' | 'delete';
-  rowPk: string;
-  row: any;
-};
-
-export type RawOperation = {
-  type: 'insert' | 'delete';
   rowId: string;
-  row: Uint8Array;
+  row: any;
 };
 
 export type TableUpdate = {
   tableName: string;
-  operations: RawOperation[];
+  operations: Operation[];
 };
 
 /**
@@ -56,18 +50,7 @@ export class TableCache<RowType = any> {
     return Array.from(this.rows.values());
   }
 
-  applyOperations = (
-    rawOperations: RawOperation[],
-    ctx: EventContext
-  ): void => {
-    let operations: Operation[] = [];
-    for (let rawOperation of rawOperations) {
-      const rowId: string = rawOperation.rowId;
-      const reader = new BinaryReader(rawOperation.row);
-      const row = this.tableTypeInfo.rowType.deserialize(reader);
-      operations.push({ type: rawOperation.type, rowPk: rowId, row });
-    }
-
+  applyOperations = (operations: Operation[], ctx: EventContext): void => {
     if (this.tableTypeInfo.primaryKey !== undefined) {
       const primaryKey = this.tableTypeInfo.primaryKey;
       const inserts: Operation[] = [];
@@ -111,18 +94,18 @@ export class TableCache<RowType = any> {
   ): void => {
     const newRow = newDbOp.row;
     const oldRow = oldDbOp.row;
-    this.rows.delete(oldDbOp.rowPk);
-    this.rows.set(newDbOp.rowPk, newRow);
+    this.rows.delete(oldDbOp.rowId);
+    this.rows.set(newDbOp.rowId, newRow);
     this.emitter.emit('update', ctx, oldRow, newRow);
   };
 
   insert = (ctx: EventContext, operation: Operation): void => {
-    this.rows.set(operation.rowPk, operation.row);
+    this.rows.set(operation.rowId, operation.row);
     this.emitter.emit('insert', ctx, operation.row);
   };
 
   delete = (ctx: EventContext, dbOp: Operation): void => {
-    this.rows.delete(dbOp.rowPk);
+    this.rows.delete(dbOp.rowId);
     this.emitter.emit('delete', ctx, dbOp.row);
   };
 

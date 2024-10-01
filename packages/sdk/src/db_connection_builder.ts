@@ -143,8 +143,7 @@ export class DBConnectionBuilder<DBConnection> {
     connection.wsPromise = connection
       .createWSFn({
         url,
-        // TODO: This update this to bsatn
-        wsProtocol: 'v1.bin.spacetimedb',
+        wsProtocol: 'v1.bsatn.spacetimedb',
         authToken: connection.token,
       })
       .then(v => {

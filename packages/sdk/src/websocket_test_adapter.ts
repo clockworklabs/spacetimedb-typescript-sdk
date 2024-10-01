@@ -1,5 +1,5 @@
 import BinaryWriter from './binary_writer.ts';
-import { ServerMessage } from './client_api.ts';
+import { ServerMessage } from './client_api/index.ts';
 
 class WebsocketTestAdapter {
   onclose: any;
