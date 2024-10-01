@@ -34,7 +34,7 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 
 export type Init = {};
 
@@ -43,12 +43,11 @@ export type Init = {};
  */
 export namespace Init {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
-    return AlgebraicType.createProductType([
-    ]);
+    return AlgebraicType.createProductType([]);
   }
 
   export function serialize(writer: BinaryWriter, value: Init): void {
@@ -59,4 +58,3 @@ export namespace Init {
     return Init.getAlgebraicType().deserialize(reader);
   }
 }
-

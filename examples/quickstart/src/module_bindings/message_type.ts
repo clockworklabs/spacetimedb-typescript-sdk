@@ -34,11 +34,11 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 export type Message = {
-  sender: Identity,
-  sent: BigInt,
-  text: string,
+  sender: Identity;
+  sent: BigInt;
+  text: string;
 };
 
 /**
@@ -46,14 +46,14 @@ export type Message = {
  */
 export namespace Message {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("sender", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("sent", AlgebraicType.createU64Type()),
-      new ProductTypeElement("text", AlgebraicType.createStringType()),
+      new ProductTypeElement('sender', AlgebraicType.createIdentityType()),
+      new ProductTypeElement('sent', AlgebraicType.createU64Type()),
+      new ProductTypeElement('text', AlgebraicType.createStringType()),
     ]);
   }
 
@@ -65,5 +65,3 @@ export namespace Message {
     return Message.getAlgebraicType().deserialize(reader);
   }
 }
-
-

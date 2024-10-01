@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 
 export type SetName = {
-  name: string,
+  name: string;
 };
 
 /**
@@ -45,12 +45,12 @@ export type SetName = {
  */
 export namespace SetName {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("name", AlgebraicType.createStringType()),
+      new ProductTypeElement('name', AlgebraicType.createStringType()),
     ]);
   }
 
@@ -62,4 +62,3 @@ export namespace SetName {
     return SetName.getAlgebraicType().deserialize(reader);
   }
 }
-

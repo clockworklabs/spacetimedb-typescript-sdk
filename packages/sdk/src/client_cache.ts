@@ -31,7 +31,7 @@ export class ClientCache {
   }
 
   getOrCreateTable<RowType>(
-    tableTypeInfo: TableRuntimeTypeInfo,
+    tableTypeInfo: TableRuntimeTypeInfo
   ): TableCache<RowType> {
     let table: TableCache;
     if (!this.tables.has(tableTypeInfo.tableName)) {

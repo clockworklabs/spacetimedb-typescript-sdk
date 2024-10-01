@@ -1,6 +1,6 @@
-import { ProductValue, SumValue, type ValueAdapter } from "./algebraic_value";
-import type BinaryReader from "./binary_reader";
-import type BinaryWriter from "./binary_writer";
+import { ProductValue, SumValue, type ValueAdapter } from './algebraic_value';
+import type BinaryReader from './binary_reader';
+import type BinaryWriter from './binary_writer';
 
 /**
  * A variant of a sum type.
@@ -73,18 +73,22 @@ export class SumType {
       writer.writeU32(index);
       this.variants[index].algebraicType.serialize(value['value'], writer);
     }
-  }
+  };
 
   deserialize = (reader: BinaryReader): any => {
     let tag = reader.readU32();
     // In TypeScript we handle Option values as a special case
     // we don't represent the some and none variants, but instead
     // we represent the value directly.
-    if (this.variants.length == 2 && this.variants[0].name === 'some' && this.variants[1].name === 'none') {
+    if (
+      this.variants.length == 2 &&
+      this.variants[0].name === 'some' &&
+      this.variants[1].name === 'none'
+    ) {
       if (tag === 0) {
         return this.variants[0].algebraicType.deserialize(reader);
       } else if (tag === 1) {
-        return undefined
+        return undefined;
       } else {
         throw `Can't deserialize an option type, couldn't find ${tag} tag`;
       }
@@ -93,7 +97,7 @@ export class SumType {
       let value = variant.algebraicType.deserialize(reader);
       return { tag: variant.name, value };
     }
-  }
+  };
 }
 
 /**
@@ -152,22 +156,17 @@ export class ProductType {
 
   serialize = (writer: BinaryWriter, value: object): void => {
     for (let element of this.elements) {
-      element.algebraicType.serialize(
-        value[element.name],
-        writer
-      );
+      element.algebraicType.serialize(value[element.name], writer);
     }
-  }
+  };
 
   deserialize = (reader: BinaryReader): object => {
     let result: { [key: string]: any } = {};
     for (let element of this.elements) {
-      result[element.name] = element.algebraicType.deserialize(
-        reader
-      );
+      result[element.name] = element.algebraicType.deserialize(reader);
     }
     return result;
-  }
+  };
 }
 
 /* A map type from keys of type `keyType` to values of type `valueType`. */
@@ -337,8 +336,8 @@ export class AlgebraicType {
   }
   static createScheduleAtType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant("Interval", AlgebraicType.createU64Type()),
-      new SumTypeVariant("Time", AlgebraicType.createU64Type())
+      new SumTypeVariant('Interval', AlgebraicType.createU64Type()),
+      new SumTypeVariant('Time', AlgebraicType.createU64Type()),
     ]);
   }
 

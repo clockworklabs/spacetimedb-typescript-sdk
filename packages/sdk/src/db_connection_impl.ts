@@ -17,17 +17,22 @@ import BinaryReader from './binary_reader.ts';
 import BinaryWriter from './binary_writer.ts';
 import * as ws from './client_api.ts';
 import { ClientCache } from './client_cache.ts';
-import { SubscriptionBuilder, type DBContext, type EventContext } from './db_context.ts';
+import {
+  SubscriptionBuilder,
+  type DBContext,
+  type EventContext,
+} from './db_context.ts';
 import { EventEmitter } from './event_emitter.ts';
 import type { Identity } from './identity.ts';
 import { stdbLogger } from './logger.ts';
-import type {
-  IdentityTokenMessage,
-  Message
-} from './message_types.ts';
+import type { IdentityTokenMessage, Message } from './message_types.ts';
 import type { ReducerEvent } from './reducer_event.ts';
 import type SpacetimeModule from './spacetime_module.ts';
-import { TableCache, type RawOperation, type TableUpdate } from './table_cache.ts';
+import {
+  TableCache,
+  type RawOperation,
+  type TableUpdate,
+} from './table_cache.ts';
 import { toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
@@ -36,7 +41,8 @@ import type { DBConnectionBuilder } from './db_connection_builder.ts';
 
 export {
   AlgebraicType,
-  AlgebraicValue, ProductType,
+  AlgebraicValue,
+  ProductType,
   ProductTypeElement,
   ProductValue,
   SumType,
@@ -56,7 +62,9 @@ export type { ReducerEvent };
 
 export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
 
-export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext<DBView, Reducers>  {
+export class DBConnectionImpl<DBView = any, Reducers = any>
+  implements DBContext<DBView, Reducers>
+{
   isActive = false;
   /**
    * The user's public identity.
@@ -88,14 +96,14 @@ export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext
     this.clientCache = new ClientCache();
     this.#emitter = emitter;
     this.remoteModule = remoteModule;
-    this.db = this.remoteModule.dbViewConstructor(this)
-    this.reducers = this.remoteModule.reducersConstructor(this)
+    this.db = this.remoteModule.dbViewConstructor(this);
+    this.reducers = this.remoteModule.reducersConstructor(this);
     this.createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
   }
 
   subscriptionBuilder = (): SubscriptionBuilder => {
-    return new SubscriptionBuilder(this)
-  }
+    return new SubscriptionBuilder(this);
+  };
 
   /**
    * Close the current connection.
@@ -275,7 +283,11 @@ export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext
    * spacetimeDBClient.subscribe(["SELECT * FROM User","SELECT * FROM Message"]);
    * ```
    */
-  subscribe(queryOrQueries: string | string[], onApplied?: (ctx: EventContext) => void, _onError?: (ctx: EventContext) => void): void {
+  subscribe(
+    queryOrQueries: string | string[],
+    onApplied?: (ctx: EventContext) => void,
+    _onError?: (ctx: EventContext) => void
+  ): void {
     this.#onApplied = onApplied;
     const queries =
       typeof queryOrQueries === 'string' ? [queryOrQueries] : queryOrQueries;
@@ -334,14 +346,15 @@ export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext
     this.processMessage(wsMessage.data, message => {
       if (message.tag === 'InitialSubscription') {
         let event: Event = { tag: 'SubscribeApplied' };
-        const eventContext = this.remoteModule.eventContextConstructor(this, event);
+        const eventContext = this.remoteModule.eventContextConstructor(
+          this,
+          event
+        );
         for (let tableUpdate of message.tableUpdates) {
           // Get table information for the table being updated
           const tableName = tableUpdate.tableName;
           const tableTypeInfo = this.remoteModule.tables[tableName]!;
-          const table = this.clientCache.getOrCreateTable(
-            tableTypeInfo
-          );
+          const table = this.clientCache.getOrCreateTable(tableTypeInfo);
           table.applyOperations(tableUpdate.operations, eventContext);
         }
 
@@ -356,7 +369,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext
           let errorMessage = message.message;
           console.error(`Received an error from the database: ${errorMessage}`);
         } else {
-          const reader = new BinaryReader(message.args as Uint8Array)
+          const reader = new BinaryReader(message.args as Uint8Array);
           const reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
           const reducerEvent = {
             callerIdentity: message.identity,
@@ -366,27 +379,24 @@ export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext
             energyConsumed: message.energyConsumed,
             reducer: {
               name: reducerName,
-              args: reducerArgs
-            } 
+              args: reducerArgs,
+            },
           };
           const event: Event = { tag: 'Reducer', value: reducerEvent };
-          const eventContext = this.remoteModule.eventContextConstructor(this, event);
+          const eventContext = this.remoteModule.eventContextConstructor(
+            this,
+            event
+          );
 
           for (let tableUpdate of message.tableUpdates) {
             // Get table information for the table being updated
             const tableName = tableUpdate.tableName;
             const tableTypeInfo = this.remoteModule.tables[tableName]!;
-            const table = this.clientCache.getOrCreateTable(
-              tableTypeInfo
-            );
+            const table = this.clientCache.getOrCreateTable(tableTypeInfo);
             table.applyOperations(tableUpdate.operations, eventContext);
           }
 
-          this.#reducerEmitter.emit(
-            reducerName,
-            eventContext,
-            ...reducerArgs
-          );
+          this.#reducerEmitter.emit(reducerName, eventContext, ...reducerArgs);
         }
       } else if (message.tag === 'IdentityToken') {
         this.identity = message.identity;
@@ -412,20 +422,20 @@ export class DBConnectionImpl<DBView = any, Reducers = any> implements DBContext
   }
 
   off(
-    eventName: ConnectionEvent, 
+    eventName: ConnectionEvent,
     callback: (connection: DBConnectionImpl, ...args: any[]) => void
   ): void {
     this.#emitter.off(eventName, callback);
   }
 
-  onReducer<ReducerArgs extends any[] = any[]> (
+  onReducer<ReducerArgs extends any[] = any[]>(
     reducerName: string,
     callback: (ctx: any, ...args: ReducerArgs) => void
   ): void {
     this.#reducerEmitter.on(reducerName, callback);
   }
 
-  offReducer<ReducerArgs extends any[] = any[]> (
+  offReducer<ReducerArgs extends any[] = any[]>(
     reducerName: string,
     callback: (ctx: any, ...args: ReducerArgs) => void
   ): void {

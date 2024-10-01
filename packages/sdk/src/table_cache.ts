@@ -3,9 +3,7 @@ import { EventEmitter } from './event_emitter.ts';
 import OperationsMap from './operations_map.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
 
-import {
-  type EventContext,
-} from './db_connection_impl.ts';
+import { type EventContext } from './db_connection_impl.ts';
 
 export type Operation = {
   type: 'insert' | 'delete';
@@ -69,7 +67,7 @@ export class TableCache<RowType = any> {
       const row = this.tableTypeInfo.rowType.deserialize(reader);
       operations.push({ type: rawOperation.type, rowPk: rowId, row });
     }
-        
+
     if (this.tableTypeInfo.primaryKey !== undefined) {
       const primaryKey = this.tableTypeInfo.primaryKey;
       const inserts: Operation[] = [];
@@ -109,13 +107,13 @@ export class TableCache<RowType = any> {
   update = (
     ctx: EventContext,
     newDbOp: Operation,
-    oldDbOp: Operation,
+    oldDbOp: Operation
   ): void => {
     const newRow = newDbOp.row;
     const oldRow = oldDbOp.row;
     this.rows.delete(oldDbOp.rowPk);
     this.rows.set(newDbOp.rowPk, newRow);
-    this.emitter.emit('update', ctx, oldRow, newRow,);
+    this.emitter.emit('update', ctx, oldRow, newRow);
   };
 
   insert = (ctx: EventContext, operation: Operation): void => {
@@ -144,10 +142,7 @@ export class TableCache<RowType = any> {
    * @param cb Callback to be called when a new row is inserted
    */
   onInsert = <EventContext>(
-    cb: (
-      ctx: EventContext,
-      row: RowType,
-    ) => void,
+    cb: (ctx: EventContext, row: RowType) => void
   ): void => {
     this.emitter.on('insert', cb);
   };
@@ -168,10 +163,7 @@ export class TableCache<RowType = any> {
    * @param cb Callback to be called when a new row is inserted
    */
   onDelete = <EventContext>(
-    cb: (
-      ctx: EventContext,
-      row: RowType,
-    ) => void,
+    cb: (ctx: EventContext, row: RowType) => void
   ): void => {
     this.emitter.on('delete', cb);
   };
@@ -192,11 +184,7 @@ export class TableCache<RowType = any> {
    * @param cb Callback to be called when a new row is inserted
    */
   onUpdate = <EventContext>(
-    cb: (
-      ctx: EventContext,
-      oldRow: RowType,
-      row: RowType,
-    ) => void,
+    cb: (ctx: EventContext, oldRow: RowType, row: RowType) => void
   ): void => {
     this.emitter.on('update', cb);
   };
@@ -207,13 +195,10 @@ export class TableCache<RowType = any> {
    * @param cb Callback to be removed
    */
   removeOnInsert = <EventContext>(
-    cb: (
-      ctx: EventContext,
-      row: RowType,
-    ) => void,
+    cb: (ctx: EventContext, row: RowType) => void
   ): void => {
     this.emitter.off('insert', cb);
-  }
+  };
 
   /**
    * Remove a callback for when a row is deleted from the database.
@@ -221,13 +206,10 @@ export class TableCache<RowType = any> {
    * @param cb Callback to be removed
    */
   removeOnDelete = <EventContext>(
-    cb: (
-      ctx: EventContext,
-      row: RowType,
-    ) => void,
+    cb: (ctx: EventContext, row: RowType) => void
   ): void => {
     this.emitter.off('delete', cb);
-  }
+  };
 
   /**
    * Remove a callback for when a row is updated into the database.
@@ -235,12 +217,8 @@ export class TableCache<RowType = any> {
    * @param cb Callback to be removed
    */
   removeOnUpdate = <EventContext>(
-    cb: (
-      ctx: EventContext,
-      oldRow: RowType,
-      row: RowType,
-    ) => void,
+    cb: (ctx: EventContext, oldRow: RowType, row: RowType) => void
   ): void => {
     this.emitter.off('update', cb);
-  }
+  };
 }

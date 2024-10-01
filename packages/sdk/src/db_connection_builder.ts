@@ -5,12 +5,12 @@
 //   player: PlayerTable;
 // };
 
-import { DBConnectionImpl, type ConnectionEvent } from "./db_connection_impl";
-import type { DBContext } from "./db_context";
-import { EventEmitter } from "./event_emitter";
-import type { Identity } from "./identity";
-import { stdbLogger } from "./logger";
-import type SpacetimeModule from "./spacetime_module";
+import { DBConnectionImpl, type ConnectionEvent } from './db_connection_impl';
+import type { DBContext } from './db_context';
+import { EventEmitter } from './event_emitter';
+import type { Identity } from './identity';
+import { stdbLogger } from './logger';
+import type SpacetimeModule from './spacetime_module';
 
 // type RemoteReducers = {
 //   createPlayer: CreatePlayerReducer;
@@ -77,16 +77,12 @@ export class DBConnectionBuilder<DBConnection> {
     private dbConnectionConstructor: (imp: DBConnectionImpl) => DBConnection
   ) {}
 
-  withUri(
-    uri: string | URL
-  ): DBConnectionBuilder<DBConnection> {
+  withUri(uri: string | URL): DBConnectionBuilder<DBConnection> {
     this.#uri = new URL(uri);
     return this;
   }
 
-  withModuleName(
-    nameOrAddress: string
-  ): DBConnectionBuilder<DBConnection> {
+  withModuleName(nameOrAddress: string): DBConnectionBuilder<DBConnection> {
     this.#nameOrAddress = nameOrAddress;
     return this;
   }
@@ -124,20 +120,20 @@ export class DBConnectionBuilder<DBConnection> {
   build(): DBConnection {
     stdbLogger('info', 'Connecting to SpacetimeDB WS...');
 
-    let url = new URL(
-      `database/subscribe/${this.#nameOrAddress}`,
-      this.#uri
-    );
+    let url = new URL(`database/subscribe/${this.#nameOrAddress}`, this.#uri);
 
     if (!this.#uri) {
-        throw new Error('URI is required to connect to SpacetimeDB');
+      throw new Error('URI is required to connect to SpacetimeDB');
     }
 
     if (!/^wss?:/.test(this.#uri.protocol)) {
       url.protocol = 'ws:';
     }
 
-    const connection = new DBConnectionImpl(this.spacetimeModule, this.#emitter);
+    const connection = new DBConnectionImpl(
+      this.spacetimeModule,
+      this.#emitter
+    );
     connection.identity = this.#identity;
     connection.token = this.#token;
 
@@ -155,18 +151,19 @@ export class DBConnectionBuilder<DBConnection> {
         connection.ws = v;
 
         connection.ws.onclose = () => {
-          this.#emitter.emit("disconnect", connection);
-        }
+          this.#emitter.emit('disconnect', connection);
+        };
         connection.ws.onerror = (e: ErrorEvent) => {
-          this.#emitter.emit("connectError", connection, e); 
+          this.#emitter.emit('connectError', connection, e);
         };
         connection.ws.onopen = connection.handleOnOpen.bind(this);
         connection.ws.onmessage = connection.handleOnMessage.bind(this);
 
         return v;
-      }).catch((e) => {
+      })
+      .catch(e => {
         stdbLogger('error', 'Error connecting to SpacetimeDB WS');
-        connection.on("connectError", e);
+        connection.on('connectError', e);
         // TODO(cloutiertyler): I don't know but this makes it compile and
         // I don't have time to investigate how to do this properly.
         throw e;
@@ -200,9 +197,13 @@ export class DBConnectionBuilder<DBConnection> {
    * ```
    */
   onConnect(
-    callback: (connection: DBConnectionImpl, identity: Identity, token: string) => void,
+    callback: (
+      connection: DBConnectionImpl,
+      identity: Identity,
+      token: string
+    ) => void
   ): DBConnectionBuilder<DBConnection> {
-    this.#emitter.on("connect", callback);
+    this.#emitter.on('connect', callback);
     return this;
   }
 
@@ -218,9 +219,9 @@ export class DBConnectionBuilder<DBConnection> {
    * ```
    */
   onConnectError(
-    callback: (...args: any[]) => void,
+    callback: (...args: any[]) => void
   ): DBConnectionBuilder<DBConnection> {
-    this.#emitter.on("connectError", callback);
+    this.#emitter.on('connectError', callback);
     return this;
   }
 
@@ -251,9 +252,9 @@ export class DBConnectionBuilder<DBConnection> {
    * @throws {Error} Throws an error if called multiple times on the same `DbConnectionBuilder`.
    */
   onDisconnect(
-    callback: (...args: any[]) => void,
+    callback: (...args: any[]) => void
   ): DBConnectionBuilder<DBConnection> {
-    this.#emitter.on("disconnect", callback);
+    this.#emitter.on('disconnect', callback);
     return this;
   }
 }

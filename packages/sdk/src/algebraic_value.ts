@@ -164,10 +164,7 @@ export class SumValue {
     this.value = value;
   }
 
-  static deserialize(
-    type: SumType,
-    adapter: ValueAdapter
-  ): SumValue {
+  static deserialize(type: SumType, adapter: ValueAdapter): SumValue {
     return adapter.readSum(type);
   }
 }
@@ -185,10 +182,7 @@ export class ProductValue {
     this.elements = elements;
   }
 
-  static deserialize(
-    type: ProductType,
-    adapter: ValueAdapter
-  ): ProductValue {
+  static deserialize(type: ProductType, adapter: ValueAdapter): ProductValue {
     return adapter.readProduct(type);
   }
 }
