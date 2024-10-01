@@ -15,7 +15,7 @@ import {
 } from './algebraic_value.ts';
 import BinaryReader from './binary_reader.ts';
 import BinaryWriter from './binary_writer.ts';
-import * as ws from './client_api.ts';
+import * as ws from './client_api/index.ts';
 import { ClientCache } from './client_cache.ts';
 import {
   SubscriptionBuilder,
@@ -37,7 +37,7 @@ import { toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
 import type { Event } from './event.ts';
-import type { DBConnectionBuilder } from './db_connection_builder.ts';
+import { DBConnectionBuilder } from './db_connection_builder.ts';
 
 export {
   AlgebraicType,
@@ -52,7 +52,7 @@ export {
   BinaryReader,
   BinaryWriter,
   TableCache,
-  type DBConnectionBuilder,
+  DBConnectionBuilder,
   SubscriptionBuilder,
   type Event,
 };
@@ -292,12 +292,12 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     const queries =
       typeof queryOrQueries === 'string' ? [queryOrQueries] : queryOrQueries;
     const message = ws.ClientMessage.Subscribe(
-      new ws.Subscribe(
-        queries,
+      {
+        queryStrings: queries,
         // The TypeScript SDK doesn't currently track `request_id`s,
         // so always use 0.
-        0
-      )
+        requestId: 0,
+      }
     );
     this.#sendMessage(message);
   }

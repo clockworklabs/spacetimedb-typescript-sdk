@@ -5,16 +5,13 @@ import { parseValue } from '../src/algebraic_value';
 import * as ws from '../src/client_api';
 import { ClientCache } from '../src/client_cache';
 import { Identity } from '../src/identity';
-import { ReducerEvent, DBConnection } from '../src/db-connection';
+import { ReducerEvent, DBConnectionImpl } from '../src/db_connection_impl';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 import CreatePlayerReducer from './types/create_player_reducer';
 import Player from './types/player';
 import Point from './types/point';
 import User from './types/user';
 import BinaryWriter from '../src/binary_writer';
-
-DBConnection.registerTables(Player, User);
-DBConnection.registerReducers(CreatePlayerReducer);
 
 beforeEach(() => {
   (CreatePlayerReducer as any).reducer = undefined;
