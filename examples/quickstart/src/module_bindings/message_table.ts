@@ -2,79 +2,80 @@
 // WILL NOT BE SAVED. MODIFY TABLES IN RUST INSTEAD.
 
 import {
-    // @ts-ignore
-    AlgebraicType,
-    // @ts-ignore
-    ProductType,
-    // @ts-ignore
-    ProductTypeElement,
-    // @ts-ignore
-    SumType,
-    // @ts-ignore
-    SumTypeVariant,
-    // @ts-ignore
-    AlgebraicValue,
-    // @ts-ignore
-    Identity,
-    // @ts-ignore
-    Address,
-    // @ts-ignore
-    DBConnectionBuilder,
-    // @ts-ignore
-    TableCache,
-    // @ts-ignore
-    BinaryWriter,
-    // @ts-ignore
-    EventContext,
-    // @ts-ignore
-    BinaryReader,
-    // @ts-ignore
-    DBConnectionImpl,
-    // @ts-ignore
-    DBContext,
-    // @ts-ignore
-    Event,
+  // @ts-ignore
+  Address,
+  // @ts-ignore
+  AlgebraicType,
+  // @ts-ignore
+  AlgebraicValue,
+  // @ts-ignore
+  BinaryReader,
+  // @ts-ignore
+  BinaryWriter,
+  // @ts-ignore
+  DBConnectionBuilder,
+  // @ts-ignore
+  DBConnectionImpl,
+  // @ts-ignore
+  DBContext,
+  // @ts-ignore
+  Event,
+  // @ts-ignore
+  EventContext,
+  // @ts-ignore
+  Identity,
+  // @ts-ignore
+  ProductType,
+  // @ts-ignore
+  ProductTypeElement,
+  // @ts-ignore
+  SumType,
+  // @ts-ignore
+  SumTypeVariant,
+  // @ts-ignore
+  TableCache,
 } from "@clockworklabs/spacetimedb-sdk";
 import { Message } from "./message_type";
 import { Reducer, RemoteReducers, RemoteTables } from ".";
 
-// Table handle for the table `Message`.
-//
-// Obtain a handle from the [TODO] method on [`super::RemoteTables`],
-// like `ctx.db.TODO()`.
-//
-// Users are encouraged not to explicitly reference this type,
-// but to directly chain method calls,
-// like `ctx.db.TODO().on_insert(...)`.
+/**
+ * Table handle for the table `message`.
+ *
+ * Obtain a handle from the [`message`] property on [`RemoteTables`],
+ * like `ctx.db.message`.
+ *
+ * Users are encouraged not to explicitly reference this type,
+ * but to directly chain method calls,
+ * like `ctx.db.message.on_insert(...)`.
+ */
 export class MessageTableHandle {
-    tableCache: TableCache<Message>;
+  tableCache: TableCache<Message>;
 
-    constructor(tableCache: TableCache<Message>) {
-        this.tableCache = tableCache;
-    }
+  constructor(tableCache: TableCache<Message>) {
+    this.tableCache = tableCache;
+  }
 
-    count(): number {
-        return this.tableCache.count();
-    }
+  count(): number {
+    return this.tableCache.count();
+  }
 
-    iter(): Iterable<Message> {
-        return this.tableCache.iter();
-    }
+  iter(): Iterable<Message> {
+    return this.tableCache.iter();
+  }
 
-    onInsert = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
-        return this.tableCache.onInsert(cb);
-    }
+  onInsert = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
+    return this.tableCache.onInsert(cb);
+  }
 
-    removeOnInsert = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
-        return this.tableCache.removeOnInsert(cb);
-    }
+  removeOnInsert = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
+    return this.tableCache.removeOnInsert(cb);
+  }
 
-    onDelete = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
-        return this.tableCache.onDelete(cb);
-    }
+  onDelete = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
+    return this.tableCache.onDelete(cb);
+  }
 
-    removeOnDelete = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
-        return this.tableCache.removeOnDelete(cb);
-    }
-
+  removeOnDelete = (cb: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>, row: Message) => void) => {
+    return this.tableCache.removeOnDelete(cb);
+  }
 }

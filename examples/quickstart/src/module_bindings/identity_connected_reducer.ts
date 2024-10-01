@@ -2,59 +2,61 @@
 // WILL NOT BE SAVED. MODIFY TABLES IN RUST INSTEAD.
 
 import {
-    // @ts-ignore
-    AlgebraicType,
-    // @ts-ignore
-    ProductType,
-    // @ts-ignore
-    ProductTypeElement,
-    // @ts-ignore
-    SumType,
-    // @ts-ignore
-    SumTypeVariant,
-    // @ts-ignore
-    AlgebraicValue,
-    // @ts-ignore
-    Identity,
-    // @ts-ignore
-    Address,
-    // @ts-ignore
-    DBConnectionBuilder,
-    // @ts-ignore
-    TableCache,
-    // @ts-ignore
-    BinaryWriter,
-    // @ts-ignore
-    EventContext,
-    // @ts-ignore
-    BinaryReader,
-    // @ts-ignore
-    DBConnectionImpl,
-    // @ts-ignore
-    DBContext,
-    // @ts-ignore
-    Event,
+  // @ts-ignore
+  Address,
+  // @ts-ignore
+  AlgebraicType,
+  // @ts-ignore
+  AlgebraicValue,
+  // @ts-ignore
+  BinaryReader,
+  // @ts-ignore
+  BinaryWriter,
+  // @ts-ignore
+  DBConnectionBuilder,
+  // @ts-ignore
+  DBConnectionImpl,
+  // @ts-ignore
+  DBContext,
+  // @ts-ignore
+  Event,
+  // @ts-ignore
+  EventContext,
+  // @ts-ignore
+  Identity,
+  // @ts-ignore
+  ProductType,
+  // @ts-ignore
+  ProductTypeElement,
+  // @ts-ignore
+  SumType,
+  // @ts-ignore
+  SumTypeVariant,
+  // @ts-ignore
+  TableCache,
 } from "@clockworklabs/spacetimedb-sdk";
 
+export type IdentityConnected = {};
 
-export type IdentityConnected = {
-	};
-
-// A namespace for generated helper functions.
+/**
+ * A namespace for generated helper functions.
+ */
 export namespace IdentityConnected {
-	// A function which returns this type represented as an AlgebraicType.
-	// This function is derived from the AlgebraicType used to generate this type.
-	export function getAlgebraicType(): AlgebraicType {
-		return AlgebraicType.createProductType([
-		]);
-	}
+  /**
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
+  export function getAlgebraicType(): AlgebraicType {
+    return AlgebraicType.createProductType([
+    ]);
+  }
 
-	export function serialize(writer: BinaryWriter, value: IdentityConnected): void {
-	    IdentityConnected.getAlgebraicType().serialize(writer, value);
-	}
+  export function serialize(writer: BinaryWriter, value: IdentityConnected): void {
+    IdentityConnected.getAlgebraicType().serialize(writer, value);
+  }
 
-	export function deserialize(reader: BinaryReader): IdentityConnected {
-	    return IdentityConnected.getAlgebraicType().deserialize(reader);
-	}
+  export function deserialize(reader: BinaryReader): IdentityConnected {
+    return IdentityConnected.getAlgebraicType().deserialize(reader);
+  }
 }
 
