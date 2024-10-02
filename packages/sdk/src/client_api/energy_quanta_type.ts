@@ -54,16 +54,10 @@ export namespace EnergyQuanta {
   }
 
   export function serialize(writer: BinaryWriter, value: EnergyQuanta): void {
-    const converted = {
-      quanta: value.quanta,
-    };
-    EnergyQuanta.getAlgebraicType().serialize(writer, converted);
+    EnergyQuanta.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): EnergyQuanta {
-    const value = EnergyQuanta.getAlgebraicType().deserialize(reader);
-    return {
-      quanta: value.quanta,
-    };
+    return EnergyQuanta.getAlgebraicType().deserialize(reader);
   }
 }

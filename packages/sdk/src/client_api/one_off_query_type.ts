@@ -51,26 +51,18 @@ export namespace OneOffQuery {
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        'message_id',
+        'messageId',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
       ),
-      new ProductTypeElement('query_string', AlgebraicType.createStringType()),
+      new ProductTypeElement('queryString', AlgebraicType.createStringType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: OneOffQuery): void {
-    const converted = {
-      message_id: value.messageId,
-      query_string: value.queryString,
-    };
-    OneOffQuery.getAlgebraicType().serialize(writer, converted);
+    OneOffQuery.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): OneOffQuery {
-    const value = OneOffQuery.getAlgebraicType().deserialize(reader);
-    return {
-      messageId: value.message_id,
-      queryString: value.query_string,
-    };
+    return OneOffQuery.getAlgebraicType().deserialize(reader);
   }
 }

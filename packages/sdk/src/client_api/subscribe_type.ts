@@ -51,26 +51,18 @@ export namespace Subscribe {
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        'query_strings',
+        'queryStrings',
         AlgebraicType.createArrayType(AlgebraicType.createStringType())
       ),
-      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: Subscribe): void {
-    const converted = {
-      query_strings: value.queryStrings,
-      request_id: value.requestId,
-    };
-    Subscribe.getAlgebraicType().serialize(writer, converted);
+    Subscribe.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Subscribe {
-    const value = Subscribe.getAlgebraicType().deserialize(reader);
-    return {
-      queryStrings: value.query_strings,
-      requestId: value.request_id,
-    };
+    return Subscribe.getAlgebraicType().deserialize(reader);
   }
 }

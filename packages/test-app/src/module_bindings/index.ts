@@ -82,6 +82,7 @@ const REMOTE_MODULE = {
     };
   },
   dbViewConstructor: (imp: DBConnectionImpl) => {
+    console.log('imp', imp);
     return new RemoteTables(imp);
   },
   reducersConstructor: (imp: DBConnectionImpl) => {
@@ -119,18 +120,20 @@ export class RemoteReducers {
 export class RemoteTables {
   constructor(private connection: DBConnectionImpl) {}
 
-  #player = this.connection.clientCache.getOrCreateTable<Player>(
-    REMOTE_MODULE.tables.player
-  );
   get player(): PlayerTableHandle {
-    return new PlayerTableHandle(this.#player);
+    return new PlayerTableHandle(
+      this.connection.clientCache.getOrCreateTable<Player>(
+        REMOTE_MODULE.tables.player
+      )
+    );
   }
 
-  #user = this.connection.clientCache.getOrCreateTable<User>(
-    REMOTE_MODULE.tables.user
-  );
   get user(): UserTableHandle {
-    return new UserTableHandle(this.#user);
+    return new UserTableHandle(
+      this.connection.clientCache.getOrCreateTable<User>(
+        REMOTE_MODULE.tables.user
+      )
+    );
   }
 }
 

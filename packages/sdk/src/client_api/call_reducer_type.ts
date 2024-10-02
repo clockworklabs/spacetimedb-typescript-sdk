@@ -56,25 +56,15 @@ export namespace CallReducer {
         'args',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
       ),
-      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: CallReducer): void {
-    const converted = {
-      reducer: value.reducer,
-      args: value.args,
-      request_id: value.requestId,
-    };
-    CallReducer.getAlgebraicType().serialize(writer, converted);
+    CallReducer.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): CallReducer {
-    const value = CallReducer.getAlgebraicType().deserialize(reader);
-    return {
-      reducer: value.reducer,
-      args: value.args,
-      requestId: value.request_id,
-    };
+    return CallReducer.getAlgebraicType().deserialize(reader);
   }
 }

@@ -60,7 +60,7 @@ export class SumType {
     ) {
       if (value) {
         writer.writeByte(0);
-        this.variants[0].algebraicType.serialize(value, writer);
+        this.variants[0].algebraicType.serialize(writer, value);
       } else {
         writer.writeByte(1);
       }
@@ -71,7 +71,7 @@ export class SumType {
         throw `Can't serialize a sum type, couldn't find ${value.tag} tag`;
       }
       writer.writeU32(index);
-      this.variants[index].algebraicType.serialize(value['value'], writer);
+      this.variants[index].algebraicType.serialize(writer, value['value']);
     }
   };
 
@@ -156,7 +156,7 @@ export class ProductType {
 
   serialize = (writer: BinaryWriter, value: object): void => {
     for (let element of this.elements) {
-      element.algebraicType.serialize(value[element.name], writer);
+      element.algebraicType.serialize(writer, value[element.name]);
     }
   };
 
@@ -393,7 +393,7 @@ export class AlgebraicType {
           const elemType = this.array;
           writer.writeU32(value.length);
           for (let elem of value) {
-            elemType.serialize(elem, writer);
+            elemType.serialize(writer, elem);
           }
         }
         break;

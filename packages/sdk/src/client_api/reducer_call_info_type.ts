@@ -52,13 +52,13 @@ export namespace ReducerCallInfo {
    */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('reducer_name', AlgebraicType.createStringType()),
-      new ProductTypeElement('reducer_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement('reducerName', AlgebraicType.createStringType()),
+      new ProductTypeElement('reducerId', AlgebraicType.createU32Type()),
       new ProductTypeElement(
         'args',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
       ),
-      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
     ]);
   }
 
@@ -66,22 +66,10 @@ export namespace ReducerCallInfo {
     writer: BinaryWriter,
     value: ReducerCallInfo
   ): void {
-    const converted = {
-      reducer_name: value.reducerName,
-      reducer_id: value.reducerId,
-      args: value.args,
-      request_id: value.requestId,
-    };
-    ReducerCallInfo.getAlgebraicType().serialize(writer, converted);
+    ReducerCallInfo.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): ReducerCallInfo {
-    const value = ReducerCallInfo.getAlgebraicType().deserialize(reader);
-    return {
-      reducerName: value.reducer_name,
-      reducerId: value.reducer_id,
-      args: value.args,
-      requestId: value.request_id,
-    };
+    return ReducerCallInfo.getAlgebraicType().deserialize(reader);
   }
 }

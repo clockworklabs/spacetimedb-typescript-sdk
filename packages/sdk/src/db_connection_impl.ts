@@ -282,7 +282,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
   #sendMessage(message: ws.ClientMessage) {
     this.wsPromise.then(wsResolved => {
       const writer = new BinaryWriter(1024);
-      ws.ClientMessage.getAlgebraicType().serialize(writer, message);
+      ws.ClientMessage.serialize(writer, message);
       const encoded = writer.getBuffer();
       wsResolved.send(encoded);
     });
@@ -400,6 +400,42 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     callback: (connection: DBConnectionImpl, ...args: any[]) => void
   ): void {
     this.#emitter.off(eventName, callback);
+  }
+
+  onConnect(
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
+  ): void {
+    this.#emitter.on('connect', callback);
+  }
+
+  onDisconnect(
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
+  ): void {
+    this.#emitter.on('disconnect', callback);
+  }
+
+  onConnectError(
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
+  ): void {
+    this.#emitter.on('connectError', callback);
+  }
+
+  removeOnConnect(
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
+  ): void {
+    this.#emitter.off('connect', callback);
+  }
+
+  removeOnDisconnect(
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
+  ): void {
+    this.#emitter.off('disconnect', callback);
+  }
+
+  removeOnConnectError(
+    callback: (connection: DBConnectionImpl, ...args: any[]) => void
+  ): void {
+    this.#emitter.off('connectError', callback);
   }
 
   onReducer<ReducerArgs extends any[] = any[]>(

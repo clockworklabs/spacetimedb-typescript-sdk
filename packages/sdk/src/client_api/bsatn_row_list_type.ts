@@ -53,27 +53,19 @@ export namespace BsatnRowList {
    */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('size_hint', __RowSizeHint.getAlgebraicType()),
+      new ProductTypeElement('sizeHint', __RowSizeHint.getAlgebraicType()),
       new ProductTypeElement(
-        'rows_data',
+        'rowsData',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
       ),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: BsatnRowList): void {
-    const converted = {
-      size_hint: value.sizeHint,
-      rows_data: value.rowsData,
-    };
-    BsatnRowList.getAlgebraicType().serialize(writer, converted);
+    BsatnRowList.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): BsatnRowList {
-    const value = BsatnRowList.getAlgebraicType().deserialize(reader);
-    return {
-      sizeHint: value.size_hint,
-      rowsData: value.rows_data,
-    };
+    return BsatnRowList.getAlgebraicType().deserialize(reader);
   }
 }

@@ -55,9 +55,9 @@ export namespace TableUpdate {
    */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('table_id', AlgebraicType.createU32Type()),
-      new ProductTypeElement('table_name', AlgebraicType.createStringType()),
-      new ProductTypeElement('num_rows', AlgebraicType.createU64Type()),
+      new ProductTypeElement('tableId', AlgebraicType.createU32Type()),
+      new ProductTypeElement('tableName', AlgebraicType.createStringType()),
+      new ProductTypeElement('numRows', AlgebraicType.createU64Type()),
       new ProductTypeElement(
         'updates',
         AlgebraicType.createArrayType(
@@ -68,22 +68,10 @@ export namespace TableUpdate {
   }
 
   export function serialize(writer: BinaryWriter, value: TableUpdate): void {
-    const converted = {
-      table_id: value.tableId,
-      table_name: value.tableName,
-      num_rows: value.numRows,
-      updates: value.updates,
-    };
-    TableUpdate.getAlgebraicType().serialize(writer, converted);
+    TableUpdate.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): TableUpdate {
-    const value = TableUpdate.getAlgebraicType().deserialize(reader);
-    return {
-      tableId: value.table_id,
-      tableName: value.table_name,
-      numRows: value.num_rows,
-      updates: value.updates,
-    };
+    return TableUpdate.getAlgebraicType().deserialize(reader);
   }
 }

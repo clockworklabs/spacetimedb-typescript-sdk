@@ -84,7 +84,8 @@ export class WebsocketDecompressAdapter {
       WS = WebSocket;
     }
 
-    let tokenUrl = new URL('identity/websocket_token', url);
+    const tokenUrl = new URL('identity/websocket_token', url);
+    tokenUrl.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
 
     const response = await fetch(tokenUrl, { method: 'POST', headers });
     if (response.ok) {

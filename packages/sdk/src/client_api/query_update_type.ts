@@ -59,18 +59,10 @@ export namespace QueryUpdate {
   }
 
   export function serialize(writer: BinaryWriter, value: QueryUpdate): void {
-    const converted = {
-      deletes: value.deletes,
-      inserts: value.inserts,
-    };
-    QueryUpdate.getAlgebraicType().serialize(writer, converted);
+    QueryUpdate.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): QueryUpdate {
-    const value = QueryUpdate.getAlgebraicType().deserialize(reader);
-    return {
-      deletes: value.deletes,
-      inserts: value.inserts,
-    };
+    return QueryUpdate.getAlgebraicType().deserialize(reader);
   }
 }

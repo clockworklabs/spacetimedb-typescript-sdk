@@ -56,7 +56,7 @@ export namespace OneOffQueryResponse {
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        'message_id',
+        'messageId',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
       ),
       new ProductTypeElement(
@@ -68,7 +68,7 @@ export namespace OneOffQueryResponse {
         AlgebraicType.createArrayType(__OneOffTable.getAlgebraicType())
       ),
       new ProductTypeElement(
-        'total_host_execution_duration_micros',
+        'totalHostExecutionDurationMicros',
         AlgebraicType.createU64Type()
       ),
     ]);
@@ -78,24 +78,10 @@ export namespace OneOffQueryResponse {
     writer: BinaryWriter,
     value: OneOffQueryResponse
   ): void {
-    const converted = {
-      message_id: value.messageId,
-      error: value.error,
-      tables: value.tables,
-      total_host_execution_duration_micros:
-        value.totalHostExecutionDurationMicros,
-    };
-    OneOffQueryResponse.getAlgebraicType().serialize(writer, converted);
+    OneOffQueryResponse.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): OneOffQueryResponse {
-    const value = OneOffQueryResponse.getAlgebraicType().deserialize(reader);
-    return {
-      messageId: value.message_id,
-      error: value.error,
-      tables: value.tables,
-      totalHostExecutionDurationMicros:
-        value.total_host_execution_duration_micros,
-    };
+    return OneOffQueryResponse.getAlgebraicType().deserialize(reader);
   }
 }

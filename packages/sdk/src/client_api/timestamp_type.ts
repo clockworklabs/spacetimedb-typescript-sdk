@@ -54,16 +54,10 @@ export namespace Timestamp {
   }
 
   export function serialize(writer: BinaryWriter, value: Timestamp): void {
-    const converted = {
-      microseconds: value.microseconds,
-    };
-    Timestamp.getAlgebraicType().serialize(writer, converted);
+    Timestamp.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Timestamp {
-    const value = Timestamp.getAlgebraicType().deserialize(reader);
-    return {
-      microseconds: value.microseconds,
-    };
+    return Timestamp.getAlgebraicType().deserialize(reader);
   }
 }

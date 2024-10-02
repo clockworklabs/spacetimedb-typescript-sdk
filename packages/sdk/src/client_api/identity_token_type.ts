@@ -58,20 +58,10 @@ export namespace IdentityToken {
   }
 
   export function serialize(writer: BinaryWriter, value: IdentityToken): void {
-    const converted = {
-      identity: value.identity,
-      token: value.token,
-      address: value.address,
-    };
-    IdentityToken.getAlgebraicType().serialize(writer, converted);
+    IdentityToken.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): IdentityToken {
-    const value = IdentityToken.getAlgebraicType().deserialize(reader);
-    return {
-      identity: value.identity,
-      token: value.token,
-      address: value.address,
-    };
+    return IdentityToken.getAlgebraicType().deserialize(reader);
   }
 }

@@ -66,7 +66,7 @@ export class DBConnectionBuilder<DBConnection> {
       authToken?: string;
     }) => Promise<WebsocketDecompressAdapter>
   ): DBConnectionBuilder<DBConnection> {
-    createWSFn = createWSFn;
+    this.#createWSFn = createWSFn;
     return this;
   }
 

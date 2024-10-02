@@ -60,16 +60,10 @@ export namespace DatabaseUpdate {
   }
 
   export function serialize(writer: BinaryWriter, value: DatabaseUpdate): void {
-    const converted = {
-      tables: value.tables,
-    };
-    DatabaseUpdate.getAlgebraicType().serialize(writer, converted);
+    DatabaseUpdate.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): DatabaseUpdate {
-    const value = DatabaseUpdate.getAlgebraicType().deserialize(reader);
-    return {
-      tables: value.tables,
-    };
+    return DatabaseUpdate.getAlgebraicType().deserialize(reader);
   }
 }

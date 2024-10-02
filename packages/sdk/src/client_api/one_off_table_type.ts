@@ -53,24 +53,16 @@ export namespace OneOffTable {
    */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('table_name', AlgebraicType.createStringType()),
+      new ProductTypeElement('tableName', AlgebraicType.createStringType()),
       new ProductTypeElement('rows', __BsatnRowList.getAlgebraicType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: OneOffTable): void {
-    const converted = {
-      table_name: value.tableName,
-      rows: value.rows,
-    };
-    OneOffTable.getAlgebraicType().serialize(writer, converted);
+    OneOffTable.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): OneOffTable {
-    const value = OneOffTable.getAlgebraicType().deserialize(reader);
-    return {
-      tableName: value.table_name,
-      rows: value.rows,
-    };
+    return OneOffTable.getAlgebraicType().deserialize(reader);
   }
 }

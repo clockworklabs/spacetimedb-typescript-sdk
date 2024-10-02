@@ -55,12 +55,12 @@ export namespace InitialSubscription {
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        'database_update',
+        'databaseUpdate',
         __DatabaseUpdate.getAlgebraicType()
       ),
-      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
       new ProductTypeElement(
-        'total_host_execution_duration_micros',
+        'totalHostExecutionDurationMicros',
         AlgebraicType.createU64Type()
       ),
     ]);
@@ -70,22 +70,10 @@ export namespace InitialSubscription {
     writer: BinaryWriter,
     value: InitialSubscription
   ): void {
-    const converted = {
-      database_update: value.databaseUpdate,
-      request_id: value.requestId,
-      total_host_execution_duration_micros:
-        value.totalHostExecutionDurationMicros,
-    };
-    InitialSubscription.getAlgebraicType().serialize(writer, converted);
+    InitialSubscription.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): InitialSubscription {
-    const value = InitialSubscription.getAlgebraicType().deserialize(reader);
-    return {
-      databaseUpdate: value.database_update,
-      requestId: value.request_id,
-      totalHostExecutionDurationMicros:
-        value.total_host_execution_duration_micros,
-    };
+    return InitialSubscription.getAlgebraicType().deserialize(reader);
   }
 }

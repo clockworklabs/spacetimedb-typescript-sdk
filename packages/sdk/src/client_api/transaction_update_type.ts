@@ -67,23 +67,23 @@ export namespace TransactionUpdate {
       new ProductTypeElement('status', __UpdateStatus.getAlgebraicType()),
       new ProductTypeElement('timestamp', __Timestamp.getAlgebraicType()),
       new ProductTypeElement(
-        'caller_identity',
+        'callerIdentity',
         AlgebraicType.createIdentityType()
       ),
       new ProductTypeElement(
-        'caller_address',
+        'callerAddress',
         AlgebraicType.createAddressType()
       ),
       new ProductTypeElement(
-        'reducer_call',
+        'reducerCall',
         __ReducerCallInfo.getAlgebraicType()
       ),
       new ProductTypeElement(
-        'energy_quanta_used',
+        'energyQuantaUsed',
         __EnergyQuanta.getAlgebraicType()
       ),
       new ProductTypeElement(
-        'host_execution_duration_micros',
+        'hostExecutionDurationMicros',
         AlgebraicType.createU64Type()
       ),
     ]);
@@ -93,28 +93,10 @@ export namespace TransactionUpdate {
     writer: BinaryWriter,
     value: TransactionUpdate
   ): void {
-    const converted = {
-      status: value.status,
-      timestamp: value.timestamp,
-      caller_identity: value.callerIdentity,
-      caller_address: value.callerAddress,
-      reducer_call: value.reducerCall,
-      energy_quanta_used: value.energyQuantaUsed,
-      host_execution_duration_micros: value.hostExecutionDurationMicros,
-    };
-    TransactionUpdate.getAlgebraicType().serialize(writer, converted);
+    TransactionUpdate.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): TransactionUpdate {
-    const value = TransactionUpdate.getAlgebraicType().deserialize(reader);
-    return {
-      status: value.status,
-      timestamp: value.timestamp,
-      callerIdentity: value.caller_identity,
-      callerAddress: value.caller_address,
-      reducerCall: value.reducer_call,
-      energyQuantaUsed: value.energy_quanta_used,
-      hostExecutionDurationMicros: value.host_execution_duration_micros,
-    };
+    return TransactionUpdate.getAlgebraicType().deserialize(reader);
   }
 }
