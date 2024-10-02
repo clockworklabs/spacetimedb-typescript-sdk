@@ -1,49 +1,8 @@
-// TODO: This is temporary notes for how this should turn out. Will be removed by final PR
-// CODEGEN:
-// type RemoteTables = {
-//   user: UserTable;
-//   player: PlayerTable;
-// };
-
 import { DBConnectionImpl, type ConnectionEvent } from './db_connection_impl';
-import type { DBContext } from './db_context';
 import { EventEmitter } from './event_emitter';
 import type { Identity } from './identity';
 import { stdbLogger } from './logger';
 import type SpacetimeModule from './spacetime_module';
-
-// type RemoteReducers = {
-//   createPlayer: CreatePlayerReducer;
-//   onCreatePlayer: CreatePlayerReducerCB;
-// };
-
-// ctx.db.user;
-
-// export interface DbContext<DBView = Remotetables, ReducerView> {
-//   reducers: ReducerView;
-//   db: DBView;
-//   isActive: boolean;
-
-//   // TODO: disconnect;
-// }
-
-// // These are autogeneratyed types by the codegen. DbContext is from npm package
-// const ctx: DBContext<RemoteTables, RemoteReducers>;
-
-// // Autoigenerated EventContext
-// export interface EventContext extends DbContext<RemoteTables, RemoteReducers> {
-//   event: Event<Reducer>; // ?
-// }
-
-// type Reducer =
-//   | { tag: 'IdentityConnected'; value: IdentityConnected }
-//   | { tag: 'IdentityDisconnected'; value: IdentityDisconnected }
-//   | { tag: 'SendMessage'; value: SendMessage }
-//   | { tag: 'SetName'; value: SetName };
-
-// export class DbConnection extends DbContext<RemoteTables, RemoteReducers> {
-//   static builder(): DbConnectionBuilder<DbConnection, EventContext> {}
-// }
 
 /**
  * The database client connection to a SpacetimeDB server.
@@ -197,7 +156,7 @@ export class DBConnectionBuilder<DBConnection> {
    */
   onConnect(
     callback: (
-      connection: DBConnectionImpl,
+      connection: DBConnection,
       identity: Identity,
       token: string
     ) => void
@@ -218,7 +177,7 @@ export class DBConnectionBuilder<DBConnection> {
    * ```
    */
   onConnectError(
-    callback: (...args: any[]) => void
+    callback: (connection: DBConnection, error: Error) => void
   ): DBConnectionBuilder<DBConnection> {
     this.#emitter.on('connectError', callback);
     return this;
@@ -251,7 +210,7 @@ export class DBConnectionBuilder<DBConnection> {
    * @throws {Error} Throws an error if called multiple times on the same `DbConnectionBuilder`.
    */
   onDisconnect(
-    callback: (...args: any[]) => void
+    callback: (connection: DBConnection, error?: Error | undefined) => void
   ): DBConnectionBuilder<DBConnection> {
     this.#emitter.on('disconnect', callback);
     return this;
