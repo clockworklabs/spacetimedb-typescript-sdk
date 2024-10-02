@@ -34,12 +34,12 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type ReducerCallInfo = {
-  reducerName: string,
-  reducerId: number,
-  args: Uint8Array,
-  requestId: number,
+  reducerName: string;
+  reducerId: number;
+  args: Uint8Array;
+  requestId: number;
 };
 
 /**
@@ -47,19 +47,25 @@ export type ReducerCallInfo = {
  */
 export namespace ReducerCallInfo {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("reducer_name", AlgebraicType.createStringType()),
-      new ProductTypeElement("reducer_id", AlgebraicType.createU32Type()),
-      new ProductTypeElement("args", AlgebraicType.createArrayType(AlgebraicType.createU8Type())),
-      new ProductTypeElement("request_id", AlgebraicType.createU32Type()),
+      new ProductTypeElement('reducer_name', AlgebraicType.createStringType()),
+      new ProductTypeElement('reducer_id', AlgebraicType.createU32Type()),
+      new ProductTypeElement(
+        'args',
+        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
+      ),
+      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: ReducerCallInfo): void {
+  export function serialize(
+    writer: BinaryWriter,
+    value: ReducerCallInfo
+  ): void {
     const converted = {
       reducer_name: value.reducerName,
       reducer_id: value.reducerId,
@@ -78,7 +84,4 @@ export namespace ReducerCallInfo {
       requestId: value.request_id,
     };
   }
-
 }
-
-

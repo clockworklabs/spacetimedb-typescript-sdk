@@ -34,42 +34,42 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 
 // Import and reexport all reducer arg types
-import { CreatePlayer } from "./create_player_reducer.ts";
+import { CreatePlayer } from './create_player_reducer.ts';
 export { CreatePlayer };
 
 // Import and reexport all table handle types
-import { PlayerTableHandle } from "./player_table.ts";
+import { PlayerTableHandle } from './player_table.ts';
 export { PlayerTableHandle };
-import { UserTableHandle } from "./user_table.ts";
+import { UserTableHandle } from './user_table.ts';
 export { UserTableHandle };
 
 // Import and reexport all types
-import { Player } from "./player_type.ts";
+import { Player } from './player_type.ts';
 export { Player };
-import { Point } from "./point_type.ts";
+import { Point } from './point_type.ts';
 export { Point };
-import { User } from "./user_type.ts";
+import { User } from './user_type.ts';
 export { User };
 
 const REMOTE_MODULE = {
   tables: {
     player: {
-      tableName: "player",
+      tableName: 'player',
       rowType: Player.getAlgebraicType(),
-      primaryKey: "owner_id",
+      primaryKey: 'owner_id',
     },
     user: {
-      tableName: "user",
+      tableName: 'user',
       rowType: User.getAlgebraicType(),
-      primaryKey: "identity",
+      primaryKey: 'identity',
     },
   },
   reducers: {
     create_player: {
-      reducerName: "create_player",
+      reducerName: 'create_player',
       argsType: CreatePlayer.getAlgebraicType(),
     },
   },
@@ -78,21 +78,19 @@ const REMOTE_MODULE = {
   eventContextConstructor: (imp: DBConnectionImpl, event: Event<Reducer>) => {
     return {
       ...(imp as DBConnection),
-      event
-    }
+      event,
+    };
   },
   dbViewConstructor: (imp: DBConnectionImpl) => {
     return new RemoteTables(imp);
   },
   reducersConstructor: (imp: DBConnectionImpl) => {
     return new RemoteReducers(imp);
-  }
-}
+  },
+};
 
 // A type representing all the possible variants of a reducer.
-export type Reducer = never
-| { name: "CreatePlayer", args: CreatePlayer }
-;
+export type Reducer = never | { name: 'CreatePlayer'; args: CreatePlayer };
 
 export class RemoteReducers {
   constructor(private connection: DBConnectionImpl) {}
@@ -102,37 +100,54 @@ export class RemoteReducers {
     let __writer = new BinaryWriter(1024);
     CreatePlayer.getAlgebraicType().serialize(__writer, __args);
     let __argsBuffer = __writer.getBuffer();
-    this.connection.callReducer("create_player", __argsBuffer);
+    this.connection.callReducer('create_player', __argsBuffer);
   }
 
-  onCreatePlayer(callback: (ctx: EventContext, name: string, location: Point) => void) {
-    this.connection.onReducer("create_player", callback);
+  onCreatePlayer(
+    callback: (ctx: EventContext, name: string, location: Point) => void
+  ) {
+    this.connection.onReducer('create_player', callback);
   }
 
-  removeOnCreatePlayer(callback: (ctx: EventContext, name: string, location: Point) => void) {
-    this.connection.offReducer("create_player", callback);
+  removeOnCreatePlayer(
+    callback: (ctx: EventContext, name: string, location: Point) => void
+  ) {
+    this.connection.offReducer('create_player', callback);
   }
-
 }
 
 export class RemoteTables {
   constructor(private connection: DBConnectionImpl) {}
 
-  #player = this.connection.clientCache.getOrCreateTable<Player>(REMOTE_MODULE.tables.player);
+  #player = this.connection.clientCache.getOrCreateTable<Player>(
+    REMOTE_MODULE.tables.player
+  );
   get player(): PlayerTableHandle {
     return new PlayerTableHandle(this.#player);
   }
 
-  #user = this.connection.clientCache.getOrCreateTable<User>(REMOTE_MODULE.tables.user);
+  #user = this.connection.clientCache.getOrCreateTable<User>(
+    REMOTE_MODULE.tables.user
+  );
   get user(): UserTableHandle {
     return new UserTableHandle(this.#user);
   }
 }
 
-export class DBConnection extends DBConnectionImpl<RemoteTables, RemoteReducers>  {
-  static builder = (): DBConnectionBuilder<DBConnection>  => {
-    return new DBConnectionBuilder<DBConnection>(REMOTE_MODULE, (imp: DBConnectionImpl) => imp as DBConnection);
-  }
+export class DBConnection extends DBConnectionImpl<
+  RemoteTables,
+  RemoteReducers
+> {
+  static builder = (): DBConnectionBuilder<DBConnection> => {
+    return new DBConnectionBuilder<DBConnection>(
+      REMOTE_MODULE,
+      (imp: DBConnectionImpl) => imp as DBConnection
+    );
+  };
 }
 
-export type EventContext = EventContextInterface<RemoteTables, RemoteReducers, Reducer>;
+export type EventContext = EventContextInterface<
+  RemoteTables,
+  RemoteReducers,
+  Reducer
+>;

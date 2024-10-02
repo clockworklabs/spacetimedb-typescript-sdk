@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 export type User = {
-  identity: Identity,
-  username: string,
+  identity: Identity;
+  username: string;
 };
 
 /**
@@ -45,13 +45,13 @@ export type User = {
  */
 export namespace User {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("username", AlgebraicType.createStringType()),
+      new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
+      new ProductTypeElement('username', AlgebraicType.createStringType()),
     ]);
   }
 
@@ -70,7 +70,4 @@ export namespace User {
       username: value.username,
     };
   }
-
 }
-
-

@@ -18,13 +18,8 @@ import BinaryReader from './binary_reader.ts';
 import BinaryWriter from './binary_writer.ts';
 import * as ws from './client_api/index.ts';
 import { ClientCache } from './client_cache.ts';
-import {
-  SubscriptionBuilder,
-  type DBContext,
-} from './db_context.ts';
-import {
-  type EventContextInterface,
-} from './event_context.ts';
+import { SubscriptionBuilder, type DBContext } from './db_context.ts';
+import { type EventContextInterface } from './event_context.ts';
 import { EventEmitter } from './event_emitter.ts';
 import type { Identity } from './identity.ts';
 import { stdbLogger } from './logger.ts';
@@ -56,7 +51,7 @@ export {
   type Event,
 };
 
-export type { DBContext, EventContextInterface as EventContext };
+export type { DBContext, EventContextInterface };
 export type { ReducerEvent };
 
 export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';

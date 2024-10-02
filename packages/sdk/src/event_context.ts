@@ -1,4 +1,4 @@
-import type { DBContext } from "./db_context";
+import type { DBContext } from './db_context';
 import type { Event } from './event.ts';
 
 export interface EventContextInterface<

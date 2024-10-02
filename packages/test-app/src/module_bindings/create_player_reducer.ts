@@ -34,14 +34,14 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 
 // @ts-ignore
-import { Point as __Point } from "./point_type";
+import { Point as __Point } from './point_type';
 
 export type CreatePlayer = {
-  name: string,
-  location: __Point,
+  name: string;
+  location: __Point;
 };
 
 /**
@@ -49,13 +49,13 @@ export type CreatePlayer = {
  */
 export namespace CreatePlayer {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("name", AlgebraicType.createStringType()),
-      new ProductTypeElement("location", __Point.getAlgebraicType()),
+      new ProductTypeElement('name', AlgebraicType.createStringType()),
+      new ProductTypeElement('location', __Point.getAlgebraicType()),
     ]);
   }
 
@@ -74,6 +74,4 @@ export namespace CreatePlayer {
       location: value.location,
     };
   }
-
 }
-

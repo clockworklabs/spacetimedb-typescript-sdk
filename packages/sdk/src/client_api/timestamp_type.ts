@@ -34,9 +34,9 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type Timestamp = {
-  microseconds: bigint,
+  microseconds: bigint;
 };
 
 /**
@@ -44,12 +44,12 @@ export type Timestamp = {
  */
 export namespace Timestamp {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("microseconds", AlgebraicType.createU64Type()),
+      new ProductTypeElement('microseconds', AlgebraicType.createU64Type()),
     ]);
   }
 
@@ -66,7 +66,4 @@ export namespace Timestamp {
       microseconds: value.microseconds,
     };
   }
-
 }
-
-

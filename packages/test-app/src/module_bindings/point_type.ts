@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 export type Point = {
-  x: number,
-  y: number,
+  x: number;
+  y: number;
 };
 
 /**
@@ -45,13 +45,13 @@ export type Point = {
  */
 export namespace Point {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("x", AlgebraicType.createU16Type()),
-      new ProductTypeElement("y", AlgebraicType.createU16Type()),
+      new ProductTypeElement('x', AlgebraicType.createU16Type()),
+      new ProductTypeElement('y', AlgebraicType.createU16Type()),
     ]);
   }
 
@@ -70,7 +70,4 @@ export namespace Point {
       y: value.y,
     };
   }
-
 }
-
-

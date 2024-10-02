@@ -1,9 +1,8 @@
-import BinaryReader from './binary_reader.ts';
 import { EventEmitter } from './event_emitter.ts';
 import OperationsMap from './operations_map.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
 
-import { type EventContext } from './db_connection_impl.ts';
+import { type EventContextInterface } from './db_connection_impl.ts';
 
 export type Operation = {
   type: 'insert' | 'delete';
@@ -50,7 +49,10 @@ export class TableCache<RowType = any> {
     return Array.from(this.rows.values());
   }
 
-  applyOperations = (operations: Operation[], ctx: EventContext): void => {
+  applyOperations = (
+    operations: Operation[],
+    ctx: EventContextInterface
+  ): void => {
     if (this.tableTypeInfo.primaryKey !== undefined) {
       const primaryKey = this.tableTypeInfo.primaryKey;
       const inserts: Operation[] = [];
@@ -88,7 +90,7 @@ export class TableCache<RowType = any> {
   };
 
   update = (
-    ctx: EventContext,
+    ctx: EventContextInterface,
     newDbOp: Operation,
     oldDbOp: Operation
   ): void => {
@@ -99,12 +101,12 @@ export class TableCache<RowType = any> {
     this.emitter.emit('update', ctx, oldRow, newRow);
   };
 
-  insert = (ctx: EventContext, operation: Operation): void => {
+  insert = (ctx: EventContextInterface, operation: Operation): void => {
     this.rows.set(operation.rowId, operation.row);
     this.emitter.emit('insert', ctx, operation.row);
   };
 
-  delete = (ctx: EventContext, dbOp: Operation): void => {
+  delete = (ctx: EventContextInterface, dbOp: Operation): void => {
     this.rows.delete(dbOp.rowId);
     this.emitter.emit('delete', ctx, dbOp.row);
   };

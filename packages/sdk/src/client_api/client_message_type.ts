@@ -34,22 +34,22 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { CallReducer as __CallReducer } from "./call_reducer_type";
+import { CallReducer as __CallReducer } from './call_reducer_type';
 // @ts-ignore
-import { Subscribe as __Subscribe } from "./subscribe_type";
+import { Subscribe as __Subscribe } from './subscribe_type';
 // @ts-ignore
-import { OneOffQuery as __OneOffQuery } from "./one_off_query_type";
+import { OneOffQuery as __OneOffQuery } from './one_off_query_type';
 
 // A namespace for generated variants and helper functions.
 export namespace ClientMessage {
   // These are the generated variant types for each variant of the tagged union.
   // One type is generated per variant and will be used in the `value` field of
   // the tagged union.
-  export type CallReducer = { tag: "CallReducer", value: __CallReducer };
-  export type Subscribe = { tag: "Subscribe", value: __Subscribe };
-  export type OneOffQuery = { tag: "OneOffQuery", value: __OneOffQuery };
+  export type CallReducer = { tag: 'CallReducer'; value: __CallReducer };
+  export type Subscribe = { tag: 'Subscribe'; value: __Subscribe };
+  export type OneOffQuery = { tag: 'OneOffQuery'; value: __OneOffQuery };
 
   // Helper functions for constructing each variant of the tagged union.
   // ```
@@ -57,30 +57,40 @@ export namespace ClientMessage {
   // assert!(foo.tag === "A");
   // assert!(foo.value === 42);
   // ```
-  export const CallReducer = (value: __CallReducer): ClientMessage => ({ tag: "CallReducer", value });
-  export const Subscribe = (value: __Subscribe): ClientMessage => ({ tag: "Subscribe", value });
-  export const OneOffQuery = (value: __OneOffQuery): ClientMessage => ({ tag: "OneOffQuery", value });
+  export const CallReducer = (value: __CallReducer): ClientMessage => ({
+    tag: 'CallReducer',
+    value,
+  });
+  export const Subscribe = (value: __Subscribe): ClientMessage => ({
+    tag: 'Subscribe',
+    value,
+  });
+  export const OneOffQuery = (value: __OneOffQuery): ClientMessage => ({
+    tag: 'OneOffQuery',
+    value,
+  });
 
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant("CallReducer", __CallReducer.getAlgebraicType()),
-      new SumTypeVariant("Subscribe", __Subscribe.getAlgebraicType()),
-      new SumTypeVariant("OneOffQuery", __OneOffQuery.getAlgebraicType()),
+      new SumTypeVariant('CallReducer', __CallReducer.getAlgebraicType()),
+      new SumTypeVariant('Subscribe', __Subscribe.getAlgebraicType()),
+      new SumTypeVariant('OneOffQuery', __OneOffQuery.getAlgebraicType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: ClientMessage): void {
-      ClientMessage.getAlgebraicType().serialize(writer, value);
+    ClientMessage.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): ClientMessage {
-      return ClientMessage.getAlgebraicType().deserialize(reader);
+    return ClientMessage.getAlgebraicType().deserialize(reader);
   }
-
 }
 
 // The tagged union or sum type for the algebraic type `ClientMessage`.
-export type ClientMessage = ClientMessage.CallReducer | ClientMessage.Subscribe | ClientMessage.OneOffQuery;
+export type ClientMessage =
+  | ClientMessage.CallReducer
+  | ClientMessage.Subscribe
+  | ClientMessage.OneOffQuery;
 
 export default ClientMessage;
-

@@ -34,11 +34,11 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from '../index';
 export type CallReducer = {
-  reducer: string,
-  args: Uint8Array,
-  requestId: number,
+  reducer: string;
+  args: Uint8Array;
+  requestId: number;
 };
 
 /**
@@ -46,14 +46,17 @@ export type CallReducer = {
  */
 export namespace CallReducer {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("reducer", AlgebraicType.createStringType()),
-      new ProductTypeElement("args", AlgebraicType.createArrayType(AlgebraicType.createU8Type())),
-      new ProductTypeElement("request_id", AlgebraicType.createU32Type()),
+      new ProductTypeElement('reducer', AlgebraicType.createStringType()),
+      new ProductTypeElement(
+        'args',
+        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
+      ),
+      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
     ]);
   }
 
@@ -74,7 +77,4 @@ export namespace CallReducer {
       requestId: value.request_id,
     };
   }
-
 }
-
-

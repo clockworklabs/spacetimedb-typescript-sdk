@@ -4,13 +4,18 @@ import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import * as ws from '../src/client_api';
 import { Identity } from '../src/identity';
-import { ReducerEvent, } from '../src/db_connection_impl';
+import { ReducerEvent } from '../src/db_connection_impl';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 import CreatePlayerReducer from './test-app/module_bindings/create_player_reducer';
 import BinaryWriter from '../src/binary_writer';
 import { Event } from '../src/event';
-import { User, Player, Point, DBConnection, CreatePlayer } from "@clockworklabs/test-app/src/module_bindings";
-
+import {
+  User,
+  Player,
+  Point,
+  DBConnection,
+  CreatePlayer,
+} from '@clockworklabs/test-app/src/module_bindings';
 
 beforeEach(() => {
   (CreatePlayerReducer as any).reducer = undefined;
@@ -30,10 +35,7 @@ function encodeUser(value: User): Uint8Array {
   return writer.getBuffer();
 }
 
-function encodeCreatePlayerArgs(
-  name: string,
-  location: Point
-): Uint8Array {
+function encodeCreatePlayerArgs(name: string, location: Point): Uint8Array {
   const writer = new BinaryWriter(1024);
   AlgebraicType.createStringType().serialize(writer, name);
   Point.serialize(writer, location);
@@ -44,11 +46,10 @@ describe('SpacetimeDBClient', () => {
   test('auto subscribe on connect', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     const client = DBConnection.builder()
-    .withUri('ws://127.0.0.1:1234')
-    .withModuleName('db')
-    .withWSFn(
-      wsAdapter.createWebSocketFn.bind(wsAdapter)
-    ).build();
+      .withUri('ws://127.0.0.1:1234')
+      .withModuleName('db')
+      .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
+      .build();
 
     client.subscribe('SELECT * FROM Player');
     client.subscribe(['SELECT * FROM Position', 'SELECT * FROM Coin']);
@@ -74,11 +75,10 @@ describe('SpacetimeDBClient', () => {
   test('call onConnect callback after getting an identity', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     const client = DBConnection.builder()
-    .withUri('ws://127.0.0.1:1234')
-    .withModuleName('db')
-    .withWSFn(
-      wsAdapter.createWebSocketFn.bind(wsAdapter)
-    ).build();
+      .withUri('ws://127.0.0.1:1234')
+      .withModuleName('db')
+      .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
+      .build();
 
     let called = false;
     client.on('connect', () => {
@@ -87,13 +87,11 @@ describe('SpacetimeDBClient', () => {
 
     wsAdapter.acceptConnection();
 
-    const tokenMessage = ws.ServerMessage.IdentityToken(
-      {
-        identity: new Identity('an-identity'),
-        token: 'a-token',
-        address: Address.random()
-      } 
-    );
+    const tokenMessage = ws.ServerMessage.IdentityToken({
+      identity: new Identity('an-identity'),
+      token: 'a-token',
+      address: Address.random(),
+    });
     wsAdapter.sendToClient(tokenMessage);
 
     expect(called).toBeTruthy();
@@ -102,11 +100,10 @@ describe('SpacetimeDBClient', () => {
   test('it calls onInsert callback when a record is added with a subscription update and then with a transaction update', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     const client = DBConnection.builder()
-    .withUri('ws://127.0.0.1:1234')
-    .withModuleName('db')
-    .withWSFn(
-      wsAdapter.createWebSocketFn.bind(wsAdapter)
-    ).build();
+      .withUri('ws://127.0.0.1:1234')
+      .withModuleName('db')
+      .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
+      .build();
 
     let called = false;
     client.on('connect', () => {
@@ -115,60 +112,64 @@ describe('SpacetimeDBClient', () => {
 
     wsAdapter.acceptConnection();
 
-    const tokenMessage = ws.ServerMessage.IdentityToken(
-      {
-        identity: new Identity('an-identity'),
-        token: 'a-token',
-        address: Address.random()
-      } 
-    );
+    const tokenMessage = ws.ServerMessage.IdentityToken({
+      identity: new Identity('an-identity'),
+      token: 'a-token',
+      address: Address.random(),
+    });
     wsAdapter.sendToClient(tokenMessage);
 
-    const inserts: { reducerEvent: Event<{ name: "CreatePlayer"; args: CreatePlayer; }>; player: Player; }[] = [];
-    client.db.player.onInsert(
-      (ctx, player) => {
-        const reducerEvent = ctx.event;
-        inserts.push({ reducerEvent, player });
-      }
-    );
+    const inserts: {
+      reducerEvent: Event<{ name: 'CreatePlayer'; args: CreatePlayer }>;
+      player: Player;
+    }[] = [];
+    client.db.player.onInsert((ctx, player) => {
+      const reducerEvent = ctx.event;
+      inserts.push({ reducerEvent, player });
+    });
 
     let reducerCallbackLog: {
-      reducerEvent: Event<{ name: "CreatePlayer"; args: CreatePlayer; }>;
+      reducerEvent: Event<{ name: 'CreatePlayer'; args: CreatePlayer }>;
       reducerArgs: any[];
     }[] = [];
-    client.reducers.onCreatePlayer(
-      (ctx, name: string, location: Point) => {
-        const reducerEvent = ctx.event;
-        reducerCallbackLog.push({
-          reducerEvent,
-          reducerArgs: [name, location],
-        });
-      }
-    );
-
-    const subscriptionMessage: ws.ServerMessage = ws.ServerMessage.InitialSubscription({
-      databaseUpdate: {
-        tables: [
-          {
-            tableId: 35,
-            tableName: 'Player',
-            numRows: BigInt(1),
-            updates: [ws.CompressableQueryUpdate.Uncompressed({
-              deletes: {
-                sizeHint: ws.RowSizeHint.FixedSize(0), // not used 
-                rowsData: new Uint8Array(),
-              },
-              inserts: {
-                sizeHint: ws.RowSizeHint.FixedSize(0), // not used 
-                rowsData: encodePlayer({ ownerId: 'player-1', name: 'drogus', location: {x: 0, y: 0}})
-              },
-            })]
-          }
-        ]
-      },
-      requestId: 0,
-      totalHostExecutionDurationMicros: BigInt(0),
+    client.reducers.onCreatePlayer((ctx, name: string, location: Point) => {
+      const reducerEvent = ctx.event;
+      reducerCallbackLog.push({
+        reducerEvent,
+        reducerArgs: [name, location],
+      });
     });
+
+    const subscriptionMessage: ws.ServerMessage =
+      ws.ServerMessage.InitialSubscription({
+        databaseUpdate: {
+          tables: [
+            {
+              tableId: 35,
+              tableName: 'Player',
+              numRows: BigInt(1),
+              updates: [
+                ws.CompressableQueryUpdate.Uncompressed({
+                  deletes: {
+                    sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                    rowsData: new Uint8Array(),
+                  },
+                  inserts: {
+                    sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                    rowsData: encodePlayer({
+                      ownerId: 'player-1',
+                      name: 'drogus',
+                      location: { x: 0, y: 0 },
+                    }),
+                  },
+                }),
+              ],
+            },
+          ],
+        },
+        requestId: 0,
+        totalHostExecutionDurationMicros: BigInt(0),
+      });
 
     wsAdapter.sendToClient(subscriptionMessage);
 
@@ -184,19 +185,25 @@ describe('SpacetimeDBClient', () => {
               tableId: 35,
               tableName: 'Player',
               numRows: BigInt(2),
-              updates: [ws.CompressableQueryUpdate.Uncompressed({
-                deletes: {
-                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used 
-                  rowsData: new Uint8Array(),
-                },
-                inserts: {
-                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used 
-                  rowsData: encodePlayer({ ownerId: 'player-2', name: 'drogus', location: {x: 2, y: 3}})
-                },
-              })]
-            }
-          ]
-        }
+              updates: [
+                ws.CompressableQueryUpdate.Uncompressed({
+                  deletes: {
+                    sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                    rowsData: new Uint8Array(),
+                  },
+                  inserts: {
+                    sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                    rowsData: encodePlayer({
+                      ownerId: 'player-2',
+                      name: 'drogus',
+                      location: { x: 2, y: 3 },
+                    }),
+                  },
+                }),
+              ],
+            },
+          ],
+        },
       }),
       timestamp: new ws.Timestamp(BigInt(1681391805281203)),
       callerIdentity: new Identity('00ff01'),

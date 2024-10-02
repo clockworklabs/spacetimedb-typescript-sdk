@@ -67,7 +67,7 @@ export class DBConnectionBuilder<DBConnection> {
     }) => Promise<WebsocketDecompressAdapter>
   ): DBConnectionBuilder<DBConnection> {
     createWSFn = createWSFn;
-    return this
+    return this;
   }
 
   /**
@@ -115,10 +115,10 @@ export class DBConnectionBuilder<DBConnection> {
     url.searchParams.set('client_address', clientAddress);
 
     connection.wsPromise = this.#createWSFn({
-        url,
-        wsProtocol: 'v1.bsatn.spacetimedb',
-        authToken: connection.token,
-      })
+      url,
+      wsProtocol: 'v1.bsatn.spacetimedb',
+      authToken: connection.token,
+    })
       .then(v => {
         connection.ws = v;
 
