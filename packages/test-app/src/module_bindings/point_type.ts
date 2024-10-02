@@ -34,40 +34,40 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
-export type OneOffQuery = {
-  messageId: Uint8Array,
-  queryString: string,
+} from "@clockworklabs/spacetimedb-sdk";
+export type Point = {
+  x: number,
+  y: number,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace OneOffQuery {
+export namespace Point {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("message_id", AlgebraicType.createArrayType(AlgebraicType.createU8Type())),
-      new ProductTypeElement("query_string", AlgebraicType.createStringType()),
+      new ProductTypeElement("x", AlgebraicType.createU16Type()),
+      new ProductTypeElement("y", AlgebraicType.createU16Type()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: OneOffQuery): void {
+  export function serialize(writer: BinaryWriter, value: Point): void {
     const converted = {
-      message_id: value.messageId,
-      query_string: value.queryString,
+      x: value.x,
+      y: value.y,
     };
-    OneOffQuery.getAlgebraicType().serialize(writer, converted);
+    Point.getAlgebraicType().serialize(writer, converted);
   }
 
-  export function deserialize(reader: BinaryReader): OneOffQuery {
-    const value = OneOffQuery.getAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): Point {
+    const value = Point.getAlgebraicType().deserialize(reader);
     return {
-      messageId: value.message_id,
-      queryString: value.query_string,
+      x: value.x,
+      y: value.y,
     };
   }
 

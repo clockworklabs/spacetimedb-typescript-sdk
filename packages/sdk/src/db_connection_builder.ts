@@ -3,6 +3,7 @@ import { EventEmitter } from './event_emitter';
 import type { Identity } from './identity';
 import { stdbLogger } from './logger';
 import type SpacetimeModule from './spacetime_module';
+import { WebsocketDecompressAdapter } from './websocket_decompress_adapter';
 
 /**
  * The database client connection to a SpacetimeDB server.
@@ -13,6 +14,7 @@ export class DBConnectionBuilder<DBConnection> {
   #identity?: Identity;
   #token?: string;
   #emitter: EventEmitter = new EventEmitter();
+  #createWSFn: typeof WebsocketDecompressAdapter.createWebSocketFn;
 
   /**
    * Creates a new `SpacetimeDBClient` database client and set the initial parameters.
@@ -34,7 +36,9 @@ export class DBConnectionBuilder<DBConnection> {
   constructor(
     private spacetimeModule: SpacetimeModule,
     private dbConnectionConstructor: (imp: DBConnectionImpl) => DBConnection
-  ) {}
+  ) {
+    this.#createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
+  }
 
   withUri(uri: string | URL): DBConnectionBuilder<DBConnection> {
     this.#uri = new URL(uri);
@@ -53,6 +57,17 @@ export class DBConnectionBuilder<DBConnection> {
     this.#identity = identity;
     this.#token = token;
     return this;
+  }
+
+  withWSFn(
+    createWSFn: (args: {
+      url: URL;
+      wsProtocol: string;
+      authToken?: string;
+    }) => Promise<WebsocketDecompressAdapter>
+  ): DBConnectionBuilder<DBConnection> {
+    createWSFn = createWSFn;
+    return this
   }
 
   /**
@@ -99,8 +114,7 @@ export class DBConnectionBuilder<DBConnection> {
     let clientAddress = connection.clientAddress.toHexString();
     url.searchParams.set('client_address', clientAddress);
 
-    connection.wsPromise = connection
-      .createWSFn({
+    connection.wsPromise = this.#createWSFn({
         url,
         wsProtocol: 'v1.bsatn.spacetimedb',
         authToken: connection.token,

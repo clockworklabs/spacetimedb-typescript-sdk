@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,13 +34,13 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '../index';
+} from "../index";
 // @ts-ignore
-import { RowSizeHint as __RowSizeHint } from './row_size_hint_type';
+import { RowSizeHint as __RowSizeHint } from "./row_size_hint_type";
 
 export type BsatnRowList = {
-  sizeHint: __RowSizeHint;
-  rowsData: Uint8Array;
+  sizeHint: __RowSizeHint,
+  rowsData: Uint8Array,
 };
 
 /**
@@ -48,16 +48,13 @@ export type BsatnRowList = {
  */
 export namespace BsatnRowList {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('size_hint', __RowSizeHint.getAlgebraicType()),
-      new ProductTypeElement(
-        'rows_data',
-        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
-      ),
+      new ProductTypeElement("size_hint", __RowSizeHint.getAlgebraicType()),
+      new ProductTypeElement("rows_data", AlgebraicType.createArrayType(AlgebraicType.createU8Type())),
     ]);
   }
 
@@ -76,4 +73,7 @@ export namespace BsatnRowList {
       rowsData: value.rows_data,
     };
   }
+
 }
+
+

@@ -1,5 +1,5 @@
 import type { DBConnectionImpl } from './db_connection_impl.ts';
-import type { Event } from './event.ts';
+import type { EventContextInterface } from './event_context.ts';
 
 type Result<T = undefined> =
   | {
@@ -41,8 +41,8 @@ interface SubscriptionHandle {
 }
 
 export class SubscriptionBuilder {
-  #onApplied?: (ctx: EventContext) => void = undefined;
-  #onError?: (ctx: EventContext) => void = undefined;
+  #onApplied?: (ctx: EventContextInterface) => void = undefined;
+  #onError?: (ctx: EventContextInterface) => void = undefined;
 
   constructor(private db: DBConnectionImpl) {}
 
@@ -56,7 +56,7 @@ export class SubscriptionBuilder {
   ///
   /// Multiple `on_applied` callbacks for the same query may coexist.
   /// No mechanism for un-registering `on_applied` callbacks is exposed.
-  onApplied(cb: (ctx: EventContext) => void): SubscriptionBuilder {
+  onApplied(cb: (ctx: EventContextInterface) => void): SubscriptionBuilder {
     this.#onApplied = cb;
     return this;
   }
@@ -76,7 +76,7 @@ export class SubscriptionBuilder {
   ///
   /// Multiple `on_error` callbacks for the same query may coexist.
   /// No mechanism for un-registering `on_error` callbacks is exposed.
-  onError(cb: (ctx: EventContext) => void): SubscriptionBuilder {
+  onError(cb: (ctx: EventContextInterface) => void): SubscriptionBuilder {
     this.#onError = cb;
     return this;
   }
@@ -102,13 +102,4 @@ export interface DBContext<DBView = any, Reducers = any> {
   isActive: boolean;
   disconnect(): void;
   subscriptionBuilder(): SubscriptionBuilder;
-}
-
-export interface EventContext<
-  DBView = any,
-  Reducers = any,
-  Reducer extends { name: string; args?: any } = { name: string; args?: any },
-> extends DBContext<DBView, Reducers> {
-  /// Enum with variants for all possible events.
-  event: Event<Reducer>;
 }

@@ -34,58 +34,44 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from "../index";
+} from "@clockworklabs/spacetimedb-sdk";
 
 // Import and reexport all reducer arg types
+import { CreatePlayer } from "./create_player_reducer.ts";
+export { CreatePlayer };
 
 // Import and reexport all table handle types
+import { PlayerTableHandle } from "./player_table.ts";
+export { PlayerTableHandle };
+import { UserTableHandle } from "./user_table.ts";
+export { UserTableHandle };
 
 // Import and reexport all types
-import { BsatnRowList } from "./bsatn_row_list_type.ts";
-export { BsatnRowList };
-import { CallReducer } from "./call_reducer_type.ts";
-export { CallReducer };
-import { ClientMessage } from "./client_message_type.ts";
-export { ClientMessage };
-import { CompressableQueryUpdate } from "./compressable_query_update_type.ts";
-export { CompressableQueryUpdate };
-import { DatabaseUpdate } from "./database_update_type.ts";
-export { DatabaseUpdate };
-import { EnergyQuanta } from "./energy_quanta_type.ts";
-export { EnergyQuanta };
-import { IdentityToken } from "./identity_token_type.ts";
-export { IdentityToken };
-import { InitialSubscription } from "./initial_subscription_type.ts";
-export { InitialSubscription };
-import { OneOffQuery } from "./one_off_query_type.ts";
-export { OneOffQuery };
-import { OneOffQueryResponse } from "./one_off_query_response_type.ts";
-export { OneOffQueryResponse };
-import { OneOffTable } from "./one_off_table_type.ts";
-export { OneOffTable };
-import { QueryUpdate } from "./query_update_type.ts";
-export { QueryUpdate };
-import { ReducerCallInfo } from "./reducer_call_info_type.ts";
-export { ReducerCallInfo };
-import { RowSizeHint } from "./row_size_hint_type.ts";
-export { RowSizeHint };
-import { ServerMessage } from "./server_message_type.ts";
-export { ServerMessage };
-import { Subscribe } from "./subscribe_type.ts";
-export { Subscribe };
-import { TableUpdate } from "./table_update_type.ts";
-export { TableUpdate };
-import { Timestamp } from "./timestamp_type.ts";
-export { Timestamp };
-import { TransactionUpdate } from "./transaction_update_type.ts";
-export { TransactionUpdate };
-import { UpdateStatus } from "./update_status_type.ts";
-export { UpdateStatus };
+import { Player } from "./player_type.ts";
+export { Player };
+import { Point } from "./point_type.ts";
+export { Point };
+import { User } from "./user_type.ts";
+export { User };
 
 const REMOTE_MODULE = {
   tables: {
+    player: {
+      tableName: "player",
+      rowType: Player.getAlgebraicType(),
+      primaryKey: "owner_id",
+    },
+    user: {
+      tableName: "user",
+      rowType: User.getAlgebraicType(),
+      primaryKey: "identity",
+    },
   },
   reducers: {
+    create_player: {
+      reducerName: "create_player",
+      argsType: CreatePlayer.getAlgebraicType(),
+    },
   },
   // Constructors which are used by the DBConnectionImpl to
   // extract type information from the generated RemoteModule.
@@ -105,15 +91,42 @@ const REMOTE_MODULE = {
 
 // A type representing all the possible variants of a reducer.
 export type Reducer = never
+| { name: "CreatePlayer", args: CreatePlayer }
 ;
 
 export class RemoteReducers {
   constructor(private connection: DBConnectionImpl) {}
 
+  createPlayer(name: string, location: Point) {
+    const __args = { name, location };
+    let __writer = new BinaryWriter(1024);
+    CreatePlayer.getAlgebraicType().serialize(__writer, __args);
+    let __argsBuffer = __writer.getBuffer();
+    this.connection.callReducer("create_player", __argsBuffer);
+  }
+
+  onCreatePlayer(callback: (ctx: EventContext, name: string, location: Point) => void) {
+    this.connection.onReducer("create_player", callback);
+  }
+
+  removeOnCreatePlayer(callback: (ctx: EventContext, name: string, location: Point) => void) {
+    this.connection.offReducer("create_player", callback);
+  }
+
 }
 
 export class RemoteTables {
   constructor(private connection: DBConnectionImpl) {}
+
+  #player = this.connection.clientCache.getOrCreateTable<Player>(REMOTE_MODULE.tables.player);
+  get player(): PlayerTableHandle {
+    return new PlayerTableHandle(this.#player);
+  }
+
+  #user = this.connection.clientCache.getOrCreateTable<User>(REMOTE_MODULE.tables.user);
+  get user(): UserTableHandle {
+    return new UserTableHandle(this.#user);
+  }
 }
 
 export class DBConnection extends DBConnectionImpl<RemoteTables, RemoteReducers>  {

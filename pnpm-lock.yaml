@@ -14,6 +14,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.27.7
         version: 2.27.7
+      '@clockworklabs/test-app':
+        specifier: workspace:*
+        version: link:packages/test-app
       brotli-size-cli:
         specifier: ^1.0.0
         version: 1.0.0
@@ -82,11 +85,11 @@ importers:
         specifier: ^6.19.2
         version: 6.19.7
 
-  packages/sdk/test-app:
+  packages/test-app:
     dependencies:
       '@clockworklabs/spacetimedb-sdk':
         specifier: workspace:*
-        version: link:..
+        version: link:../sdk
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -103,25 +106,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.1
         version: 4.3.1(vite@5.4.0(@types/node@22.3.0)(terser@5.31.6))
-      typescript:
-        specifier: ^5.2.2
-        version: 5.5.4
-      vite:
-        specifier: ^5.3.4
-        version: 5.4.0(@types/node@22.3.0)(terser@5.31.6)
-
-  playground/node:
-    dependencies:
-      '@clockworklabs/spacetimedb-sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
-
-  playground/vanilla-ts:
-    dependencies:
-      '@clockworklabs/spacetimedb-sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
-    devDependencies:
       typescript:
         specifier: ^5.2.2
         version: 5.5.4

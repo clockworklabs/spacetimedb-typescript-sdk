@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,14 +34,14 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '../index';
+} from "../index";
 // @ts-ignore
-import { DatabaseUpdate as __DatabaseUpdate } from './database_update_type';
+import { DatabaseUpdate as __DatabaseUpdate } from "./database_update_type";
 
 export type InitialSubscription = {
-  databaseUpdate: __DatabaseUpdate;
-  requestId: number;
-  totalHostExecutionDurationMicros: bigint;
+  databaseUpdate: __DatabaseUpdate,
+  requestId: number,
+  totalHostExecutionDurationMicros: bigint,
 };
 
 /**
@@ -49,32 +49,22 @@ export type InitialSubscription = {
  */
 export namespace InitialSubscription {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement(
-        'database_update',
-        __DatabaseUpdate.getAlgebraicType()
-      ),
-      new ProductTypeElement('request_id', AlgebraicType.createU32Type()),
-      new ProductTypeElement(
-        'total_host_execution_duration_micros',
-        AlgebraicType.createU64Type()
-      ),
+      new ProductTypeElement("database_update", __DatabaseUpdate.getAlgebraicType()),
+      new ProductTypeElement("request_id", AlgebraicType.createU32Type()),
+      new ProductTypeElement("total_host_execution_duration_micros", AlgebraicType.createU64Type()),
     ]);
   }
 
-  export function serialize(
-    writer: BinaryWriter,
-    value: InitialSubscription
-  ): void {
+  export function serialize(writer: BinaryWriter, value: InitialSubscription): void {
     const converted = {
       database_update: value.databaseUpdate,
       request_id: value.requestId,
-      total_host_execution_duration_micros:
-        value.totalHostExecutionDurationMicros,
+      total_host_execution_duration_micros: value.totalHostExecutionDurationMicros,
     };
     InitialSubscription.getAlgebraicType().serialize(writer, converted);
   }
@@ -84,8 +74,10 @@ export namespace InitialSubscription {
     return {
       databaseUpdate: value.database_update,
       requestId: value.request_id,
-      totalHostExecutionDurationMicros:
-        value.total_host_execution_duration_micros,
+      totalHostExecutionDurationMicros: value.total_host_execution_duration_micros,
     };
   }
+
 }
+
+

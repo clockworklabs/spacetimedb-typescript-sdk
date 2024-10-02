@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,12 +34,12 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '../index';
+} from "../index";
 // @ts-ignore
-import { TableUpdate as __TableUpdate } from './table_update_type';
+import { TableUpdate as __TableUpdate } from "./table_update_type";
 
 export type DatabaseUpdate = {
-  tables: __TableUpdate[];
+  tables: __TableUpdate[],
 };
 
 /**
@@ -47,15 +47,12 @@ export type DatabaseUpdate = {
  */
 export namespace DatabaseUpdate {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement(
-        'tables',
-        AlgebraicType.createArrayType(__TableUpdate.getAlgebraicType())
-      ),
+      new ProductTypeElement("tables", AlgebraicType.createArrayType(__TableUpdate.getAlgebraicType())),
     ]);
   }
 
@@ -72,4 +69,7 @@ export namespace DatabaseUpdate {
       tables: value.tables,
     };
   }
+
 }
+
+

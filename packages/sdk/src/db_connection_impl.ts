@@ -21,8 +21,10 @@ import { ClientCache } from './client_cache.ts';
 import {
   SubscriptionBuilder,
   type DBContext,
-  type EventContext,
 } from './db_context.ts';
+import {
+  type EventContextInterface,
+} from './event_context.ts';
 import { EventEmitter } from './event_emitter.ts';
 import type { Identity } from './identity.ts';
 import { stdbLogger } from './logger.ts';
@@ -54,7 +56,7 @@ export {
   type Event,
 };
 
-export type { DBContext, EventContext };
+export type { DBContext, EventContextInterface as EventContext };
 export type { ReducerEvent };
 
 export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
@@ -79,11 +81,10 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
   remoteModule: SpacetimeModule;
   #emitter: EventEmitter;
   #reducerEmitter: EventEmitter = new EventEmitter();
-  #onApplied?: (ctx: EventContext) => void;
+  #onApplied?: (ctx: EventContextInterface) => void;
 
   wsPromise!: Promise<WebsocketDecompressAdapter | WebsocketTestAdapter>;
   ws?: WebsocketDecompressAdapter | WebsocketTestAdapter;
-  createWSFn: typeof WebsocketDecompressAdapter.createWebSocketFn;
   db: DBView;
   reducers: Reducers;
 
@@ -95,7 +96,6 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     this.remoteModule = remoteModule;
     this.db = this.remoteModule.dbViewConstructor(this);
     this.reducers = this.remoteModule.reducersConstructor(this);
-    this.createWSFn = WebsocketDecompressAdapter.createWebSocketFn;
   }
 
   subscriptionBuilder = (): SubscriptionBuilder => {
@@ -269,8 +269,8 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
    */
   subscribe(
     queryOrQueries: string | string[],
-    onApplied?: (ctx: EventContext) => void,
-    _onError?: (ctx: EventContext) => void
+    onApplied?: (ctx: EventContextInterface) => void,
+    _onError?: (ctx: EventContextInterface) => void
   ): void {
     this.#onApplied = onApplied;
     const queries =

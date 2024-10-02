@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,24 +34,24 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '../index';
+} from "../index";
 // @ts-ignore
-import { UpdateStatus as __UpdateStatus } from './update_status_type';
+import { UpdateStatus as __UpdateStatus } from "./update_status_type";
 // @ts-ignore
-import { Timestamp as __Timestamp } from './timestamp_type';
+import { Timestamp as __Timestamp } from "./timestamp_type";
 // @ts-ignore
-import { ReducerCallInfo as __ReducerCallInfo } from './reducer_call_info_type';
+import { ReducerCallInfo as __ReducerCallInfo } from "./reducer_call_info_type";
 // @ts-ignore
-import { EnergyQuanta as __EnergyQuanta } from './energy_quanta_type';
+import { EnergyQuanta as __EnergyQuanta } from "./energy_quanta_type";
 
 export type TransactionUpdate = {
-  status: __UpdateStatus;
-  timestamp: __Timestamp;
-  callerIdentity: Identity;
-  callerAddress: Address;
-  reducerCall: __ReducerCallInfo;
-  energyQuantaUsed: __EnergyQuanta;
-  hostExecutionDurationMicros: bigint;
+  status: __UpdateStatus,
+  timestamp: __Timestamp,
+  callerIdentity: Identity,
+  callerAddress: Address,
+  reducerCall: __ReducerCallInfo,
+  energyQuantaUsed: __EnergyQuanta,
+  hostExecutionDurationMicros: bigint,
 };
 
 /**
@@ -59,40 +59,22 @@ export type TransactionUpdate = {
  */
 export namespace TransactionUpdate {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('status', __UpdateStatus.getAlgebraicType()),
-      new ProductTypeElement('timestamp', __Timestamp.getAlgebraicType()),
-      new ProductTypeElement(
-        'caller_identity',
-        AlgebraicType.createIdentityType()
-      ),
-      new ProductTypeElement(
-        'caller_address',
-        AlgebraicType.createAddressType()
-      ),
-      new ProductTypeElement(
-        'reducer_call',
-        __ReducerCallInfo.getAlgebraicType()
-      ),
-      new ProductTypeElement(
-        'energy_quanta_used',
-        __EnergyQuanta.getAlgebraicType()
-      ),
-      new ProductTypeElement(
-        'host_execution_duration_micros',
-        AlgebraicType.createU64Type()
-      ),
+      new ProductTypeElement("status", __UpdateStatus.getAlgebraicType()),
+      new ProductTypeElement("timestamp", __Timestamp.getAlgebraicType()),
+      new ProductTypeElement("caller_identity", AlgebraicType.createIdentityType()),
+      new ProductTypeElement("caller_address", AlgebraicType.createAddressType()),
+      new ProductTypeElement("reducer_call", __ReducerCallInfo.getAlgebraicType()),
+      new ProductTypeElement("energy_quanta_used", __EnergyQuanta.getAlgebraicType()),
+      new ProductTypeElement("host_execution_duration_micros", AlgebraicType.createU64Type()),
     ]);
   }
 
-  export function serialize(
-    writer: BinaryWriter,
-    value: TransactionUpdate
-  ): void {
+  export function serialize(writer: BinaryWriter, value: TransactionUpdate): void {
     const converted = {
       status: value.status,
       timestamp: value.timestamp,
@@ -117,4 +99,7 @@ export namespace TransactionUpdate {
       hostExecutionDurationMicros: value.host_execution_duration_micros,
     };
   }
+
 }
+
+
