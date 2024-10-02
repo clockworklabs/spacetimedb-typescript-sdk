@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+} from "@clockworklabs/spacetimedb-sdk";
 
 export type SetName = {
-  name: string;
+  name: string,
 };
 
 /**
@@ -45,20 +45,28 @@ export type SetName = {
  */
 export namespace SetName {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('name', AlgebraicType.createStringType()),
+      new ProductTypeElement("name", AlgebraicType.createStringType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: SetName): void {
-    SetName.getAlgebraicType().serialize(writer, value);
+    const converted = {
+      name: value.name,
+    };
+    SetName.getAlgebraicType().serialize(writer, converted);
   }
 
   export function deserialize(reader: BinaryReader): SetName {
-    return SetName.getAlgebraicType().deserialize(reader);
+    const value = SetName.getAlgebraicType().deserialize(reader);
+    return {
+      name: value.name,
+    };
   }
+
 }
+

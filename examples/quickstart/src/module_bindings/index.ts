@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,54 +34,63 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+} from "@clockworklabs/spacetimedb-sdk";
 
-// Import all reducer arg types
-import { IdentityConnected } from './identity_connected_reducer.ts';
-import { IdentityDisconnected } from './identity_disconnected_reducer.ts';
-import { Init } from './init_reducer.ts';
-import { SendMessage } from './send_message_reducer.ts';
-import { SetName } from './set_name_reducer.ts';
+// Import and reexport all reducer arg types
+import { IdentityConnected } from "./identity_connected_reducer.ts";
+export { IdentityConnected };
+import { IdentityDisconnected } from "./identity_disconnected_reducer.ts";
+export { IdentityDisconnected };
+import { Init } from "./init_reducer.ts";
+export { Init };
+import { SendMessage } from "./send_message_reducer.ts";
+export { SendMessage };
+import { SetName } from "./set_name_reducer.ts";
+export { SetName };
 
-// Import all table handle types
-import { MessageTableHandle } from './message_table.ts';
-import { UserTableHandle } from './user_table.ts';
+// Import and reexport all table handle types
+import { MessageTableHandle } from "./message_table.ts";
+export { MessageTableHandle };
+import { UserTableHandle } from "./user_table.ts";
+export { UserTableHandle };
 
-// Import all types
-import { Message } from './message_type.ts';
-import { User } from './user_type.ts';
+// Import and reexport all types
+import { Message } from "./message_type.ts";
+export { Message };
+import { User } from "./user_type.ts";
+export { User };
 
 const REMOTE_MODULE = {
   tables: {
     message: {
-      tableName: 'message',
+      tableName: "message",
       rowType: Message.getAlgebraicType(),
     },
     user: {
-      tableName: 'user',
+      tableName: "user",
       rowType: User.getAlgebraicType(),
-      primaryKey: 'identity',
+      primaryKey: "identity",
     },
   },
   reducers: {
     __identity_connected__: {
-      reducerName: '__identity_connected__',
+      reducerName: "__identity_connected__",
       argsType: IdentityConnected.getAlgebraicType(),
     },
     __identity_disconnected__: {
-      reducerName: '__identity_disconnected__',
+      reducerName: "__identity_disconnected__",
       argsType: IdentityDisconnected.getAlgebraicType(),
     },
     __init__: {
-      reducerName: '__init__',
+      reducerName: "__init__",
       argsType: Init.getAlgebraicType(),
     },
     send_message: {
-      reducerName: 'send_message',
+      reducerName: "send_message",
       argsType: SendMessage.getAlgebraicType(),
     },
     set_name: {
-      reducerName: 'set_name',
+      reducerName: "set_name",
       argsType: SetName.getAlgebraicType(),
     },
   },
@@ -90,56 +99,63 @@ const REMOTE_MODULE = {
   eventContextConstructor: (imp: DBConnectionImpl, event: Event<Reducer>) => {
     return {
       ...(imp as DBConnection),
-      event,
-    };
+      event
+    }
   },
   dbViewConstructor: (imp: DBConnectionImpl) => {
     return new RemoteTables(imp);
   },
   reducersConstructor: (imp: DBConnectionImpl) => {
     return new RemoteReducers(imp);
-  },
-};
+  }
+}
 
 // A type representing all the possible variants of a reducer.
-export type Reducer =
-  | { name: 'IdentityConnected'; args: IdentityConnected }
-  | { name: 'IdentityDisconnected'; args: IdentityDisconnected }
-  | { name: 'Init'; args: Init }
-  | { name: 'SendMessage'; args: SendMessage }
-  | { name: 'SetName'; args: SetName };
+export type Reducer = never
+| { name: "IdentityConnected", args: IdentityConnected }
+| { name: "IdentityDisconnected", args: IdentityDisconnected }
+| { name: "Init", args: Init }
+| { name: "SendMessage", args: SendMessage }
+| { name: "SetName", args: SetName }
+;
 
 export class RemoteReducers {
   constructor(private connection: DBConnectionImpl) {}
 
   identityConnected() {
-    this.connection.callReducer('__identity_connected__', new Uint8Array(0));
+    this.connection.callReducer("__identity_connected__", new Uint8Array(0));
   }
 
-  onIdentityConnected(
-    callback: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>) => void
-  ) {
-    this.connection.onReducer('__identity_connected__', callback);
+  onIdentityConnected(callback: (ctx: EventContext) => void) {
+    this.connection.onReducer("__identity_connected__", callback);
+  }
+
+  removeOnIdentityConnected(callback: (ctx: EventContext) => void) {
+    this.connection.offReducer("__identity_connected__", callback);
   }
 
   identityDisconnected() {
-    this.connection.callReducer('__identity_disconnected__', new Uint8Array(0));
+    this.connection.callReducer("__identity_disconnected__", new Uint8Array(0));
   }
 
-  onIdentityDisconnected(
-    callback: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>) => void
-  ) {
-    this.connection.onReducer('__identity_disconnected__', callback);
+  onIdentityDisconnected(callback: (ctx: EventContext) => void) {
+    this.connection.onReducer("__identity_disconnected__", callback);
+  }
+
+  removeOnIdentityDisconnected(callback: (ctx: EventContext) => void) {
+    this.connection.offReducer("__identity_disconnected__", callback);
   }
 
   init() {
-    this.connection.callReducer('__init__', new Uint8Array(0));
+    this.connection.callReducer("__init__", new Uint8Array(0));
   }
 
-  onInit(
-    callback: (ctx: EventContext<RemoteTables, RemoteReducers, Reducer>) => void
-  ) {
-    this.connection.onReducer('__init__', callback);
+  onInit(callback: (ctx: EventContext) => void) {
+    this.connection.onReducer("__init__", callback);
+  }
+
+  removeOnInit(callback: (ctx: EventContext) => void) {
+    this.connection.offReducer("__init__", callback);
   }
 
   sendMessage(text: string) {
@@ -147,16 +163,15 @@ export class RemoteReducers {
     let __writer = new BinaryWriter(1024);
     SendMessage.getAlgebraicType().serialize(__writer, __args);
     let __argsBuffer = __writer.getBuffer();
-    this.connection.callReducer('send_message', __argsBuffer);
+    this.connection.callReducer("send_message", __argsBuffer);
   }
 
-  onSendMessage(
-    callback: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      text: string
-    ) => void
-  ) {
-    this.connection.onReducer('send_message', callback);
+  onSendMessage(callback: (ctx: EventContext, text: string) => void) {
+    this.connection.onReducer("send_message", callback);
+  }
+
+  removeOnSendMessage(callback: (ctx: EventContext, text: string) => void) {
+    this.connection.offReducer("send_message", callback);
   }
 
   setName(name: string) {
@@ -164,45 +179,37 @@ export class RemoteReducers {
     let __writer = new BinaryWriter(1024);
     SetName.getAlgebraicType().serialize(__writer, __args);
     let __argsBuffer = __writer.getBuffer();
-    this.connection.callReducer('set_name', __argsBuffer);
+    this.connection.callReducer("set_name", __argsBuffer);
   }
 
-  onSetName(
-    callback: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      name: string
-    ) => void
-  ) {
-    this.connection.onReducer('set_name', callback);
+  onSetName(callback: (ctx: EventContext, name: string) => void) {
+    this.connection.onReducer("set_name", callback);
   }
+
+  removeOnSetName(callback: (ctx: EventContext, name: string) => void) {
+    this.connection.offReducer("set_name", callback);
+  }
+
 }
 
 export class RemoteTables {
   constructor(private connection: DBConnectionImpl) {}
 
-  #message = this.connection.clientCache.getOrCreateTable<Message>(
-    REMOTE_MODULE.tables.message
-  );
+  #message = this.connection.clientCache.getOrCreateTable<Message>(REMOTE_MODULE.tables.message);
   get message(): MessageTableHandle {
     return new MessageTableHandle(this.#message);
   }
 
-  #user = this.connection.clientCache.getOrCreateTable<User>(
-    REMOTE_MODULE.tables.user
-  );
+  #user = this.connection.clientCache.getOrCreateTable<User>(REMOTE_MODULE.tables.user);
   get user(): UserTableHandle {
     return new UserTableHandle(this.#user);
   }
 }
 
-export class DBConnection extends DBConnectionImpl<
-  RemoteTables,
-  RemoteReducers
-> {
-  static builder = () => {
-    return new DBConnectionBuilder<DBConnection>(
-      REMOTE_MODULE,
-      (imp: DBConnectionImpl) => imp as DBConnection
-    );
-  };
+export class DBConnection extends DBConnectionImpl<RemoteTables, RemoteReducers>  {
+  static builder = (): DBConnectionBuilder<DBConnection>  => {
+    return new DBConnectionBuilder<DBConnection>(REMOTE_MODULE, (imp: DBConnectionImpl) => imp as DBConnection);
+  }
 }
+
+export type EventContext = EventContextInterface<RemoteTables, RemoteReducers, Reducer>;

@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,9 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
-import { Message } from './message_type';
-import { Reducer, RemoteReducers, RemoteTables } from '.';
+} from "@clockworklabs/spacetimedb-sdk";
+import { Message } from "./message_type";
+// @ts-ignore
+import { EventContext, Reducer, RemoteReducers, RemoteTables } from ".";
 
 /**
  * Table handle for the table `message`.
@@ -63,39 +64,19 @@ export class MessageTableHandle {
     return this.tableCache.iter();
   }
 
-  onInsert = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: Message
-    ) => void
-  ) => {
+  onInsert = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.onInsert(cb);
-  };
+  }
 
-  removeOnInsert = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: Message
-    ) => void
-  ) => {
+  removeOnInsert = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.removeOnInsert(cb);
-  };
+  }
 
-  onDelete = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: Message
-    ) => void
-  ) => {
+  onDelete = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.onDelete(cb);
-  };
+  }
 
-  removeOnDelete = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: Message
-    ) => void
-  ) => {
+  removeOnDelete = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.removeOnDelete(cb);
-  };
+  }
 }

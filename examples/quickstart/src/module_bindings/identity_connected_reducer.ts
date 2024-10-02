@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,7 +34,7 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+} from "@clockworklabs/spacetimedb-sdk";
 
 export type IdentityConnected = {};
 
@@ -43,21 +43,25 @@ export type IdentityConnected = {};
  */
 export namespace IdentityConnected {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
-    return AlgebraicType.createProductType([]);
+    return AlgebraicType.createProductType([
+    ]);
   }
 
-  export function serialize(
-    writer: BinaryWriter,
-    value: IdentityConnected
-  ): void {
-    IdentityConnected.getAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: IdentityConnected): void {
+    const converted = {
+    };
+    IdentityConnected.getAlgebraicType().serialize(writer, converted);
   }
 
   export function deserialize(reader: BinaryReader): IdentityConnected {
-    return IdentityConnected.getAlgebraicType().deserialize(reader);
+    const value = IdentityConnected.getAlgebraicType().deserialize(reader);
+    return {
+    };
   }
+
 }
+

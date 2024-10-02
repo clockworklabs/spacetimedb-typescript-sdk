@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,9 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
-import { User } from './user_type';
-import { Reducer, RemoteReducers, RemoteTables } from '.';
+} from "@clockworklabs/spacetimedb-sdk";
+import { User } from "./user_type";
+// @ts-ignore
+import { EventContext, Reducer, RemoteReducers, RemoteTables } from ".";
 
 /**
  * Table handle for the table `user`.
@@ -85,50 +86,27 @@ export class UserTableHandle {
     },
   };
 
-  onInsert = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: User
-    ) => void
-  ) => {
+  onInsert = (cb: (ctx: EventContext, row: User) => void) => {
     return this.tableCache.onInsert(cb);
-  };
+  }
 
-  removeOnInsert = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: User
-    ) => void
-  ) => {
+  removeOnInsert = (cb: (ctx: EventContext, row: User) => void) => {
     return this.tableCache.removeOnInsert(cb);
-  };
+  }
 
-  onDelete = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: User
-    ) => void
-  ) => {
+  onDelete = (cb: (ctx: EventContext, row: User) => void) => {
     return this.tableCache.onDelete(cb);
-  };
+  }
 
-  removeOnDelete = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      row: User
-    ) => void
-  ) => {
+  removeOnDelete = (cb: (ctx: EventContext, row: User) => void) => {
     return this.tableCache.removeOnDelete(cb);
-  };
+  }
 
   // Updates are only defined for tables with primary keys.
-  onUpdate = (
-    cb: (
-      ctx: EventContext<RemoteTables, RemoteReducers, Reducer>,
-      oldRow: User,
-      newRow: User
-    ) => void
-  ) => {
+  onUpdate = (cb: (ctx: EventContext, oldRow: User, newRow: User) => void) => {
     return this.tableCache.onUpdate(cb);
-  };
-}
+  }
+
+  removeOnUpdate = (cb: (ctx: EventContext, onRow: User, newRow: User) => void) => {
+    return this.tableCache.removeOnUpdate(cb);
+  }}

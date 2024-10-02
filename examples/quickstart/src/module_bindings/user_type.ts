@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,11 +34,11 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+} from "@clockworklabs/spacetimedb-sdk";
 export type User = {
-  identity: Identity;
-  name: string | undefined;
-  online: boolean;
+  identity: Identity,
+  name: string | undefined,
+  online: boolean,
 };
 
 /**
@@ -46,25 +46,35 @@ export type User = {
  */
 export namespace User {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
-      new ProductTypeElement(
-        'name',
-        AlgebraicType.createOptionType(AlgebraicType.createStringType())
-      ),
-      new ProductTypeElement('online', AlgebraicType.createBoolType()),
+      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
+      new ProductTypeElement("name", AlgebraicType.createOptionType(AlgebraicType.createStringType())),
+      new ProductTypeElement("online", AlgebraicType.createBoolType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: User): void {
-    User.getAlgebraicType().serialize(writer, value);
+    const converted = {
+      identity: value.identity,
+      name: value.name,
+      online: value.online,
+    };
+    User.getAlgebraicType().serialize(writer, converted);
   }
 
   export function deserialize(reader: BinaryReader): User {
-    return User.getAlgebraicType().deserialize(reader);
+    const value = User.getAlgebraicType().deserialize(reader);
+    return {
+      identity: value.identity,
+      name: value.name,
+      online: value.online,
+    };
   }
+
 }
+
+

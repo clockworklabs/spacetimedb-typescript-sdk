@@ -21,7 +21,7 @@ import {
   // @ts-ignore
   Event,
   // @ts-ignore
-  EventContext,
+  EventContextInterface,
   // @ts-ignore
   Identity,
   // @ts-ignore
@@ -34,10 +34,10 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+} from "@clockworklabs/spacetimedb-sdk";
 
 export type SendMessage = {
-  text: string;
+  text: string,
 };
 
 /**
@@ -45,20 +45,28 @@ export type SendMessage = {
  */
 export namespace SendMessage {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('text', AlgebraicType.createStringType()),
+      new ProductTypeElement("text", AlgebraicType.createStringType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: SendMessage): void {
-    SendMessage.getAlgebraicType().serialize(writer, value);
+    const converted = {
+      text: value.text,
+    };
+    SendMessage.getAlgebraicType().serialize(writer, converted);
   }
 
   export function deserialize(reader: BinaryReader): SendMessage {
-    return SendMessage.getAlgebraicType().deserialize(reader);
+    const value = SendMessage.getAlgebraicType().deserialize(reader);
+    return {
+      text: value.text,
+    };
   }
+
 }
+
