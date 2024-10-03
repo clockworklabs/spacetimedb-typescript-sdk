@@ -60,18 +60,10 @@ export namespace CreatePlayer {
   }
 
   export function serialize(writer: BinaryWriter, value: CreatePlayer): void {
-    const converted = {
-      name: value.name,
-      location: value.location,
-    };
-    CreatePlayer.getAlgebraicType().serialize(writer, converted);
+    CreatePlayer.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): CreatePlayer {
-    const value = CreatePlayer.getAlgebraicType().deserialize(reader);
-    return {
-      name: value.name,
-      location: value.location,
-    };
+    return CreatePlayer.getAlgebraicType().deserialize(reader);
   }
 }

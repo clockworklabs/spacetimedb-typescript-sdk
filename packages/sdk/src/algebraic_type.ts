@@ -1,6 +1,8 @@
+import { Address } from './address';
 import { ProductValue, SumValue, type ValueAdapter } from './algebraic_value';
 import type BinaryReader from './binary_reader';
 import type BinaryWriter from './binary_writer';
+import { Identity } from './identity';
 
 /**
  * A variant of a sum type.
@@ -162,6 +164,16 @@ export class ProductType {
 
   deserialize = (reader: BinaryReader): object => {
     let result: { [key: string]: any } = {};
+    if (this.elements.length === 1) {
+      if (this.elements[0].name === '__identity_bytes') {
+        return new Identity(reader.readUInt8Array());
+      }
+
+      if (this.elements[0].name === '__address_bytes') {
+        return new Address(reader.readUInt8Array());
+      }
+    }
+
     for (let element of this.elements) {
       result[element.name] = element.algebraicType.deserialize(reader);
     }
@@ -458,6 +470,7 @@ export class AlgebraicType {
         } else {
           const elemType = this.array;
           const length = reader.readU32();
+          console.log('ALEXANDRIA', this, this.#isBytes(), this.array, length);
           let result: any[] = [];
           for (let i = 0; i < length; i++) {
             result.push(elemType.deserialize(reader));

@@ -127,6 +127,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       const reader = new BinaryReader(buffer);
       const rows: any[] = [];
       while (!reader.done()) {
+        console.log('tablename', tableName, this.remoteModule.tables);
         rows.push({
           type,
           rowId: new TextDecoder().decode(buffer),
@@ -185,6 +186,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       case 'TransactionUpdate': {
         const txUpdate = message.value;
         const identity = txUpdate.callerIdentity;
+        console.log('AHHHH address', txUpdate.callerAddress);
         const address = Address.nullIfZero(txUpdate.callerAddress);
         const originalReducerName = txUpdate.reducerCall.reducerName;
         const reducerName: string = toPascalCase(originalReducerName);

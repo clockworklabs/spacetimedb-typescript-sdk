@@ -15,7 +15,6 @@ import {
   DBConnection,
   CreatePlayer,
 } from '@clockworklabs/test-app/src/module_bindings';
-import { DBConnectionBuilder } from '../dist';
 
 beforeEach(() => {});
 
@@ -53,23 +52,29 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
-      wsAdapter.acceptConnection();
     });
+    await client.wsPromise;
+    wsAdapter.acceptConnection();
 
     const messages = wsAdapter.messageQueue;
-    expect(messages.length).toBe(1);
+    expect(messages.length).toBe(2);
 
     const message: ws.ClientMessage = parseValue(ws.ClientMessage, messages[0]);
     expect(message).toHaveProperty('tag', 'Subscribe');
 
-    const subscribeMessage = message.value as ws.Subscribe;
+    const message2: ws.ClientMessage = parseValue(
+      ws.ClientMessage,
+      messages[1]
+    );
+    expect(message2).toHaveProperty('tag', 'Subscribe');
 
-    const expected = [
-      'SELECT * FROM Player',
-      'SELECT * FROM Position',
-      'SELECT * FROM Coin',
-    ];
+    const subscribeMessage = message.value as ws.Subscribe;
+    const expected = ['SELECT * FROM Player'];
     expect(subscribeMessage.queryStrings).toEqual(expected);
+
+    const subscribeMessage2 = message2.value as ws.Subscribe;
+    const expected2 = ['SELECT * FROM Position', 'SELECT * FROM Coin'];
+    expect(subscribeMessage2.queryStrings).toEqual(expected2);
   });
 
   test('call onConnect callback after getting an identity', async () => {
@@ -83,8 +88,9 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
-      wsAdapter.acceptConnection();
     });
+    await client.wsPromise;
+    wsAdapter.acceptConnection();
 
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: new Identity('an-identity'),
@@ -107,8 +113,9 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
-      wsAdapter.acceptConnection();
     });
+    await client.wsPromise;
+    wsAdapter.acceptConnection();
 
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: new Identity('an-identity'),
@@ -121,6 +128,7 @@ describe('SpacetimeDBClient', () => {
       reducerEvent: ReducerEvent<{ name: 'CreatePlayer'; args: CreatePlayer }>;
       player: Player;
     }[] = [];
+
     client.db.player.onInsert((ctx, player) => {
       if (ctx.event.tag === 'Reducer') {
         inserts.push({ reducerEvent: ctx.event.value, player });
@@ -145,7 +153,7 @@ describe('SpacetimeDBClient', () => {
           tables: [
             {
               tableId: 35,
-              tableName: 'Player',
+              tableName: 'player',
               numRows: BigInt(1),
               updates: [
                 ws.CompressableQueryUpdate.Uncompressed({
@@ -181,7 +189,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'Player',
+            tableName: 'player',
             numRows: BigInt(2),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
@@ -247,8 +255,9 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
-      wsAdapter.acceptConnection();
     });
+    await client.wsPromise;
+    wsAdapter.acceptConnection();
 
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: new Identity('an-identity'),
@@ -270,7 +279,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'Player',
+            tableName: 'player',
             numRows: BigInt(1),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
@@ -313,7 +322,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'Player',
+            tableName: 'player',
             numRows: BigInt(2),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
@@ -368,8 +377,9 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
-      wsAdapter.acceptConnection();
     });
+    await client.wsPromise;
+    wsAdapter.acceptConnection();
 
     let callbackLog: string[] = [];
 
@@ -380,7 +390,7 @@ describe('SpacetimeDBClient', () => {
     });
 
     client.reducers.onCreatePlayer((ctx, name, location) => {
-      callbackLog.push('CreatePlayer');
+      callbackLog.push('CreatePlayerReducer');
     });
 
     const transactionUpdate = ws.ServerMessage.TransactionUpdate({
@@ -388,7 +398,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'Player',
+            tableName: 'player',
             numRows: BigInt(1),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
@@ -440,8 +450,9 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
-      wsAdapter.acceptConnection();
     });
+    await client.wsPromise;
+    wsAdapter.acceptConnection();
 
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: new Identity('an-identity'),
@@ -463,7 +474,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'Player',
+            tableName: 'player',
             numRows: BigInt(1),
             updates: [
               // pgoldman 2024-06-25: This is weird, `InitialSubscription`s aren't supposed to contain deletes or updates.
@@ -511,7 +522,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'Player',
+            tableName: 'player',
             numRows: BigInt(1),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
@@ -570,12 +581,14 @@ describe('SpacetimeDBClient', () => {
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
       .build();
+    await client.wsPromise;
     const db = client.db;
     const user1 = { identity: new Identity('bobs-idenitty'), username: 'bob' };
     const user2 = {
       identity: new Identity('sallys-identity'),
       username: 'sally',
     };
+    console.log('db', db, db.user);
     const users: Map<string, User> = db.user.tableCache['rows'];
     users.set('abc123', user1);
     users.set('def456', user2);

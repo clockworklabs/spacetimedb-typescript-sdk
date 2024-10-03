@@ -20,6 +20,7 @@ export class Address {
   }
 
   static nullIfZero(addr: Address): Address | null {
+    console.error('ardddddddffddfdfdf', addr, addr.isZero);
     if (addr.isZero()) {
       return null;
     } else {

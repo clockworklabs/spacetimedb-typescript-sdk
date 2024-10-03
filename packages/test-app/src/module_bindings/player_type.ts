@@ -54,27 +54,17 @@ export namespace Player {
    */
   export function getAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('owner_id', AlgebraicType.createStringType()),
+      new ProductTypeElement('ownerId', AlgebraicType.createStringType()),
       new ProductTypeElement('name', AlgebraicType.createStringType()),
       new ProductTypeElement('location', __Point.getAlgebraicType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: Player): void {
-    const converted = {
-      owner_id: value.ownerId,
-      name: value.name,
-      location: value.location,
-    };
-    Player.getAlgebraicType().serialize(writer, converted);
+    Player.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Player {
-    const value = Player.getAlgebraicType().deserialize(reader);
-    return {
-      ownerId: value.owner_id,
-      name: value.name,
-      location: value.location,
-    };
+    return Player.getAlgebraicType().deserialize(reader);
   }
 }

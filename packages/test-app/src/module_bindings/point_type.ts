@@ -56,18 +56,10 @@ export namespace Point {
   }
 
   export function serialize(writer: BinaryWriter, value: Point): void {
-    const converted = {
-      x: value.x,
-      y: value.y,
-    };
-    Point.getAlgebraicType().serialize(writer, converted);
+    Point.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Point {
-    const value = Point.getAlgebraicType().deserialize(reader);
-    return {
-      x: value.x,
-      y: value.y,
-    };
+    return Point.getAlgebraicType().deserialize(reader);
   }
 }

@@ -56,18 +56,10 @@ export namespace User {
   }
 
   export function serialize(writer: BinaryWriter, value: User): void {
-    const converted = {
-      identity: value.identity,
-      username: value.username,
-    };
-    User.getAlgebraicType().serialize(writer, converted);
+    User.getAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): User {
-    const value = User.getAlgebraicType().deserialize(reader);
-    return {
-      identity: value.identity,
-      username: value.username,
-    };
+    return User.getAlgebraicType().deserialize(reader);
   }
 }

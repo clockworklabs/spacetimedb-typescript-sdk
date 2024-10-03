@@ -36,6 +36,7 @@ class WebsocketTestAdapter {
     // So we send the uncompressed data here, and in `spacetimedb.ts`,
     // if compression fails, we treat the raw message as having been uncompressed all along.
     // const data = compress(rawBytes);
+    console.log('the fuck are you', this.onmessage);
     this.onmessage({ data: rawBytes });
   }
 
