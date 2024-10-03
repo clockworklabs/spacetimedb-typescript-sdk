@@ -7,7 +7,6 @@ import { Identity } from '../src/identity';
 import { ReducerEvent } from '../src/db_connection_impl';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 import BinaryWriter from '../src/binary_writer';
-import { Event } from '../src/event';
 import {
   User,
   Player,
