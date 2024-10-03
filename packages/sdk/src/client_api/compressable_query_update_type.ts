@@ -60,9 +60,12 @@ export namespace CompressableQueryUpdate {
     value,
   });
 
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant('Uncompressed', __QueryUpdate.getAlgebraicType()),
+      new SumTypeVariant(
+        'Uncompressed',
+        __QueryUpdate.getTypeScriptAlgebraicType()
+      ),
       new SumTypeVariant(
         'Brotli',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
@@ -74,11 +77,16 @@ export namespace CompressableQueryUpdate {
     writer: BinaryWriter,
     value: CompressableQueryUpdate
   ): void {
-    CompressableQueryUpdate.getAlgebraicType().serialize(writer, value);
+    CompressableQueryUpdate.getTypeScriptAlgebraicType().serialize(
+      writer,
+      value
+    );
   }
 
   export function deserialize(reader: BinaryReader): CompressableQueryUpdate {
-    return CompressableQueryUpdate.getAlgebraicType().deserialize(reader);
+    return CompressableQueryUpdate.getTypeScriptAlgebraicType().deserialize(
+      reader
+    );
   }
 }
 

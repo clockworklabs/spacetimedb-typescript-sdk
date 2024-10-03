@@ -11,10 +11,6 @@ export default class BinaryReader {
     return this.#offset;
   }
 
-  done(): boolean {
-    return this.#offset >= this.#buffer.byteLength;
-  }
-
   readUInt8Array(): Uint8Array {
     const length = this.readU32();
     const value: Uint8Array = new Uint8Array(

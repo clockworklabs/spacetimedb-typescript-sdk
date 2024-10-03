@@ -62,10 +62,16 @@ export namespace TransactionUpdate {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('status', __UpdateStatus.getAlgebraicType()),
-      new ProductTypeElement('timestamp', __Timestamp.getAlgebraicType()),
+      new ProductTypeElement(
+        'status',
+        __UpdateStatus.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'timestamp',
+        __Timestamp.getTypeScriptAlgebraicType()
+      ),
       new ProductTypeElement(
         'callerIdentity',
         AlgebraicType.createIdentityType()
@@ -76,11 +82,11 @@ export namespace TransactionUpdate {
       ),
       new ProductTypeElement(
         'reducerCall',
-        __ReducerCallInfo.getAlgebraicType()
+        __ReducerCallInfo.getTypeScriptAlgebraicType()
       ),
       new ProductTypeElement(
         'energyQuantaUsed',
-        __EnergyQuanta.getAlgebraicType()
+        __EnergyQuanta.getTypeScriptAlgebraicType()
       ),
       new ProductTypeElement(
         'hostExecutionDurationMicros',
@@ -93,10 +99,10 @@ export namespace TransactionUpdate {
     writer: BinaryWriter,
     value: TransactionUpdate
   ): void {
-    TransactionUpdate.getAlgebraicType().serialize(writer, value);
+    TransactionUpdate.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): TransactionUpdate {
-    return TransactionUpdate.getAlgebraicType().deserialize(reader);
+    return TransactionUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

@@ -47,17 +47,17 @@ export namespace EnergyQuanta {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement('quanta', AlgebraicType.createU128Type()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: EnergyQuanta): void {
-    EnergyQuanta.getAlgebraicType().serialize(writer, value);
+    EnergyQuanta.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): EnergyQuanta {
-    return EnergyQuanta.getAlgebraicType().deserialize(reader);
+    return EnergyQuanta.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

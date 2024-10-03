@@ -63,20 +63,23 @@ export namespace UpdateStatus {
   });
   export const OutOfEnergy = { tag: 'OutOfEnergy' };
 
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant('Committed', __DatabaseUpdate.getAlgebraicType()),
+      new SumTypeVariant(
+        'Committed',
+        __DatabaseUpdate.getTypeScriptAlgebraicType()
+      ),
       new SumTypeVariant('Failed', AlgebraicType.createStringType()),
       new SumTypeVariant('OutOfEnergy', AlgebraicType.createProductType([])),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: UpdateStatus): void {
-    UpdateStatus.getAlgebraicType().serialize(writer, value);
+    UpdateStatus.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): UpdateStatus {
-    return UpdateStatus.getAlgebraicType().deserialize(reader);
+    return UpdateStatus.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }
 

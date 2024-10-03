@@ -53,7 +53,7 @@ export namespace TableUpdate {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement('tableId', AlgebraicType.createU32Type()),
       new ProductTypeElement('tableName', AlgebraicType.createStringType()),
@@ -61,17 +61,17 @@ export namespace TableUpdate {
       new ProductTypeElement(
         'updates',
         AlgebraicType.createArrayType(
-          __CompressableQueryUpdate.getAlgebraicType()
+          __CompressableQueryUpdate.getTypeScriptAlgebraicType()
         )
       ),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: TableUpdate): void {
-    TableUpdate.getAlgebraicType().serialize(writer, value);
+    TableUpdate.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): TableUpdate {
-    return TableUpdate.getAlgebraicType().deserialize(reader);
+    return TableUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

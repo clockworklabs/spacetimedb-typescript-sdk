@@ -47,17 +47,17 @@ export namespace Timestamp {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement('microseconds', AlgebraicType.createU64Type()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: Timestamp): void {
-    Timestamp.getAlgebraicType().serialize(writer, value);
+    Timestamp.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Timestamp {
-    return Timestamp.getAlgebraicType().deserialize(reader);
+    return Timestamp.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

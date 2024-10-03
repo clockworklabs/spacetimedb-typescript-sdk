@@ -83,30 +83,33 @@ export namespace ServerMessage {
     value: __OneOffQueryResponse
   ): ServerMessage => ({ tag: 'OneOffQueryResponse', value });
 
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
       new SumTypeVariant(
         'InitialSubscription',
-        __InitialSubscription.getAlgebraicType()
+        __InitialSubscription.getTypeScriptAlgebraicType()
       ),
       new SumTypeVariant(
         'TransactionUpdate',
-        __TransactionUpdate.getAlgebraicType()
+        __TransactionUpdate.getTypeScriptAlgebraicType()
       ),
-      new SumTypeVariant('IdentityToken', __IdentityToken.getAlgebraicType()),
+      new SumTypeVariant(
+        'IdentityToken',
+        __IdentityToken.getTypeScriptAlgebraicType()
+      ),
       new SumTypeVariant(
         'OneOffQueryResponse',
-        __OneOffQueryResponse.getAlgebraicType()
+        __OneOffQueryResponse.getTypeScriptAlgebraicType()
       ),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: ServerMessage): void {
-    ServerMessage.getAlgebraicType().serialize(writer, value);
+    ServerMessage.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): ServerMessage {
-    return ServerMessage.getAlgebraicType().deserialize(reader);
+    return ServerMessage.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }
 

@@ -51,18 +51,24 @@ export namespace QueryUpdate {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('deletes', __BsatnRowList.getAlgebraicType()),
-      new ProductTypeElement('inserts', __BsatnRowList.getAlgebraicType()),
+      new ProductTypeElement(
+        'deletes',
+        __BsatnRowList.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'inserts',
+        __BsatnRowList.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: QueryUpdate): void {
-    QueryUpdate.getAlgebraicType().serialize(writer, value);
+    QueryUpdate.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): QueryUpdate {
-    return QueryUpdate.getAlgebraicType().deserialize(reader);
+    return QueryUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

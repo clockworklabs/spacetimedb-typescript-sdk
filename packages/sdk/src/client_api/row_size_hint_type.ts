@@ -58,7 +58,7 @@ export namespace RowSizeHint {
     value,
   });
 
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
       new SumTypeVariant('FixedSize', AlgebraicType.createU16Type()),
       new SumTypeVariant(
@@ -69,11 +69,11 @@ export namespace RowSizeHint {
   }
 
   export function serialize(writer: BinaryWriter, value: RowSizeHint): void {
-    RowSizeHint.getAlgebraicType().serialize(writer, value);
+    RowSizeHint.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): RowSizeHint {
-    return RowSizeHint.getAlgebraicType().deserialize(reader);
+    return RowSizeHint.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }
 

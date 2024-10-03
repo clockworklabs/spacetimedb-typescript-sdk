@@ -29,14 +29,13 @@ class WebsocketTestAdapter {
 
   sendToClient(message: ServerMessage): void {
     const writer = new BinaryWriter(1024);
-    ServerMessage.getAlgebraicType().serialize(writer, message);
+    ServerMessage.getTypeScriptAlgebraicType().serialize(writer, message);
     const rawBytes = writer.getBuffer();
     // The brotli library's `compress` is somehow broken: it returns `null` for some inputs.
     // See https://github.com/foliojs/brotli.js/issues/36, which is closed but not actually fixed.
     // So we send the uncompressed data here, and in `spacetimedb.ts`,
     // if compression fails, we treat the raw message as having been uncompressed all along.
     // const data = compress(rawBytes);
-    console.log('the fuck are you', this.onmessage);
     this.onmessage({ data: rawBytes });
   }
 

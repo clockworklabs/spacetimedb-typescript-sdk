@@ -72,13 +72,13 @@ export class SumType {
       if (index < 0) {
         throw `Can't serialize a sum type, couldn't find ${value.tag} tag`;
       }
-      writer.writeU32(index);
+      writer.writeU8(index);
       this.variants[index].algebraicType.serialize(writer, value['value']);
     }
   };
 
   deserialize = (reader: BinaryReader): any => {
-    let tag = reader.readU32();
+    let tag = reader.readU8();
     // In TypeScript we handle Option values as a special case
     // we don't represent the some and none variants, but instead
     // we represent the value directly.
@@ -470,7 +470,6 @@ export class AlgebraicType {
         } else {
           const elemType = this.array;
           const length = reader.readU32();
-          console.log('ALEXANDRIA', this, this.#isBytes(), this.array, length);
           let result: any[] = [];
           for (let i = 0; i < length; i++) {
             result.push(elemType.deserialize(reader));

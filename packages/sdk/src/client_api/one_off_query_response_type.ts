@@ -53,7 +53,7 @@ export namespace OneOffQueryResponse {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         'messageId',
@@ -65,7 +65,9 @@ export namespace OneOffQueryResponse {
       ),
       new ProductTypeElement(
         'tables',
-        AlgebraicType.createArrayType(__OneOffTable.getAlgebraicType())
+        AlgebraicType.createArrayType(
+          __OneOffTable.getTypeScriptAlgebraicType()
+        )
       ),
       new ProductTypeElement(
         'totalHostExecutionDurationMicros',
@@ -78,10 +80,10 @@ export namespace OneOffQueryResponse {
     writer: BinaryWriter,
     value: OneOffQueryResponse
   ): void {
-    OneOffQueryResponse.getAlgebraicType().serialize(writer, value);
+    OneOffQueryResponse.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): OneOffQueryResponse {
-    return OneOffQueryResponse.getAlgebraicType().deserialize(reader);
+    return OneOffQueryResponse.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

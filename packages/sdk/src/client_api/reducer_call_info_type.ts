@@ -50,7 +50,7 @@ export namespace ReducerCallInfo {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement('reducerName', AlgebraicType.createStringType()),
       new ProductTypeElement('reducerId', AlgebraicType.createU32Type()),
@@ -66,10 +66,10 @@ export namespace ReducerCallInfo {
     writer: BinaryWriter,
     value: ReducerCallInfo
   ): void {
-    ReducerCallInfo.getAlgebraicType().serialize(writer, value);
+    ReducerCallInfo.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): ReducerCallInfo {
-    return ReducerCallInfo.getAlgebraicType().deserialize(reader);
+    return ReducerCallInfo.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

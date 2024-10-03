@@ -70,20 +70,26 @@ export namespace ClientMessage {
     value,
   });
 
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant('CallReducer', __CallReducer.getAlgebraicType()),
-      new SumTypeVariant('Subscribe', __Subscribe.getAlgebraicType()),
-      new SumTypeVariant('OneOffQuery', __OneOffQuery.getAlgebraicType()),
+      new SumTypeVariant(
+        'CallReducer',
+        __CallReducer.getTypeScriptAlgebraicType()
+      ),
+      new SumTypeVariant('Subscribe', __Subscribe.getTypeScriptAlgebraicType()),
+      new SumTypeVariant(
+        'OneOffQuery',
+        __OneOffQuery.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: ClientMessage): void {
-    ClientMessage.getAlgebraicType().serialize(writer, value);
+    ClientMessage.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): ClientMessage {
-    return ClientMessage.getAlgebraicType().deserialize(reader);
+    return ClientMessage.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }
 

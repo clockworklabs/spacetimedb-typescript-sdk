@@ -125,26 +125,32 @@ describe('SpacetimeDBClient', () => {
     wsAdapter.sendToClient(tokenMessage);
 
     const inserts: {
-      reducerEvent: ReducerEvent<{ name: 'CreatePlayer'; args: CreatePlayer }>;
+      reducerEvent:
+        | ReducerEvent<{ name: 'CreatePlayer'; args: CreatePlayer }>
+        | undefined;
       player: Player;
     }[] = [];
 
     client.db.player.onInsert((ctx, player) => {
       if (ctx.event.tag === 'Reducer') {
         inserts.push({ reducerEvent: ctx.event.value, player });
+      } else {
+        inserts.push({ reducerEvent: undefined, player });
       }
     });
 
     let reducerCallbackLog: {
-      reducerEvent: Event<{ name: 'CreatePlayer'; args: CreatePlayer }>;
+      reducerEvent: ReducerEvent<{ name: 'CreatePlayer'; args: CreatePlayer }>;
       reducerArgs: any[];
     }[] = [];
     client.reducers.onCreatePlayer((ctx, name: string, location: Point) => {
-      const reducerEvent = ctx.event;
-      reducerCallbackLog.push({
-        reducerEvent,
-        reducerArgs: [name, location],
-      });
+      if (ctx.event.tag === 'Reducer') {
+        const reducerEvent = ctx.event.value;
+        reducerCallbackLog.push({
+          reducerEvent,
+          reducerArgs: [name, location],
+        });
+      }
     });
 
     const subscriptionMessage: ws.ServerMessage =
@@ -224,7 +230,6 @@ describe('SpacetimeDBClient', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
-    const reducerEvent = inserts[1].reducerEvent;
     expect(inserts).toHaveLength(2);
     expect(inserts[1].player.ownerId).toBe('player-2');
     expect(inserts[1].reducerEvent?.reducer.name).toBe('create_player');
@@ -239,7 +244,7 @@ describe('SpacetimeDBClient', () => {
 
     expect(reducerCallbackLog).toHaveLength(1);
 
-    expect(reducerCallbackLog[0]['reducerEvent']['callerIdentity']).toEqual(
+    expect(reducerCallbackLog[0].reducerEvent.callerIdentity).toEqual(
       Identity.fromString('00ff01')
     );
   });
@@ -280,15 +285,10 @@ describe('SpacetimeDBClient', () => {
           {
             tableId: 35,
             tableName: 'player',
-            numRows: BigInt(1),
+            numRows: BigInt(2),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
                 deletes: {
-                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array(),
-                },
-                // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
-                inserts: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
                   rowsData: new Uint8Array([
                     ...encodePlayer({
@@ -296,6 +296,12 @@ describe('SpacetimeDBClient', () => {
                       name: 'drogus',
                       location: { x: 0, y: 0 },
                     }),
+                  ]),
+                },
+                // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
+                inserts: {
+                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                  rowsData: new Uint8Array([
                     ...encodePlayer({
                       ownerId: 'player-1',
                       name: 'mr.drogus',
@@ -330,7 +336,7 @@ describe('SpacetimeDBClient', () => {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
                   rowsData: encodePlayer({
                     ownerId: 'player-2',
-                    name: 'Jamie',
+                    name: 'Jaime',
                     location: { x: 0, y: 0 },
                   }),
                 },
@@ -384,9 +390,7 @@ describe('SpacetimeDBClient', () => {
     let callbackLog: string[] = [];
 
     client.db.player.onInsert((ctx, player) => {
-      if (ctx.event.tag === 'SubscribeApplied') {
-        callbackLog.push('Player');
-      }
+      callbackLog.push('Player');
     });
 
     client.reducers.onCreatePlayer((ctx, name, location) => {
@@ -474,7 +478,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'player',
+            tableName: 'user',
             numRows: BigInt(1),
             updates: [
               // pgoldman 2024-06-25: This is weird, `InitialSubscription`s aren't supposed to contain deletes or updates.
@@ -522,7 +526,7 @@ describe('SpacetimeDBClient', () => {
         tables: [
           {
             tableId: 35,
-            tableName: 'player',
+            tableName: 'user',
             numRows: BigInt(1),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
@@ -588,8 +592,7 @@ describe('SpacetimeDBClient', () => {
       identity: new Identity('sallys-identity'),
       username: 'sally',
     };
-    console.log('db', db, db.user);
-    const users: Map<string, User> = db.user.tableCache['rows'];
+    const users: Map<string, User> = (db.user.tableCache as any).rows;
     users.set('abc123', user1);
     users.set('def456', user2);
 

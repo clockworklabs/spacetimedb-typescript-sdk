@@ -32,6 +32,7 @@ import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
 import type { Event } from './event.ts';
 import { DBConnectionBuilder } from './db_connection_builder.ts';
+import { deepEqual } from './utils.ts';
 
 export {
   AlgebraicType,
@@ -49,6 +50,7 @@ export {
   DBConnectionBuilder,
   SubscriptionBuilder,
   type Event,
+  deepEqual,
 };
 
 export type { DBContext, EventContextInterface };
@@ -124,21 +126,27 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       rowList: ws.BsatnRowList
     ): Operation[] => {
       const buffer = rowList.rowsData;
+      const length = buffer.length;
+      let offset = buffer.byteOffset;
+      const endingOffset = offset + length;
       const reader = new BinaryReader(buffer);
       const rows: any[] = [];
-      while (!reader.done()) {
-        console.log('tablename', tableName, this.remoteModule.tables);
+      const rowType = this.remoteModule.tables[tableName]!.rowType;
+      while (offset < endingOffset) {
+        const row = rowType.deserialize(reader);
+        const rowId = Buffer.from(buffer).toString('base64');
         rows.push({
           type,
-          rowId: new TextDecoder().decode(buffer),
-          row: this.remoteModule.tables[tableName]!.rowType.deserialize(reader),
+          rowId,
+          row,
         });
+        offset = reader.offset;
       }
       return rows;
     };
     const parseTableUpdate = (rawTableUpdate: ws.TableUpdate): TableUpdate => {
       const tableName = rawTableUpdate.tableName;
-      const operations: Operation[] = [];
+      let operations: Operation[] = [];
       for (const update of rawTableUpdate.updates) {
         let decompressed: ws.QueryUpdate;
         if (update.tag === 'Brotli') {
@@ -149,10 +157,10 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
         } else {
           decompressed = update.value;
         }
-        operations.concat(
+        operations = operations.concat(
           parseRowList('insert', tableName, decompressed.inserts)
         );
-        operations.concat(
+        operations = operations.concat(
           parseRowList('delete', tableName, decompressed.deletes)
         );
       }
@@ -186,7 +194,6 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       case 'TransactionUpdate': {
         const txUpdate = message.value;
         const identity = txUpdate.callerIdentity;
-        console.log('AHHHH address', txUpdate.callerAddress);
         const address = Address.nullIfZero(txUpdate.callerAddress);
         const originalReducerName = txUpdate.reducerCall.reducerName;
         const reducerName: string = toPascalCase(originalReducerName);
@@ -338,7 +345,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
           this.#onApplied?.(eventContext);
         }
       } else if (message.tag === 'TransactionUpdate') {
-        const reducerName = message.reducerName;
+        const reducerName = message.originalReducerName;
         const reducerTypeInfo = this.remoteModule.reducers[reducerName]!;
 
         if (reducerName == '<none>') {
@@ -372,7 +379,13 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
             table.applyOperations(tableUpdate.operations, eventContext);
           }
 
-          this.#reducerEmitter.emit(reducerName, eventContext, ...reducerArgs);
+          const argsArray: any[] = [];
+          reducerTypeInfo.argsType.product.elements.forEach(
+            (element, index) => {
+              argsArray.push(reducerArgs[element.name]);
+            }
+          );
+          this.#reducerEmitter.emit(reducerName, eventContext, ...argsArray);
         }
       } else if (message.tag === 'IdentityToken') {
         this.identity = message.identity;

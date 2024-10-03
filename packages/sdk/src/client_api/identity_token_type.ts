@@ -49,7 +49,7 @@ export namespace IdentityToken {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
       new ProductTypeElement('token', AlgebraicType.createStringType()),
@@ -58,10 +58,10 @@ export namespace IdentityToken {
   }
 
   export function serialize(writer: BinaryWriter, value: IdentityToken): void {
-    IdentityToken.getAlgebraicType().serialize(writer, value);
+    IdentityToken.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): IdentityToken {
-    return IdentityToken.getAlgebraicType().deserialize(reader);
+    return IdentityToken.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

@@ -3,6 +3,8 @@
 
 import {
   // @ts-ignore
+  deepEqual,
+  // @ts-ignore
   Address,
   // @ts-ignore
   AlgebraicType,
@@ -79,7 +81,7 @@ export class UserTableHandle {
     // if such a row is present in the client cache.
     find: (col_val: Identity): User | undefined => {
       for (let row of this.tableCache.iter()) {
-        if (row.identity === col_val) {
+        if (deepEqual(row.identity, col_val)) {
           return row;
         }
       }

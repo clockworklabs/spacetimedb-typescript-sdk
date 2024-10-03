@@ -3,6 +3,8 @@
 
 import {
   // @ts-ignore
+  deepEqual,
+  // @ts-ignore
   Address,
   // @ts-ignore
   AlgebraicType,
@@ -82,7 +84,7 @@ export class PlayerTableHandle {
     // if such a row is present in the client cache.
     find: (col_val: string): Player | undefined => {
       for (let row of this.tableCache.iter()) {
-        if (row.owner_id === col_val) {
+        if (deepEqual(row.owner_id, col_val)) {
           return row;
         }
       }

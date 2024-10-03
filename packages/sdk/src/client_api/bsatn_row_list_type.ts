@@ -51,9 +51,12 @@ export namespace BsatnRowList {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('sizeHint', __RowSizeHint.getAlgebraicType()),
+      new ProductTypeElement(
+        'sizeHint',
+        __RowSizeHint.getTypeScriptAlgebraicType()
+      ),
       new ProductTypeElement(
         'rowsData',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
@@ -62,10 +65,10 @@ export namespace BsatnRowList {
   }
 
   export function serialize(writer: BinaryWriter, value: BsatnRowList): void {
-    BsatnRowList.getAlgebraicType().serialize(writer, value);
+    BsatnRowList.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): BsatnRowList {
-    return BsatnRowList.getAlgebraicType().deserialize(reader);
+    return BsatnRowList.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

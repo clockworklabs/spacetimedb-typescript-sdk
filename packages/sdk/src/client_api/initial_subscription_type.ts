@@ -52,11 +52,11 @@ export namespace InitialSubscription {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         'databaseUpdate',
-        __DatabaseUpdate.getAlgebraicType()
+        __DatabaseUpdate.getTypeScriptAlgebraicType()
       ),
       new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
       new ProductTypeElement(
@@ -70,10 +70,10 @@ export namespace InitialSubscription {
     writer: BinaryWriter,
     value: InitialSubscription
   ): void {
-    InitialSubscription.getAlgebraicType().serialize(writer, value);
+    InitialSubscription.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): InitialSubscription {
-    return InitialSubscription.getAlgebraicType().deserialize(reader);
+    return InitialSubscription.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

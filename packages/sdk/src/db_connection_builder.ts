@@ -129,7 +129,6 @@ export class DBConnectionBuilder<DBConnection> {
           this.#emitter.emit('connectError', connection, e);
         };
         connection.ws.onopen = connection.handleOnOpen.bind(connection);
-        console.log('Setting onmessage');
         connection.ws.onmessage = connection.handleOnMessage.bind(connection);
 
         return v;

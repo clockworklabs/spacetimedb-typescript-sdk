@@ -120,14 +120,18 @@ export class RemoteTables {
   constructor(private connection: DBConnectionImpl) {}
 
   get player(): PlayerTableHandle {
-    return this.connection.clientCache.getOrCreateTable<Player>(
-      REMOTE_MODULE.tables.player
+    return new PlayerTableHandle(
+      this.connection.clientCache.getOrCreateTable<Player>(
+        REMOTE_MODULE.tables.player
+      )
     );
   }
 
   get user(): UserTableHandle {
-    return this.connection.clientCache.getOrCreateTable<User>(
-      REMOTE_MODULE.tables.user
+    return new UserTableHandle(
+      this.connection.clientCache.getOrCreateTable<User>(
+        REMOTE_MODULE.tables.user
+      )
     );
   }
 }

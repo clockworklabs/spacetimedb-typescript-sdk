@@ -48,7 +48,7 @@ export namespace Subscribe {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
         'queryStrings',
@@ -59,10 +59,10 @@ export namespace Subscribe {
   }
 
   export function serialize(writer: BinaryWriter, value: Subscribe): void {
-    Subscribe.getAlgebraicType().serialize(writer, value);
+    Subscribe.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Subscribe {
-    return Subscribe.getAlgebraicType().deserialize(reader);
+    return Subscribe.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }

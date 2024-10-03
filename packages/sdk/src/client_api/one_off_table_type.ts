@@ -51,18 +51,21 @@ export namespace OneOffTable {
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
-  export function getAlgebraicType(): AlgebraicType {
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement('tableName', AlgebraicType.createStringType()),
-      new ProductTypeElement('rows', __BsatnRowList.getAlgebraicType()),
+      new ProductTypeElement(
+        'rows',
+        __BsatnRowList.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: OneOffTable): void {
-    OneOffTable.getAlgebraicType().serialize(writer, value);
+    OneOffTable.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): OneOffTable {
-    return OneOffTable.getAlgebraicType().deserialize(reader);
+    return OneOffTable.getTypeScriptAlgebraicType().deserialize(reader);
   }
 }
