@@ -35,5 +35,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Build
+        run: pnpm build
+
       - name: Run tests
         run: pnpm test
