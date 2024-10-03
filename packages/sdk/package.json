@@ -24,7 +24,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup",
+    "compile": "tsup",
     "test": "vitest run",
     "size": "brotli-size dist/min/index.js"
   },

@@ -6,7 +6,7 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "build": "cd packages/sdk && pnpm build",
+    "compile": "cd packages/sdk && pnpm compile",
     "changeset": "changeset",
     "ci:release": "changeset publish",
     "ci:version": "changeset version",
