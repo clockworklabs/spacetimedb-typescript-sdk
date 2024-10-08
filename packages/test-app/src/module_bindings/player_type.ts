@@ -34,14 +34,16 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+  // @ts-ignore
+  deepEqual,
+} from "@clockworklabs/spacetimedb-sdk";
 // @ts-ignore
-import { Point as __Point } from './point_type';
+import { Point as __Point } from "./point_type";
 
 export type Player = {
-  ownerId: string;
-  name: string;
-  location: __Point;
+  ownerId: string,
+  name: string,
+  location: __Point,
 };
 
 /**
@@ -49,22 +51,25 @@ export type Player = {
  */
 export namespace Player {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
-  export function getAlgebraicType(): AlgebraicType {
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('ownerId', AlgebraicType.createStringType()),
-      new ProductTypeElement('name', AlgebraicType.createStringType()),
-      new ProductTypeElement('location', __Point.getAlgebraicType()),
+      new ProductTypeElement("ownerId", AlgebraicType.createStringType()),
+      new ProductTypeElement("name", AlgebraicType.createStringType()),
+      new ProductTypeElement("location", __Point.getTypeScriptAlgebraicType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: Player): void {
-    Player.getAlgebraicType().serialize(writer, value);
+    Player.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): Player {
-    return Player.getAlgebraicType().deserialize(reader);
+    return Player.getTypeScriptAlgebraicType().deserialize(reader);
   }
+
 }
+
+

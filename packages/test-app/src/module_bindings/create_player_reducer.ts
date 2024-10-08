@@ -34,14 +34,16 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+  // @ts-ignore
+  deepEqual,
+} from "@clockworklabs/spacetimedb-sdk";
 
 // @ts-ignore
-import { Point as __Point } from './point_type';
+import { Point as __Point } from "./point_type";
 
 export type CreatePlayer = {
-  name: string;
-  location: __Point;
+  name: string,
+  location: __Point,
 };
 
 /**
@@ -49,21 +51,23 @@ export type CreatePlayer = {
  */
 export namespace CreatePlayer {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
-  export function getAlgebraicType(): AlgebraicType {
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('name', AlgebraicType.createStringType()),
-      new ProductTypeElement('location', __Point.getAlgebraicType()),
+      new ProductTypeElement("name", AlgebraicType.createStringType()),
+      new ProductTypeElement("location", __Point.getTypeScriptAlgebraicType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: CreatePlayer): void {
-    CreatePlayer.getAlgebraicType().serialize(writer, value);
+    CreatePlayer.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): CreatePlayer {
-    return CreatePlayer.getAlgebraicType().deserialize(reader);
+    return CreatePlayer.getTypeScriptAlgebraicType().deserialize(reader);
   }
+
 }
+

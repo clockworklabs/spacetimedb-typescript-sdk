@@ -34,10 +34,12 @@ import {
   SumTypeVariant,
   // @ts-ignore
   TableCache,
-} from '@clockworklabs/spacetimedb-sdk';
+  // @ts-ignore
+  deepEqual,
+} from "@clockworklabs/spacetimedb-sdk";
 export type User = {
-  identity: Identity;
-  username: string;
+  identity: Identity,
+  username: string,
 };
 
 /**
@@ -45,21 +47,24 @@ export type User = {
  */
 export namespace User {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
-  export function getAlgebraicType(): AlgebraicType {
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
+  export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
-      new ProductTypeElement('username', AlgebraicType.createStringType()),
+      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
+      new ProductTypeElement("username", AlgebraicType.createStringType()),
     ]);
   }
 
   export function serialize(writer: BinaryWriter, value: User): void {
-    User.getAlgebraicType().serialize(writer, value);
+    User.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): User {
-    return User.getAlgebraicType().deserialize(reader);
+    return User.getTypeScriptAlgebraicType().deserialize(reader);
   }
+
 }
+
+
