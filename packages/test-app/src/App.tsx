@@ -20,6 +20,7 @@ function App() {
           identity.toHexString()
         );
       })
+      .withCompression('gzip')
       .withCredentials([
         Identity.fromString(
           '93dda09db9a56d8fa6c024d843e805d8262191db3b4ba84c5efcd1ad451fed4e'

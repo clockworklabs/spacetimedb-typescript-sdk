@@ -1,6 +1,3 @@
-import decompress from 'brotli/decompress';
-import { Buffer } from 'buffer';
-
 export class WebsocketDecompressAdapter {
   onclose?: (...ev: any[]) => void;
   onopen?: (...ev: any[]) => void;
@@ -9,19 +6,58 @@ export class WebsocketDecompressAdapter {
 
   #ws: WebSocket;
 
-  #handleOnMessage(msg: MessageEvent) {
+  async #handleOnMessage(msg: MessageEvent) {
+    console.log(new Uint8Array(msg.data));
     const buffer = new Uint8Array(msg.data);
     let decompressed: Uint8Array;
-    switch (buffer[0]) {
-      case 0:
-        decompressed = msg.data.slice(1);
-        break;
-      case 1:
-        decompressed = decompress(new Buffer(buffer.slice(1)));
-        break;
-      default:
-        throw new Error('Invalid message type');
+
+    if (buffer[0] === 0) {
+      decompressed = buffer.slice(1);
+    } else if (buffer[0] === 1) {
+      throw new Error(
+        'Brotli Compression not supported. Please use gzip or none compression in withCompression method on DbConnection.'
+      );
+    } else {
+      // GZIP
+      // Convert Uint8Array to a ReadableStream
+      const readableStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(buffer.slice(1));
+          controller.close();
+        },
+      });
+
+      // Create a DecompressionStream
+      const decompressionStream = new DecompressionStream('gzip');
+
+      // Pipe the ReadableStream through the DecompressionStream
+      const decompressedStream =
+        readableStream.pipeThrough(decompressionStream);
+
+      // Collect the decompressed chunks efficiently
+      const reader = decompressedStream.getReader();
+      const chunks: any[] = [];
+      let totalLength = 0;
+      let result: any;
+
+      while (!(result = await reader.read()).done) {
+        chunks.push(result.value);
+        totalLength += result.value.length;
+      }
+
+      // Allocate a single Uint8Array for the decompressed data
+      const decompressedArray = new Uint8Array(totalLength);
+      let offset = 0;
+
+      for (const chunk of chunks) {
+        decompressedArray.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      decompressed = decompressedArray;
     }
+
+    console.log({ decompressed });
 
     this.onmessage?.({ data: decompressed });
   }
@@ -62,10 +98,12 @@ export class WebsocketDecompressAdapter {
     url,
     wsProtocol,
     authToken,
+    compression,
   }: {
     url: URL;
     wsProtocol: string;
     authToken?: string;
+    compression: 'gzip' | 'none';
   }): Promise<WebsocketDecompressAdapter> {
     const headers = new Headers();
     if (authToken) {
@@ -91,6 +129,10 @@ export class WebsocketDecompressAdapter {
     if (response.ok) {
       const { token } = await response.json();
       url.searchParams.set('token', btoa('token:' + token));
+      url.searchParams.set(
+        'compression',
+        compression === 'gzip' ? 'Gzip' : 'None'
+      );
     }
     const ws = new WS(url, wsProtocol);
 
