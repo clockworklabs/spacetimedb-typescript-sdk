@@ -1,6 +1,6 @@
 use spacetimedb::{reducer, table, Identity, ReducerContext, SpacetimeType, Table};
 
-#[table(name = player)]
+#[table(name = player, public)]
 pub struct Player {
     #[primary_key]
     owner_id: String,
@@ -14,7 +14,7 @@ pub struct Point {
     pub y: u16,
 }
 
-#[table(name = user)]
+#[table(name = user, public)]
 pub struct User {
     #[primary_key]
     pub identity: Identity,
