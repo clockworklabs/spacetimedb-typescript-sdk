@@ -1,4 +1,4 @@
-import { DBConnectionImpl, type ConnectionEvent } from './db_connection_impl';
+import { DBConnectionImpl } from './db_connection_impl';
 import { EventEmitter } from './event_emitter';
 import type { Identity } from './identity';
 import { stdbLogger } from './logger';
@@ -15,6 +15,7 @@ export class DBConnectionBuilder<DBConnection> {
   #token?: string;
   #emitter: EventEmitter = new EventEmitter();
   #createWSFn: typeof WebsocketDecompressAdapter.createWebSocketFn;
+  #compression?: 'gzip' | 'none' = 'gzip';
 
   /**
    * Creates a new `SpacetimeDBClient` database client and set the initial parameters.
@@ -67,6 +68,13 @@ export class DBConnectionBuilder<DBConnection> {
     }) => Promise<WebsocketDecompressAdapter>
   ): DBConnectionBuilder<DBConnection> {
     this.#createWSFn = createWSFn;
+    return this;
+  }
+
+  withCompression(
+    compression: 'gzip' | 'none'
+  ): DBConnectionBuilder<DBConnection> {
+    this.#compression = compression;
     return this;
   }
 
