@@ -173,7 +173,9 @@ describe('SpacetimeDBClient', () => {
       player: Player;
     }[] = [];
 
-    const waitForInsertPromise = createDeferred();
+    const insert1Promise = new Deferred<void>();
+    const insert2Promise = new Deferred<void>();
+
     client.db.player.onInsert((ctx, player) => {
       if (ctx.event.tag === 'Reducer') {
         inserts.push({ reducerEvent: ctx.event.value, player });
@@ -181,10 +183,12 @@ describe('SpacetimeDBClient', () => {
         inserts.push({ reducerEvent: undefined, player });
       }
 
-      waitForInsertPromise.resolve();
+      if (!insert1Promise.isResolved) {
+        insert1Promise.resolve();
+      } else {
+        insert2Promise.resolve();
+      }
     });
-
-    console.log(1, inserts);
 
     let reducerCallbackLog: {
       reducerEvent: ReducerEvent<{ name: 'CreatePlayer'; args: CreatePlayer }>;
@@ -199,8 +203,6 @@ describe('SpacetimeDBClient', () => {
         });
       }
     });
-
-    console.log(2, inserts);
 
     const subscriptionMessage: ws.ServerMessage =
       ws.ServerMessage.InitialSubscription({
@@ -233,13 +235,9 @@ describe('SpacetimeDBClient', () => {
         totalHostExecutionDurationMicros: BigInt(0),
       });
 
-    console.log(3, inserts);
-
     wsAdapter.sendToClient(subscriptionMessage);
 
-    console.log(4, inserts);
-
-    await waitForInsertPromise.promise;
+    await insert1Promise.promise;
 
     expect(inserts).toHaveLength(1);
     expect(inserts[0].player.ownerId).toBe('player-1');
@@ -285,6 +283,8 @@ describe('SpacetimeDBClient', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
+    await insert2Promise.promise;
+
     expect(inserts).toHaveLength(2);
     expect(inserts[1].player.ownerId).toBe('player-2');
     expect(inserts[1].reducerEvent?.reducer.name).toBe('create_player');
@@ -326,12 +326,21 @@ describe('SpacetimeDBClient', () => {
     });
     wsAdapter.sendToClient(tokenMessage);
 
+    const update1Promise = new Deferred<void>();
+    const update2Promise = new Deferred<void>();
+
     const updates: { oldPlayer: Player; newPlayer: Player }[] = [];
     client.db.player.onUpdate((_ctx, oldPlayer, newPlayer) => {
       updates.push({
         oldPlayer,
         newPlayer,
       });
+
+      if (!update1Promise.isResolved) {
+        update1Promise.resolve();
+      } else {
+        update2Promise.resolve();
+      }
     });
 
     const subscriptionMessage = ws.ServerMessage.InitialSubscription({
@@ -373,6 +382,8 @@ describe('SpacetimeDBClient', () => {
       totalHostExecutionDurationMicros: BigInt(1234567890),
     });
     wsAdapter.sendToClient(subscriptionMessage);
+
+    await update1Promise.promise;
 
     expect(updates).toHaveLength(1);
     expect(updates[0]['oldPlayer'].name).toBe('drogus');
@@ -422,6 +433,8 @@ describe('SpacetimeDBClient', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
+    await update2Promise.promise;
+
     expect(updates).toHaveLength(2);
     expect(updates[1]['oldPlayer'].name).toBe('Jaime');
     expect(updates[1]['newPlayer'].name).toBe('Kingslayer');
@@ -444,12 +457,19 @@ describe('SpacetimeDBClient', () => {
 
     let callbackLog: string[] = [];
 
+    const insertPromise = new Deferred<void>();
+    const updatePromise = new Deferred<void>();
+
     client.db.player.onInsert((ctx, player) => {
       callbackLog.push('Player');
+
+      insertPromise.resolve();
     });
 
     client.reducers.onCreatePlayer((ctx, name, location) => {
       callbackLog.push('CreatePlayerReducer');
+
+      updatePromise.resolve();
     });
 
     const transactionUpdate = ws.ServerMessage.TransactionUpdate({
@@ -495,6 +515,8 @@ describe('SpacetimeDBClient', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
+    await Promise.all([insertPromise.promise, updatePromise.promise]);
+
     expect(callbackLog).toEqual(['Player', 'CreatePlayerReducer']);
   });
 
@@ -520,12 +542,21 @@ describe('SpacetimeDBClient', () => {
     });
     wsAdapter.sendToClient(tokenMessage);
 
+    const update1Promise = new Deferred<void>();
+    const update2Promise = new Deferred<void>();
+
     const updates: { oldUser: User; newUser: User }[] = [];
     client.db.user.onUpdate((_ctx, oldUser, newUser) => {
       updates.push({
         oldUser,
         newUser,
       });
+
+      if (!update1Promise.isResolved) {
+        update1Promise.resolve();
+      } else {
+        update2Promise.resolve();
+      }
     });
 
     const subscriptionMessage = ws.ServerMessage.InitialSubscription({
@@ -571,6 +602,8 @@ describe('SpacetimeDBClient', () => {
     });
 
     wsAdapter.sendToClient(subscriptionMessage);
+
+    await update1Promise.promise;
 
     expect(updates).toHaveLength(1);
     expect(updates[0]['oldUser'].username).toBe('drogus');
@@ -627,6 +660,8 @@ describe('SpacetimeDBClient', () => {
     });
 
     wsAdapter.sendToClient(transactionUpdate);
+
+    await update2Promise.promise;
 
     expect(updates).toHaveLength(2);
     expect(updates[1]['oldUser'].username).toBe('jaime');
