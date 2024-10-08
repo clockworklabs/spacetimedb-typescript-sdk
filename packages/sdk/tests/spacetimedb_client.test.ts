@@ -1,19 +1,19 @@
+import {
+  CreatePlayer,
+  DBConnection,
+  Player,
+  Point,
+  User,
+} from '@clockworklabs/test-app/src/module_bindings';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { Address } from '../src/address';
 import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
-import * as ws from '../src/client_api';
-import { Identity } from '../src/identity';
-import { ReducerEvent } from '../src/db_connection_impl';
-import WebsocketTestAdapter from '../src/websocket_test_adapter';
 import BinaryWriter from '../src/binary_writer';
-import {
-  User,
-  Player,
-  Point,
-  DBConnection,
-  CreatePlayer,
-} from '@clockworklabs/test-app/src/module_bindings';
+import * as ws from '../src/client_api';
+import { ReducerEvent } from '../src/db_connection_impl';
+import { Identity } from '../src/identity';
+import WebsocketTestAdapter from '../src/websocket_test_adapter';
 
 beforeEach(() => {});
 
@@ -133,6 +133,7 @@ describe('SpacetimeDBClient', () => {
     }[] = [];
 
     client.db.player.onInsert((ctx, player) => {
+      console.log(1);
       if (ctx.event.tag === 'Reducer') {
         inserts.push({ reducerEvent: ctx.event.value, player });
       } else {

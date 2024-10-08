@@ -15,14 +15,12 @@ function App() {
         console.log('client_error');
       })
       .onConnect((conn, identity, _token) => {
-        // console.log(
-        //   'Connected to SpacetimeDB with identity:',
-        //   identity.toHexString()
-        // );
+        console.log(
+          'Connected to SpacetimeDB with identity:',
+          identity.toHexString()
+        );
 
-        conn
-          .subscriptionBuilder()
-          .subscribe([/* 'SELECT * FROM player', */ 'Select * from blob']);
+        conn.subscriptionBuilder().subscribe(['SELECT * FROM player']);
       })
       .withCredentials([
         Identity.fromString(
@@ -34,16 +32,16 @@ function App() {
   );
 
   useEffect(() => {
-    // connection.db.player.onInsert(player => {
-    //   console.log(player);
-    // });
-
-    connection.db.blob.onInsert((ctx, blob) => {
-      console.log(ctx, blob.blob);
+    connection.db.player.onInsert((ctx, player) => {
+      console.log(ctx, player);
     });
 
+    // connection.db.blob.onInsert((ctx, blob) => {
+    //   console.log(ctx, blob.blob);
+    // });
+
     setTimeout(() => {
-      // console.log(Array.from(connection.db.player.iter()));
+      console.log(Array.from(connection.db.player.iter()));
     }, 5000);
   }, [connection]);
 
@@ -52,21 +50,21 @@ function App() {
       <h1>Typescript SDK Test!</h1>
       <p>{connection.identity?.toHexString()}</p>
 
-      {/* <button
+      <button
         onClick={() =>
           connection.reducers.createPlayer('Hello', { x: 10, y: 40 })
         }
       >
         Update
-      </button> */}
+      </button>
 
-      <button
+      {/* <button
         onClick={() => {
           connection.reducers.add();
         }}
       >
         Create blob
-      </button>
+      </button> */}
     </div>
   );
 }

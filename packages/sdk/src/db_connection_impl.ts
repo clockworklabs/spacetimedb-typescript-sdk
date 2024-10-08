@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import { Address } from './address.ts';
 import {
   AlgebraicType,
@@ -132,7 +131,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       const rowType = this.remoteModule.tables[tableName]!.rowType;
       while (offset < endingOffset) {
         const row = rowType.deserialize(reader);
-        const rowId = Buffer.from(buffer).toString('base64');
+        const rowId = new TextDecoder('utf-8').decode(buffer);
         rows.push({
           type,
           rowId,

@@ -9,7 +9,6 @@ export class WebsocketDecompressAdapter {
   #ws: WebSocket;
 
   async #handleOnMessage(msg: MessageEvent) {
-    console.log(new Uint8Array(msg.data));
     const buffer = new Uint8Array(msg.data);
     let decompressed: Uint8Array;
 
