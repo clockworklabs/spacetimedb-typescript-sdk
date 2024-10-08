@@ -103,9 +103,8 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
    * @example
    *
    * ```ts
-   * var spacetimeDBClient = new SpacetimeDBClient("ws://localhost:3000", "database_name");
-   *
-   * spacetimeDBClient.disconnect()
+   * const connection = DBConnection.builder().build();
+   * connection.disconnect()
    * ```
    */
   disconnect(): void {
