@@ -1,10 +1,10 @@
 import { DBConnection } from './module_bindings';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { Identity } from '@clockworklabs/spacetimedb-sdk';
 
 function App() {
-  const [connection] = useState<DBConnection>(
+  const [connection] = useState(() =>
     DBConnection.builder()
       .withUri('ws://localhost:3000')
       .withModuleName('game')
@@ -14,11 +14,13 @@ function App() {
       .onConnectError(() => {
         console.log('client_error');
       })
-      .onConnect((_, identity, _token) => {
+      .onConnect((conn, identity, _token) => {
         console.log(
           'Connected to SpacetimeDB with identity:',
           identity.toHexString()
         );
+
+        conn.subscriptionBuilder().subscribe(['SELECT * FROM player']);
       })
       .withCompression('gzip')
       .withCredentials([
@@ -30,10 +32,28 @@ function App() {
       .build()
   );
 
+  useEffect(() => {
+    connection.db.player.onInsert(player => {
+      console.log(player);
+    });
+
+    setTimeout(() => {
+      console.log(Array.from(connection.db.player.iter()));
+    }, 5000);
+  }, [connection]);
+
   return (
     <div className="App">
       <h1>Typescript SDK Test!</h1>
       <p>{connection.identity?.toHexString()}</p>
+
+      <button
+        onClick={() =>
+          connection.reducers.createPlayer('Hello', { x: 10, y: 40 })
+        }
+      >
+        Update
+      </button>
     </div>
   );
 }
