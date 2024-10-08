@@ -148,7 +148,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       for (const update of rawTableUpdate.updates) {
         let decompressed: ws.QueryUpdate;
         if (update.tag === 'Brotli') {
-          const decompressedBuffer = decompress(new Buffer(update.value));
+          const decompressedBuffer = decompress(Buffer.from(update.value));
           decompressed = ws.QueryUpdate.deserialize(
             new BinaryReader(decompressedBuffer)
           );
