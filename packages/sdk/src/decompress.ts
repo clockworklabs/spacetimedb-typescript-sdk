@@ -1,4 +1,8 @@
-export async function decompressGzip(buffer: Uint8Array): Promise<Uint8Array> {
+export async function decompress(
+  buffer: Uint8Array,
+  // Leaving it here to expand to brotli when it lands in the browsers and NodeJS
+  type: 'gzip'
+): Promise<Uint8Array> {
   // GZIP
   // Convert Uint8Array to a ReadableStream
   const readableStream = new ReadableStream({
@@ -9,7 +13,7 @@ export async function decompressGzip(buffer: Uint8Array): Promise<Uint8Array> {
   });
 
   // Create a DecompressionStream
-  const decompressionStream = new DecompressionStream('gzip');
+  const decompressionStream = new DecompressionStream(type);
 
   // Pipe the ReadableStream through the DecompressionStream
   const decompressedStream = readableStream.pipeThrough(decompressionStream);

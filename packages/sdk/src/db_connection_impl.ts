@@ -22,7 +22,7 @@ import { SubscriptionBuilder, type DBContext } from './db_context.ts';
 import type { Event } from './event.ts';
 import { type EventContextInterface } from './event_context.ts';
 import { EventEmitter } from './event_emitter.ts';
-import { decompressGzip } from './gzip.ts';
+import { decompress } from './decompress.ts';
 import type { Identity } from './identity.ts';
 import type { IdentityTokenMessage, Message } from './message_types.ts';
 import type { ReducerEvent } from './reducer_event.ts';
@@ -149,7 +149,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       for (const update of rawTableUpdate.updates) {
         let decompressed: ws.QueryUpdate;
         if (update.tag === 'Gzip') {
-          const decompressedBuffer = await decompressGzip(update.value);
+          const decompressedBuffer = await decompress(update.value, 'gzip');
           decompressed = ws.QueryUpdate.deserialize(
             new BinaryReader(decompressedBuffer)
           );

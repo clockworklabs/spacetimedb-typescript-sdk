@@ -1,4 +1,4 @@
-import { decompressGzip } from './gzip';
+import { decompress } from './decompress';
 
 export class WebsocketDecompressAdapter {
   onclose?: (...ev: any[]) => void;
@@ -19,7 +19,7 @@ export class WebsocketDecompressAdapter {
         'Brotli Compression not supported. Please use gzip or none compression in withCompression method on DbConnection.'
       );
     } else if (buffer[0] === 2) {
-      decompressed = await decompressGzip(buffer.slice(1));
+      decompressed = await decompress(buffer.slice(1), 'gzip');
     } else {
       throw new Error(
         'Unexpected Compression Algorithm. Please use `gzip` or `none`'
