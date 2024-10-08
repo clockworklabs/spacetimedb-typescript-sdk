@@ -36,14 +36,14 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 // @ts-ignore
-import { Point as __Point } from "./point_type";
+import { Point as __Point } from './point_type';
 
 export type Player = {
-  ownerId: string,
-  name: string,
-  location: __Point,
+  ownerId: string;
+  name: string;
+  location: __Point;
 };
 
 /**
@@ -51,14 +51,14 @@ export type Player = {
  */
 export namespace Player {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("ownerId", AlgebraicType.createStringType()),
-      new ProductTypeElement("name", AlgebraicType.createStringType()),
-      new ProductTypeElement("location", __Point.getTypeScriptAlgebraicType()),
+      new ProductTypeElement('ownerId', AlgebraicType.createStringType()),
+      new ProductTypeElement('name', AlgebraicType.createStringType()),
+      new ProductTypeElement('location', __Point.getTypeScriptAlgebraicType()),
     ]);
   }
 
@@ -69,7 +69,4 @@ export namespace Player {
   export function deserialize(reader: BinaryReader): Player {
     return Player.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-
