@@ -1,3 +1,5 @@
+import { decompressGzip } from './gzip';
+
 export class WebsocketDecompressAdapter {
   onclose?: (...ev: any[]) => void;
   onopen?: (...ev: any[]) => void;
@@ -17,47 +19,13 @@ export class WebsocketDecompressAdapter {
       throw new Error(
         'Brotli Compression not supported. Please use gzip or none compression in withCompression method on DbConnection.'
       );
+    } else if (buffer[0] === 2) {
+      decompressed = await decompressGzip(buffer.slice(1));
     } else {
-      // GZIP
-      // Convert Uint8Array to a ReadableStream
-      const readableStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(buffer.slice(1));
-          controller.close();
-        },
-      });
-
-      // Create a DecompressionStream
-      const decompressionStream = new DecompressionStream('gzip');
-
-      // Pipe the ReadableStream through the DecompressionStream
-      const decompressedStream =
-        readableStream.pipeThrough(decompressionStream);
-
-      // Collect the decompressed chunks efficiently
-      const reader = decompressedStream.getReader();
-      const chunks: any[] = [];
-      let totalLength = 0;
-      let result: any;
-
-      while (!(result = await reader.read()).done) {
-        chunks.push(result.value);
-        totalLength += result.value.length;
-      }
-
-      // Allocate a single Uint8Array for the decompressed data
-      const decompressedArray = new Uint8Array(totalLength);
-      let offset = 0;
-
-      for (const chunk of chunks) {
-        decompressedArray.set(chunk, offset);
-        offset += chunk.length;
-      }
-
-      decompressed = decompressedArray;
+      throw new Error(
+        'Unexpected Compression Algorithm. Please use `gzip` or `none`'
+      );
     }
-
-    console.log({ decompressed });
 
     this.onmessage?.({ data: decompressed });
   }

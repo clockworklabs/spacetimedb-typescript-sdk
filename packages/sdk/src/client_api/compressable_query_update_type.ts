@@ -45,6 +45,7 @@ export namespace CompressableQueryUpdate {
   // the tagged union.
   export type Uncompressed = { tag: 'Uncompressed'; value: __QueryUpdate };
   export type Brotli = { tag: 'Brotli'; value: Uint8Array };
+  export type Gzip = { tag: 'Gzip'; value: Uint8Array };
 
   // Helper functions for constructing each variant of the tagged union.
   // ```
@@ -59,6 +60,10 @@ export namespace CompressableQueryUpdate {
     tag: 'Brotli',
     value,
   });
+  export const Gzip = (value: Uint8Array): CompressableQueryUpdate => ({
+    tag: 'Gzip',
+    value,
+  });
 
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createSumType([
@@ -68,6 +73,10 @@ export namespace CompressableQueryUpdate {
       ),
       new SumTypeVariant(
         'Brotli',
+        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
+      ),
+      new SumTypeVariant(
+        'Gzip',
         AlgebraicType.createArrayType(AlgebraicType.createU8Type())
       ),
     ]);
@@ -93,6 +102,7 @@ export namespace CompressableQueryUpdate {
 // The tagged union or sum type for the algebraic type `CompressableQueryUpdate`.
 export type CompressableQueryUpdate =
   | CompressableQueryUpdate.Uncompressed
-  | CompressableQueryUpdate.Brotli;
+  | CompressableQueryUpdate.Brotli
+  | CompressableQueryUpdate.Gzip;
 
 export default CompressableQueryUpdate;

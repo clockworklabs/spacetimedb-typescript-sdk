@@ -36,32 +36,33 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from '@clockworklabs/spacetimedb-sdk';
-export type User = {
-  identity: Identity;
-  username: string;
+} from "@clockworklabs/spacetimedb-sdk";
+export type Blob = {
+  blob: string,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace User {
+export namespace Blob {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
-      new ProductTypeElement('username', AlgebraicType.createStringType()),
+      new ProductTypeElement("blob", AlgebraicType.createStringType()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: User): void {
-    User.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: Blob): void {
+    Blob.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): User {
-    return User.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): Blob {
+    return Blob.getTypeScriptAlgebraicType().deserialize(reader);
   }
+
 }
+
+
