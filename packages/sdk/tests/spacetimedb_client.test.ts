@@ -15,6 +15,47 @@ import { ReducerEvent } from '../src/db_connection_impl';
 import { Identity } from '../src/identity';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 
+class Deferred<T> {
+  #isResolved: boolean = false;
+  #isRejected: boolean = false;
+  #resolve: (value: T | PromiseLike<T>) => void;
+  #reject: (reason?: any) => void;
+  promise: Promise<T>;
+
+  constructor() {
+    this.promise = new Promise<T>((resolve, reject) => {
+      this.#resolve = resolve;
+      this.#reject = reject;
+    });
+  }
+
+  // Getter for isResolved
+  get isResolved(): boolean {
+    return this.#isResolved;
+  }
+
+  // Getter for isRejected
+  get isRejected(): boolean {
+    return this.#isRejected;
+  }
+
+  // Resolve method
+  resolve(value: T): void {
+    if (!this.#isResolved && !this.#isRejected) {
+      this.#isResolved = true;
+      this.#resolve(value);
+    }
+  }
+
+  // Reject method
+  reject(reason?: any): void {
+    if (!this.#isResolved && !this.#isRejected) {
+      this.#isRejected = true;
+      this.#reject(reason);
+    }
+  }
+}
+
 beforeEach(() => {});
 
 function encodePlayer(value: Player): Uint8Array {
@@ -132,14 +173,18 @@ describe('SpacetimeDBClient', () => {
       player: Player;
     }[] = [];
 
+    const waitForInsertPromise = createDeferred();
     client.db.player.onInsert((ctx, player) => {
-      console.log(1);
       if (ctx.event.tag === 'Reducer') {
         inserts.push({ reducerEvent: ctx.event.value, player });
       } else {
         inserts.push({ reducerEvent: undefined, player });
       }
+
+      waitForInsertPromise.resolve();
     });
+
+    console.log(1, inserts);
 
     let reducerCallbackLog: {
       reducerEvent: ReducerEvent<{ name: 'CreatePlayer'; args: CreatePlayer }>;
@@ -154,6 +199,8 @@ describe('SpacetimeDBClient', () => {
         });
       }
     });
+
+    console.log(2, inserts);
 
     const subscriptionMessage: ws.ServerMessage =
       ws.ServerMessage.InitialSubscription({
@@ -186,7 +233,13 @@ describe('SpacetimeDBClient', () => {
         totalHostExecutionDurationMicros: BigInt(0),
       });
 
+    console.log(3, inserts);
+
     wsAdapter.sendToClient(subscriptionMessage);
+
+    console.log(4, inserts);
+
+    await waitForInsertPromise.promise;
 
     expect(inserts).toHaveLength(1);
     expect(inserts[0].player.ownerId).toBe('player-1');
