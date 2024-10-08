@@ -39,28 +39,40 @@ import {
 } from "@clockworklabs/spacetimedb-sdk";
 
 // Import and reexport all reducer arg types
-import { Add } from "./add_reducer.ts";
-export { Add };
+import { CreatePlayer } from "./create_player_reducer.ts";
+export { CreatePlayer };
 
 // Import and reexport all table handle types
-import { BlobTableHandle } from "./blob_table.ts";
-export { BlobTableHandle };
+import { PlayerTableHandle } from "./player_table.ts";
+export { PlayerTableHandle };
+import { UserTableHandle } from "./user_table.ts";
+export { UserTableHandle };
 
 // Import and reexport all types
-import { Blob } from "./blob_type.ts";
-export { Blob };
+import { Player } from "./player_type.ts";
+export { Player };
+import { Point } from "./point_type.ts";
+export { Point };
+import { User } from "./user_type.ts";
+export { User };
 
 const REMOTE_MODULE = {
   tables: {
-    blob: {
-      tableName: "blob",
-      rowType: Blob.getTypeScriptAlgebraicType(),
+    player: {
+      tableName: "player",
+      rowType: Player.getTypeScriptAlgebraicType(),
+      primaryKey: "owner_id",
+    },
+    user: {
+      tableName: "user",
+      rowType: User.getTypeScriptAlgebraicType(),
+      primaryKey: "identity",
     },
   },
   reducers: {
-    add: {
-      reducerName: "add",
-      argsType: Add.getTypeScriptAlgebraicType(),
+    create_player: {
+      reducerName: "create_player",
+      argsType: CreatePlayer.getTypeScriptAlgebraicType(),
     },
   },
   // Constructors which are used by the DBConnectionImpl to
@@ -81,22 +93,26 @@ const REMOTE_MODULE = {
 
 // A type representing all the possible variants of a reducer.
 export type Reducer = never
-| { name: "Add", args: Add }
+| { name: "CreatePlayer", args: CreatePlayer }
 ;
 
 export class RemoteReducers {
   constructor(private connection: DBConnectionImpl) {}
 
-  add() {
-    this.connection.callReducer("add", new Uint8Array(0));
+  createPlayer(name: string, location: Point) {
+    const __args = { name, location };
+    let __writer = new BinaryWriter(1024);
+    CreatePlayer.getTypeScriptAlgebraicType().serialize(__writer, __args);
+    let __argsBuffer = __writer.getBuffer();
+    this.connection.callReducer("create_player", __argsBuffer);
   }
 
-  onAdd(callback: (ctx: EventContext) => void) {
-    this.connection.onReducer("add", callback);
+  onCreatePlayer(callback: (ctx: EventContext, name: string, location: Point) => void) {
+    this.connection.onReducer("create_player", callback);
   }
 
-  removeOnAdd(callback: (ctx: EventContext) => void) {
-    this.connection.offReducer("add", callback);
+  removeOnCreatePlayer(callback: (ctx: EventContext, name: string, location: Point) => void) {
+    this.connection.offReducer("create_player", callback);
   }
 
 }
@@ -104,8 +120,12 @@ export class RemoteReducers {
 export class RemoteTables {
   constructor(private connection: DBConnectionImpl) {}
 
-  get blob(): BlobTableHandle {
-    return new BlobTableHandle(this.connection.clientCache.getOrCreateTable<Blob>(REMOTE_MODULE.tables.blob));
+  get player(): PlayerTableHandle {
+    return new PlayerTableHandle(this.connection.clientCache.getOrCreateTable<Player>(REMOTE_MODULE.tables.player));
+  }
+
+  get user(): UserTableHandle {
+    return new UserTableHandle(this.connection.clientCache.getOrCreateTable<User>(REMOTE_MODULE.tables.user));
   }
 }
 
