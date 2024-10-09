@@ -36,10 +36,6 @@ function App() {
       console.log(ctx, player);
     });
 
-    // connection.db.blob.onInsert((ctx, blob) => {
-    //   console.log(ctx, blob.blob);
-    // });
-
     setTimeout(() => {
       console.log(Array.from(connection.db.player.iter()));
     }, 5000);
@@ -57,14 +53,6 @@ function App() {
       >
         Update
       </button>
-
-      {/* <button
-        onClick={() => {
-          connection.reducers.add();
-        }}
-      >
-        Create blob
-      </button> */}
     </div>
   );
 }
