@@ -1,4 +1,3 @@
-import decompress from 'brotli/decompress';
 import { Address } from './address.ts';
 import {
   AlgebraicType,
@@ -23,6 +22,7 @@ import { SubscriptionBuilder, type DBContext } from './db_context.ts';
 import type { Event } from './event.ts';
 import { type EventContextInterface } from './event_context.ts';
 import { EventEmitter } from './event_emitter.ts';
+import { decompress } from './decompress.ts';
 import type { Identity } from './identity.ts';
 import type { IdentityTokenMessage, Message } from './message_types.ts';
 import type { ReducerEvent } from './reducer_event.ts';
@@ -31,7 +31,6 @@ import { TableCache, type Operation, type TableUpdate } from './table_cache.ts';
 import { deepEqual, toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
-import { Buffer } from 'buffer';
 
 export {
   AlgebraicType,
@@ -113,7 +112,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     });
   }
 
-  #processParsedMessage(
+  async #processParsedMessage(
     message: ws.ServerMessage,
     callback: (message: Message) => void
   ) {
@@ -131,7 +130,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       const rowType = this.remoteModule.tables[tableName]!.rowType;
       while (offset < endingOffset) {
         const row = rowType.deserialize(reader);
-        const rowId = Buffer.from(buffer).toString('base64');
+        const rowId = new TextDecoder('utf-8').decode(buffer);
         rows.push({
           type,
           rowId,
@@ -141,15 +140,21 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
       }
       return rows;
     };
-    const parseTableUpdate = (rawTableUpdate: ws.TableUpdate): TableUpdate => {
+    const parseTableUpdate = async (
+      rawTableUpdate: ws.TableUpdate
+    ): Promise<TableUpdate> => {
       const tableName = rawTableUpdate.tableName;
       let operations: Operation[] = [];
       for (const update of rawTableUpdate.updates) {
         let decompressed: ws.QueryUpdate;
-        if (update.tag === 'Brotli') {
-          const decompressedBuffer = decompress(Buffer.from(update.value));
+        if (update.tag === 'Gzip') {
+          const decompressedBuffer = await decompress(update.value, 'gzip');
           decompressed = ws.QueryUpdate.deserialize(
             new BinaryReader(decompressedBuffer)
+          );
+        } else if (update.tag === 'Brotli') {
+          throw new Error(
+            'Brotli compression not supported. Please use gzip or none compression in withCompression method on DbConnection.'
           );
         } else {
           decompressed = update.value;
@@ -166,12 +171,12 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
         operations,
       };
     };
-    const parseDatabaseUpdate = (
+    const parseDatabaseUpdate = async (
       dbUpdate: ws.DatabaseUpdate
-    ): TableUpdate[] => {
+    ): Promise<TableUpdate[]> => {
       const tableUpdates: TableUpdate[] = [];
       for (const rawTableUpdate of dbUpdate.tables) {
-        tableUpdates.push(parseTableUpdate(rawTableUpdate));
+        tableUpdates.push(await parseTableUpdate(rawTableUpdate));
       }
       return tableUpdates;
     };
@@ -179,7 +184,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     switch (message.tag) {
       case 'InitialSubscription': {
         const dbUpdate = message.value.databaseUpdate;
-        const tableUpdates = parseDatabaseUpdate(dbUpdate);
+        const tableUpdates = await parseDatabaseUpdate(dbUpdate);
         const subscriptionUpdate: Message = {
           tag: 'InitialSubscription',
           tableUpdates,
@@ -201,7 +206,7 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
         let errMessage = '';
         switch (txUpdate.status.tag) {
           case 'Committed':
-            tableUpdates = parseDatabaseUpdate(txUpdate.status.value);
+            tableUpdates = await parseDatabaseUpdate(txUpdate.status.value);
             break;
           case 'Failed':
             tableUpdates = [];
