@@ -35,6 +35,8 @@ import {
   // @ts-ignore
   TableCache,
   // @ts-ignore
+  Timestamp,
+  // @ts-ignore
   deepEqual,
 } from '..';
 export type Subscribe = {

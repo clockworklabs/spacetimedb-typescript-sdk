@@ -77,8 +77,6 @@ import { Subscribe } from './subscribe_type.ts';
 export { Subscribe };
 import { TableUpdate } from './table_update_type.ts';
 export { TableUpdate };
-import { Timestamp } from './timestamp_type.ts';
-export { Timestamp };
 import { TransactionUpdate } from './transaction_update_type.ts';
 export { TransactionUpdate };
 import { UpdateStatus } from './update_status_type.ts';

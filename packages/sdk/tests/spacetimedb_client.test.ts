@@ -7,6 +7,7 @@ import {
 } from '@clockworklabs/test-app/src/module_bindings';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { Address } from '../src/address';
+import { Timestamp } from '../src/timestamp';
 import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import BinaryWriter from '../src/binary_writer';
@@ -269,7 +270,7 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
-      timestamp: { microseconds: BigInt(1681391805281203) },
+      timestamp: new Timestamp(1681391805281203n),
       callerIdentity: new Identity('00ff01'),
       callerAddress: Address.random(),
       reducerCall: {
@@ -419,7 +420,7 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
-      timestamp: { microseconds: BigInt(1681391805281203) },
+      timestamp: new Timestamp(1681391805281203n),
       callerIdentity: new Identity('00ff01'),
       callerAddress: Address.random(),
       reducerCall: {
@@ -501,7 +502,7 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
-      timestamp: { microseconds: BigInt(1681391805281203) },
+      timestamp: new Timestamp(1681391805281203n),
       callerIdentity: new Identity('00ff01'),
       callerAddress: Address.random(),
       reducerCall: {
@@ -646,7 +647,7 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
-      timestamp: { microseconds: BigInt(1681391805281203) },
+      timestamp: new Timestamp(1681391805281203n),
       callerIdentity: new Identity('00ff01'),
       callerAddress: Address.random(),
       reducerCall: {
