@@ -7,6 +7,7 @@ import {
 } from '@clockworklabs/test-app/src/module_bindings';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { Address } from '../src/address';
+import { Timestamp } from '../src/timestamp';
 import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import BinaryWriter from '../src/binary_writer';
@@ -284,8 +285,13 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
+<<<<<<< HEAD
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
+=======
+      timestamp: new Timestamp(1681391805281203n),
+      callerIdentity: new Identity('00ff01'),
+>>>>>>> 45a6abe (Add `Timestamp` to the SDK, moving it out of `client_api`)
       callerAddress: Address.random(),
       reducerCall: {
         reducerName: 'create_player',
@@ -432,8 +438,13 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
+<<<<<<< HEAD
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
+=======
+      timestamp: new Timestamp(1681391805281203n),
+      callerIdentity: new Identity('00ff01'),
+>>>>>>> 45a6abe (Add `Timestamp` to the SDK, moving it out of `client_api`)
       callerAddress: Address.random(),
       reducerCall: {
         reducerName: 'create_player',
@@ -514,8 +525,13 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
+<<<<<<< HEAD
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
+=======
+      timestamp: new Timestamp(1681391805281203n),
+      callerIdentity: new Identity('00ff01'),
+>>>>>>> 45a6abe (Add `Timestamp` to the SDK, moving it out of `client_api`)
       callerAddress: Address.random(),
       reducerCall: {
         reducerName: 'create_player',
@@ -661,8 +677,13 @@ describe('SpacetimeDBClient', () => {
           },
         ],
       }),
+<<<<<<< HEAD
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
+=======
+      timestamp: new Timestamp(1681391805281203n),
+      callerIdentity: new Identity('00ff01'),
+>>>>>>> 45a6abe (Add `Timestamp` to the SDK, moving it out of `client_api`)
       callerAddress: Address.random(),
       reducerCall: {
         reducerName: 'create_player',

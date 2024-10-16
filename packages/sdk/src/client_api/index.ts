@@ -78,8 +78,6 @@ import { SubscriptionError } from './subscription_error_type.ts';
 export { SubscriptionError };
 import { TableUpdate } from './table_update_type.ts';
 export { TableUpdate };
-import { Timestamp } from './timestamp_type.ts';
-export { Timestamp };
 import { TransactionUpdate } from './transaction_update_type.ts';
 export { TransactionUpdate };
 import { TransactionUpdateLight } from './transaction_update_light_type.ts';

@@ -358,6 +358,14 @@ export class AlgebraicType {
       new SumTypeVariant('Time', AlgebraicType.createU64Type()),
     ]);
   }
+  static createTimestampType(): AlgebraicType {
+    return AlgebraicType.createProductType([
+      new ProductTypeElement(
+        '__timestamp_nanos_since_unix_epoch',
+        AlgebraicType.createI64Type()
+      ),
+    ]);
+  }
 
   isProductType(): boolean {
     return this.type === Type.ProductType;
