@@ -37,38 +37,45 @@ import {
   // @ts-ignore
   deepEqual,
 } from '..';
-export type CallReducer = {
-  reducer: string;
-  args: Uint8Array;
+// @ts-ignore
+import { DatabaseUpdate as __DatabaseUpdate } from './database_update_type';
+
+export type TransactionUpdateLight = {
   requestId: number;
-  flags: number;
+  update: __DatabaseUpdate;
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace CallReducer {
+export namespace TransactionUpdateLight {
   /**
    * A function which returns this type represented as an AlgebraicType.
    * This function is derived from the AlgebraicType used to generate this type.
    */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement('reducer', AlgebraicType.createStringType()),
-      new ProductTypeElement(
-        'args',
-        AlgebraicType.createArrayType(AlgebraicType.createU8Type())
-      ),
       new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
-      new ProductTypeElement('flags', AlgebraicType.createU8Type()),
+      new ProductTypeElement(
+        'update',
+        __DatabaseUpdate.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: CallReducer): void {
-    CallReducer.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(
+    writer: BinaryWriter,
+    value: TransactionUpdateLight
+  ): void {
+    TransactionUpdateLight.getTypeScriptAlgebraicType().serialize(
+      writer,
+      value
+    );
   }
 
-  export function deserialize(reader: BinaryReader): CallReducer {
-    return CallReducer.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): TransactionUpdateLight {
+    return TransactionUpdateLight.getTypeScriptAlgebraicType().deserialize(
+      reader
+    );
   }
 }
