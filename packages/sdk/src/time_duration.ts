@@ -18,7 +18,7 @@ export class TimeDuration {
     this.__time_duration_nanos = nanos;
   }
 
-  static fromMillis(millis: number): Timestamp {
+  static fromMillis(millis: number): TimeDuration {
     return new TimeDuration(BigInt(millis) * TimeDuration.NANOS_PER_MILLIS);
   }
 }
