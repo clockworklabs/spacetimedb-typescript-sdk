@@ -372,7 +372,7 @@ export class AlgebraicType {
         '__time_duration_nanos',
         AlgebraicType.createI64Type()
       ),
-    ])
+    ]);
   }
 
   isProductType(): boolean {
@@ -408,10 +408,10 @@ export class AlgebraicType {
   #isI64Newtype(tag: string): boolean {
     return (
       this.isProductType() &&
-        this.product.elements.length === 1 &&
-        this.product.elements[0].algebraicType.type === Type.I64 &&
-        this.product.elements[0].name === tag
-    )
+      this.product.elements.length === 1 &&
+      this.product.elements[0].algebraicType.type === Type.I64 &&
+      this.product.elements[0].name === tag
+    );
   }
 
   isIdentity(): boolean {
