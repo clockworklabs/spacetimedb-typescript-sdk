@@ -354,8 +354,8 @@ export class AlgebraicType {
   }
   static createScheduleAtType(): AlgebraicType {
     return AlgebraicType.createSumType([
-      new SumTypeVariant('Interval', AlgebraicType.createU64Type()),
-      new SumTypeVariant('Time', AlgebraicType.createU64Type()),
+      new SumTypeVariant('Interval', AlgebraicType.createTimeDurationType()),
+      new SumTypeVariant('Time', AlgebraicType.createTimestampType()),
     ]);
   }
   static createTimestampType(): AlgebraicType {
@@ -365,6 +365,14 @@ export class AlgebraicType {
         AlgebraicType.createI64Type()
       ),
     ]);
+  }
+  static createTimeDurationType(): AlgebraicType {
+    return AlgebraicType.createProductType([
+      new ProductTypeElement(
+        '__time_duration_nanos',
+        AlgebraicType.createI64Type()
+      ),
+    ])
   }
 
   isProductType(): boolean {
@@ -397,12 +405,29 @@ export class AlgebraicType {
     );
   }
 
+  #isI64Newtype(tag: string): boolean {
+    return (
+      this.isProductType() &&
+        this.product.elements.length === 1 &&
+        this.product.elements[0].algebraicType.type === Type.I64 &&
+        this.product.elements[0].name === tag
+    )
+  }
+
   isIdentity(): boolean {
     return this.#isBytesNewtype('__identity__');
   }
 
   isAddress(): boolean {
     return this.#isBytesNewtype('__address__');
+  }
+
+  isTimestamp(): boolean {
+    return this.#isI64Newtype('__timestamp_nanos_since_unix_epoch');
+  }
+
+  isTimeDuration(): boolean {
+    return this.#isI64Newtype('__time_duration_nanos');
   }
 
   serialize(writer: BinaryWriter, value: any): void {
