@@ -35,6 +35,10 @@ import {
   // @ts-ignore
   TableCache,
   // @ts-ignore
+  TimeDuration,
+  // @ts-ignore
+  Timestamp,
+  // @ts-ignore
   deepEqual,
 } from '..';
 
