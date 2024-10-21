@@ -35,6 +35,10 @@ import {
   // @ts-ignore
   TableCache,
   // @ts-ignore
+  TimeDuration,
+  // @ts-ignore
+  Timestamp,
+  // @ts-ignore
   deepEqual,
 } from '..';
 // @ts-ignore
@@ -43,7 +47,7 @@ import { DatabaseUpdate as __DatabaseUpdate } from './database_update_type';
 export type InitialSubscription = {
   databaseUpdate: __DatabaseUpdate;
   requestId: number;
-  totalHostExecutionDurationMicros: bigint;
+  totalHostExecutionDuration: TimeDuration;
 };
 
 /**
@@ -62,8 +66,8 @@ export namespace InitialSubscription {
       ),
       new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
       new ProductTypeElement(
-        'totalHostExecutionDurationMicros',
-        AlgebraicType.createU64Type()
+        'totalHostExecutionDuration',
+        AlgebraicType.createTimeDurationType()
       ),
     ]);
   }

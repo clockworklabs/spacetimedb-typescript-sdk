@@ -35,6 +35,10 @@ import {
   // @ts-ignore
   TableCache,
   // @ts-ignore
+  TimeDuration,
+  // @ts-ignore
+  Timestamp,
+  // @ts-ignore
   deepEqual,
 } from '..';
 // @ts-ignore
@@ -44,7 +48,7 @@ export type OneOffQueryResponse = {
   messageId: Uint8Array;
   error: string | undefined;
   tables: __OneOffTable[];
-  totalHostExecutionDurationMicros: bigint;
+  totalHostExecutionDuration: TimeDuration;
 };
 
 /**
@@ -72,8 +76,8 @@ export namespace OneOffQueryResponse {
         )
       ),
       new ProductTypeElement(
-        'totalHostExecutionDurationMicros',
-        AlgebraicType.createU64Type()
+        'totalHostExecutionDuration',
+        AlgebraicType.createTimeDurationType()
       ),
     ]);
   }
