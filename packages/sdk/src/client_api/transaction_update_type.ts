@@ -35,6 +35,8 @@ import {
   // @ts-ignore
   TableCache,
   // @ts-ignore
+  TimeDuration,
+  // @ts-ignore
   Timestamp,
   // @ts-ignore
   deepEqual,
@@ -53,7 +55,7 @@ export type TransactionUpdate = {
   callerAddress: Address;
   reducerCall: __ReducerCallInfo;
   energyQuantaUsed: __EnergyQuanta;
-  hostExecutionDurationMicros: bigint;
+  totalHostExecutionDuration: TimeDuration;
 };
 
 /**
@@ -88,8 +90,8 @@ export namespace TransactionUpdate {
         __EnergyQuanta.getTypeScriptAlgebraicType()
       ),
       new ProductTypeElement(
-        'hostExecutionDurationMicros',
-        AlgebraicType.createU64Type()
+        'totalHostExecutionDuration',
+        AlgebraicType.createTimeDurationType()
       ),
     ]);
   }

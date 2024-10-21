@@ -8,6 +8,7 @@ import {
 import { beforeEach, describe, expect, test } from 'vitest';
 import { Address } from '../src/address';
 import { Timestamp } from '../src/timestamp';
+import { TimeDuration } from '../src/time_duration';
 import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import BinaryWriter from '../src/binary_writer';
@@ -248,7 +249,7 @@ describe('SpacetimeDBClient', () => {
           ],
         },
         requestId: 0,
-        totalHostExecutionDurationMicros: BigInt(0),
+        totalHostExecutionDuration: new TimeDuration(BigInt(0)),
       });
 
     wsAdapter.sendToClient(subscriptionMessage);
@@ -300,7 +301,7 @@ describe('SpacetimeDBClient', () => {
         requestId: 0,
       },
       energyQuantaUsed: { quanta: BigInt(33841000) },
-      hostExecutionDurationMicros: BigInt(1234567890),
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
     wsAdapter.sendToClient(transactionUpdate);
 
@@ -398,7 +399,7 @@ describe('SpacetimeDBClient', () => {
         ],
       },
       requestId: 0,
-      totalHostExecutionDurationMicros: BigInt(1234567890),
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
     wsAdapter.sendToClient(subscriptionMessage);
 
@@ -453,7 +454,7 @@ describe('SpacetimeDBClient', () => {
         requestId: 0,
       },
       energyQuantaUsed: { quanta: BigInt(33841000) },
-      hostExecutionDurationMicros: BigInt(1234567890),
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
     wsAdapter.sendToClient(transactionUpdate);
 
@@ -540,7 +541,7 @@ describe('SpacetimeDBClient', () => {
         requestId: 0,
       },
       energyQuantaUsed: { quanta: BigInt(33841000) },
-      hostExecutionDurationMicros: BigInt(1234567890),
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
     wsAdapter.sendToClient(transactionUpdate);
 
@@ -629,7 +630,7 @@ describe('SpacetimeDBClient', () => {
         ],
       },
       requestId: 0,
-      totalHostExecutionDurationMicros: BigInt(1234567890),
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
 
     wsAdapter.sendToClient(subscriptionMessage);
@@ -692,7 +693,7 @@ describe('SpacetimeDBClient', () => {
         requestId: 0,
       },
       energyQuantaUsed: { quanta: BigInt(33841000) },
-      hostExecutionDurationMicros: BigInt(1234567890),
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
 
     wsAdapter.sendToClient(transactionUpdate);
