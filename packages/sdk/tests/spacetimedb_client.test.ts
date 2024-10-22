@@ -120,6 +120,8 @@ describe('SpacetimeDBClient', () => {
   });
 
   test('call onConnect callback after getting an identity', async () => {
+    const onConnectPromise = new Deferred<void>();
+
     const wsAdapter = new WebsocketTestAdapter();
     const client = DBConnection.builder()
       .withUri('ws://127.0.0.1:1234')
@@ -130,6 +132,7 @@ describe('SpacetimeDBClient', () => {
     let called = false;
     client.onConnect(() => {
       called = true;
+      onConnectPromise.resolve();
     });
     await client.wsPromise;
     wsAdapter.acceptConnection();
@@ -140,6 +143,8 @@ describe('SpacetimeDBClient', () => {
       address: Address.random(),
     });
     wsAdapter.sendToClient(tokenMessage);
+
+    await onConnectPromise.promise;
 
     expect(called).toBeTruthy();
   });
