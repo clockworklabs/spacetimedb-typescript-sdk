@@ -84,6 +84,8 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
 
   clientAddress: Address = Address.random();
 
+  #messageQueue = Promise.resolve();
+
   constructor(remoteModule: SpacetimeModule, emitter: EventEmitter) {
     this.clientCache = new ClientCache();
     this.#emitter = emitter;
@@ -252,9 +254,12 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
     }
   }
 
-  processMessage(data: Uint8Array, callback: (message: Message) => void): void {
+  async processMessage(
+    data: Uint8Array,
+    callback: (message: Message) => void
+  ): Promise<void> {
     const message = parseValue(ws.ServerMessage, data);
-    this.#processParsedMessage(message, callback);
+    await this.#processParsedMessage(message, callback);
   }
 
   /**
@@ -329,51 +334,14 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
    * @param wsMessage MessageEvent object.
    */
   handleOnMessage(wsMessage: { data: Uint8Array }): void {
-    this.processMessage(wsMessage.data, message => {
-      if (message.tag === 'InitialSubscription') {
-        let event: Event = { tag: 'SubscribeApplied' };
-        const eventContext = this.remoteModule.eventContextConstructor(
-          this,
-          event
-        );
-        for (let tableUpdate of message.tableUpdates) {
-          // Get table information for the table being updated
-          const tableName = tableUpdate.tableName;
-          const tableTypeInfo = this.remoteModule.tables[tableName]!;
-          const table = this.clientCache.getOrCreateTable(tableTypeInfo);
-          table.applyOperations(tableUpdate.operations, eventContext);
-        }
-
-        if (this.#emitter) {
-          this.#onApplied?.(eventContext);
-        }
-      } else if (message.tag === 'TransactionUpdate') {
-        const reducerName = message.originalReducerName;
-        const reducerTypeInfo = this.remoteModule.reducers[reducerName]!;
-
-        if (reducerName == '<none>') {
-          let errorMessage = message.message;
-          console.error(`Received an error from the database: ${errorMessage}`);
-        } else {
-          const reader = new BinaryReader(message.args as Uint8Array);
-          const reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
-          const reducerEvent = {
-            callerIdentity: message.identity,
-            status: message.status,
-            callerAddress: message.address as Address,
-            timestamp: message.timestamp,
-            energyConsumed: message.energyConsumed,
-            reducer: {
-              name: reducerName,
-              args: reducerArgs,
-            },
-          };
-          const event: Event = { tag: 'Reducer', value: reducerEvent };
+    this.#messageQueue = this.#messageQueue.then(() =>
+      this.processMessage(wsMessage.data, message => {
+        if (message.tag === 'InitialSubscription') {
+          let event: Event = { tag: 'SubscribeApplied' };
           const eventContext = this.remoteModule.eventContextConstructor(
             this,
             event
           );
-
           for (let tableUpdate of message.tableUpdates) {
             // Get table information for the table being updated
             const tableName = tableUpdate.tableName;
@@ -382,23 +350,64 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
             table.applyOperations(tableUpdate.operations, eventContext);
           }
 
-          const argsArray: any[] = [];
-          reducerTypeInfo.argsType.product.elements.forEach(
-            (element, index) => {
-              argsArray.push(reducerArgs[element.name]);
+          if (this.#emitter) {
+            this.#onApplied?.(eventContext);
+          }
+        } else if (message.tag === 'TransactionUpdate') {
+          const reducerName = message.originalReducerName;
+          const reducerTypeInfo = this.remoteModule.reducers[reducerName]!;
+
+          if (reducerName == '<none>') {
+            let errorMessage = message.message;
+            console.error(
+              `Received an error from the database: ${errorMessage}`
+            );
+          } else {
+            const reader = new BinaryReader(message.args as Uint8Array);
+            const reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
+            const reducerEvent = {
+              callerIdentity: message.identity,
+              status: message.status,
+              callerAddress: message.address as Address,
+              timestamp: message.timestamp,
+              energyConsumed: message.energyConsumed,
+              reducer: {
+                name: reducerName,
+                args: reducerArgs,
+              },
+            };
+            const event: Event = { tag: 'Reducer', value: reducerEvent };
+            const eventContext = this.remoteModule.eventContextConstructor(
+              this,
+              event
+            );
+
+            for (let tableUpdate of message.tableUpdates) {
+              // Get table information for the table being updated
+              const tableName = tableUpdate.tableName;
+              const tableTypeInfo = this.remoteModule.tables[tableName]!;
+              const table = this.clientCache.getOrCreateTable(tableTypeInfo);
+              table.applyOperations(tableUpdate.operations, eventContext);
             }
-          );
-          this.#reducerEmitter.emit(reducerName, eventContext, ...argsArray);
+
+            const argsArray: any[] = [];
+            reducerTypeInfo.argsType.product.elements.forEach(
+              (element, index) => {
+                argsArray.push(reducerArgs[element.name]);
+              }
+            );
+            this.#reducerEmitter.emit(reducerName, eventContext, ...argsArray);
+          }
+        } else if (message.tag === 'IdentityToken') {
+          this.identity = message.identity;
+          if (!this.token && message.token) {
+            this.token = message.token;
+          }
+          this.clientAddress = message.address;
+          this.#emitter.emit('connect', this, this.identity, this.token);
         }
-      } else if (message.tag === 'IdentityToken') {
-        this.identity = message.identity;
-        if (!this.token && message.token) {
-          this.token = message.token;
-        }
-        this.clientAddress = message.address;
-        this.#emitter.emit('connect', this, this.identity, this.token);
-      }
-    });
+      })
+    );
   }
 
   on(
