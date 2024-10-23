@@ -11,7 +11,7 @@ export type Operation = {
 };
 
 export type TableUpdate = {
-  tableName: string;
+  tableIdx: number;
   operations: Operation[];
 };
 
