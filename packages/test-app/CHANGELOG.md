@@ -1,5 +1,12 @@
 # @clockworklabs/test-app
 
+## 0.0.3-next.0
+
+### Patch Changes
+
+- Updated dependencies [[`cf7b7d8`](https://github.com/clockworklabs/spacetimedb-typescript-sdk/commit/cf7b7d89a1547fb3863f6641f5b2eb40a27c05d8), [`9032269`](https://github.com/clockworklabs/spacetimedb-typescript-sdk/commit/9032269004d4dae587c39ccd85da0a32fb9a0114), [`5d7304b`](https://github.com/clockworklabs/spacetimedb-typescript-sdk/commit/5d7304bd3e05dd7a032cfb7069aab97b881f0179)]:
+  - @clockworklabs/spacetimedb-sdk@1.0.0-next.0
+
 ## 0.0.2
 
 ### Patch Changes

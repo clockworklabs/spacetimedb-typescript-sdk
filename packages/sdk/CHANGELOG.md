@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0-next.0
+
+### Major Changes
+
+- [#116](https://github.com/clockworklabs/spacetimedb-typescript-sdk/pull/116) [`9032269`](https://github.com/clockworklabs/spacetimedb-typescript-sdk/commit/9032269004d4dae587c39ccd85da0a32fb9a0114) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Enter RC
+
+- [#117](https://github.com/clockworklabs/spacetimedb-typescript-sdk/pull/117) [`5d7304b`](https://github.com/clockworklabs/spacetimedb-typescript-sdk/commit/5d7304bd3e05dd7a032cfb7069aab97b881f0179) Thanks [@PuruVJ](https://github.com/PuruVJ)! - feat: Switch to GZIP compression by default
+
+### Patch Changes
+
+- [#109](https://github.com/clockworklabs/spacetimedb-typescript-sdk/pull/109) [`cf7b7d8`](https://github.com/clockworklabs/spacetimedb-typescript-sdk/commit/cf7b7d89a1547fb3863f6641f5b2eb40a27c05d8) Thanks [@PuruVJ](https://github.com/PuruVJ)! - fix: websocket message handling, Buffer, onConnect
+
 ## 0.12.1
 
 ### Patch Changes
