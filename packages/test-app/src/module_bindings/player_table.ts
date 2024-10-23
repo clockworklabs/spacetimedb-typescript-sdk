@@ -38,13 +38,13 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "@clockworklabs/spacetimedb-sdk";
-import { Player } from "./player_type";
+} from '@clockworklabs/spacetimedb-sdk';
+import { Player } from './player_type';
 // @ts-ignore
-import { Point as __Point } from "./point_type";
+import { Point as __Point } from './point_type';
 
 // @ts-ignore
-import { EventContext, Reducer, RemoteReducers, RemoteTables } from ".";
+import { EventContext, Reducer, RemoteReducers, RemoteTables } from '.';
 
 /**
  * Table handle for the table `player`.
@@ -95,25 +95,30 @@ export class PlayerTableHandle {
 
   onInsert = (cb: (ctx: EventContext, row: Player) => void) => {
     return this.tableCache.onInsert(cb);
-  }
+  };
 
   removeOnInsert = (cb: (ctx: EventContext, row: Player) => void) => {
     return this.tableCache.removeOnInsert(cb);
-  }
+  };
 
   onDelete = (cb: (ctx: EventContext, row: Player) => void) => {
     return this.tableCache.onDelete(cb);
-  }
+  };
 
   removeOnDelete = (cb: (ctx: EventContext, row: Player) => void) => {
     return this.tableCache.removeOnDelete(cb);
-  }
+  };
 
   // Updates are only defined for tables with primary keys.
-  onUpdate = (cb: (ctx: EventContext, oldRow: Player, newRow: Player) => void) => {
+  onUpdate = (
+    cb: (ctx: EventContext, oldRow: Player, newRow: Player) => void
+  ) => {
     return this.tableCache.onUpdate(cb);
-  }
+  };
 
-  removeOnUpdate = (cb: (ctx: EventContext, onRow: Player, newRow: Player) => void) => {
+  removeOnUpdate = (
+    cb: (ctx: EventContext, onRow: Player, newRow: Player) => void
+  ) => {
     return this.tableCache.removeOnUpdate(cb);
-  }}
+  };
+}
