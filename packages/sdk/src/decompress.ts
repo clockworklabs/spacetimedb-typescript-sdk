@@ -1,18 +1,28 @@
 export async function decompress(
   buffer: Uint8Array,
   // Leaving it here to expand to brotli when it lands in the browsers and NodeJS
-  type: 'gzip'
+  type: 'gzip',
+  chunkSize: number = 128 * 1024 // 128KB
 ): Promise<Uint8Array> {
-  // GZIP
-  // Convert Uint8Array to a ReadableStream
+  // Create a single ReadableStream to handle chunks
+  let offset = 0;
   const readableStream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(buffer);
-      controller.close();
+    pull(controller) {
+      if (offset < buffer.length) {
+        // Slice a chunk of the buffer and enqueue it
+        const chunk = buffer.subarray(
+          offset,
+          Math.min(offset + chunkSize, buffer.length)
+        );
+        controller.enqueue(chunk);
+        offset += chunkSize;
+      } else {
+        controller.close();
+      }
     },
   });
 
-  // Create a DecompressionStream
+  // Create a single DecompressionStream
   const decompressionStream = new DecompressionStream(type);
 
   // Pipe the ReadableStream through the DecompressionStream
@@ -20,7 +30,7 @@ export async function decompress(
 
   // Collect the decompressed chunks efficiently
   const reader = decompressedStream.getReader();
-  const chunks: any[] = [];
+  const chunks: Uint8Array[] = [];
   let totalLength = 0;
   let result: any;
 
@@ -31,11 +41,11 @@ export async function decompress(
 
   // Allocate a single Uint8Array for the decompressed data
   const decompressedArray = new Uint8Array(totalLength);
-  let offset = 0;
+  let chunkOffset = 0;
 
   for (const chunk of chunks) {
-    decompressedArray.set(chunk, offset);
-    offset += chunk.length;
+    decompressedArray.set(chunk, chunkOffset);
+    chunkOffset += chunk.length;
   }
 
   return decompressedArray;
