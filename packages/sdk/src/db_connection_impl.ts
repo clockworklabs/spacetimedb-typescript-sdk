@@ -56,8 +56,7 @@ export type { DBContext, EventContextInterface, ReducerEvent };
 export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
 
 export class DBConnectionImpl<DBView = any, Reducers = any>
-  implements DBContext<DBView, Reducers>
-{
+  implements DBContext<DBView, Reducers> {
   isActive = false;
   /**
    * The user's public identity.
@@ -363,12 +362,6 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
               `Received an error from the database: ${errorMessage}`
             );
           } else {
-            console.log(
-              'Received transaction update:',
-              message,
-              'for reducer:',
-              reducerTypeInfo
-            );
             const reader = new BinaryReader(message.args as Uint8Array);
             const reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
             const reducerEvent = {
