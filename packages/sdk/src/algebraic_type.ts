@@ -166,11 +166,11 @@ export class ProductType {
     let result: { [key: string]: any } = {};
     if (this.elements.length === 1) {
       if (this.elements[0].name === '__identity_bytes') {
-        return new Identity(reader.readUInt8Array());
+        return new Identity(reader.readU256());
       }
 
       if (this.elements[0].name === '__address_bytes') {
-        return new Address(reader.readUInt8Array());
+        return new Address(reader.readU128());
       }
     }
 
@@ -318,6 +318,12 @@ export class AlgebraicType {
   static createU128Type(): AlgebraicType {
     return this.#createType(Type.U128, null);
   }
+  static createI256Type(): AlgebraicType {
+    return this.#createType(Type.I256, null);
+  }
+  static createU256Type(): AlgebraicType {
+    return this.#createType(Type.U256, null);
+  }
   static createF32Type(): AlgebraicType {
     return this.#createType(Type.F32, null);
   }
@@ -338,12 +344,12 @@ export class AlgebraicType {
   }
   static createIdentityType(): AlgebraicType {
     return this.createProductType([
-      new ProductTypeElement('__identity_bytes', this.createBytesType()),
+      new ProductTypeElement('__identity_bytes', this.createU256Type()),
     ]);
   }
   static createAddressType(): AlgebraicType {
     return this.createProductType([
-      new ProductTypeElement('__address_bytes', this.createBytesType()),
+      new ProductTypeElement('__address_bytes', this.createU128Type()),
     ]);
   }
   static createScheduleAtType(): AlgebraicType {
@@ -377,7 +383,9 @@ export class AlgebraicType {
     return (
       this.isProductType() &&
       this.product.elements.length === 1 &&
-      this.product.elements[0].algebraicType.#isBytes() &&
+      // confusingly, Address and Identity's '__address_bytes' and '__identity_bytes' now store integers rather than byte arrays.
+      (this.product.elements[0].algebraicType.type == Type.U128 ||
+        this.product.elements[0].algebraicType.type == Type.U256) &&
       this.product.elements[0].name === tag
     );
   }
@@ -443,6 +451,12 @@ export class AlgebraicType {
         break;
       case Type.U128:
         writer.writeU128(value);
+        break;
+      case Type.I256:
+        writer.writeI256(value);
+        break;
+      case Type.U256:
+        writer.writeU256(value);
         break;
       case Type.F32:
         writer.writeF32(value);
@@ -530,6 +544,8 @@ export namespace AlgebraicType {
     U64 = 'U64',
     I128 = 'I128',
     U128 = 'U128',
+    I256 = 'I256',
+    U256 = 'U256',
     F32 = 'F32',
     F64 = 'F64',
     /** UTF-8 encoded */

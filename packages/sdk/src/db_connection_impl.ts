@@ -363,6 +363,12 @@ export class DBConnectionImpl<DBView = any, Reducers = any>
               `Received an error from the database: ${errorMessage}`
             );
           } else {
+            console.log(
+              'Received transaction update:',
+              message,
+              'for reducer:',
+              reducerTypeInfo
+            );
             const reader = new BinaryReader(message.args as Uint8Array);
             const reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
             const reducerEvent = {
