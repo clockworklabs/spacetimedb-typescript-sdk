@@ -1,4 +1,4 @@
-import { hexStringToU128, u128ToHexString } from './utils';
+import { hexStringToU128, u128ToHexString, u128ToUint8Array } from './utils';
 
 /**
  * A unique identifier for a client connected to a database.
@@ -52,6 +52,13 @@ export class Address {
    */
   toHexString(): string {
     return u128ToHexString(this.data);
+  }
+
+  /**
+   * Convert the address to a Uint8Array.
+   */
+  toUint8Array(): Uint8Array {
+    return u128ToUint8Array(this.data);
   }
 
   /**

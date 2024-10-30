@@ -1,6 +1,6 @@
 import BinaryReader from './binary_reader';
 import BinaryWriter from './binary_writer';
-import { hexStringToU256, u256ToHexString } from './utils';
+import { hexStringToU256, u256ToHexString, u256ToUint8Array } from './utils';
 
 /**
  * A unique identifier for a user connected to a database.
@@ -35,6 +35,13 @@ export class Identity {
    */
   toHexString(): string {
     return u256ToHexString(this.data);
+  }
+
+  /**
+   * Convert the address to a Uint8Array.
+   */
+  toUint8Array(): Uint8Array {
+    return u256ToUint8Array(this.data);
   }
 
   /**
