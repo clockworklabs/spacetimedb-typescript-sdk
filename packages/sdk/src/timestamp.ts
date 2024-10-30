@@ -1,17 +1,17 @@
 /**
- * A point in time, represented as a number of nanoseconds since the Unix epoch.
+ * A point in time, represented as a number of microseconds since the Unix epoch.
  */
 export class Timestamp {
-  __timestamp_nanos_since_unix_epoch: bigint;
+  __timestamp_micros_since_unix_epoch: bigint;
 
-  private static NANOS_PER_MILLIS: bigint = 1000000n;
+  private static MICROS_PER_MILLIS: bigint = 1000n;
 
-  get nanosSinceUnixEpoch(): bigint {
-    return this.__timestamp_nanos_since_unix_epoch;
+  get microsSinceUnixEpoch(): bigint {
+    return this.__timestamp_micros_since_unix_epoch;
   }
 
-  constructor(nanos: bigint) {
-    this.__timestamp_nanos_since_unix_epoch = nanos;
+  constructor(micros: bigint) {
+    this.__timestamp_micros_since_unix_epoch = micros;
   }
 
   /**
@@ -31,8 +31,8 @@ export class Timestamp {
    */
   static fromDate(date: Date): Timestamp {
     const millis = date.getTime();
-    const nanos = BigInt(millis) * Timestamp.NANOS_PER_MILLIS;
-    return new Timestamp(nanos);
+    const micros = BigInt(millis) * Timestamp.MICROS_PER_MILLIS;
+    return new Timestamp(micros);
   }
 
   /**
@@ -42,8 +42,8 @@ export class Timestamp {
    * and throws `RangeError` if the `Timestamp` is outside the range representable as a `Date`.
    */
   toDate(): Date {
-    const nanos = this.__timestamp_nanos_since_unix_epoch;
-    const millis = nanos / Timestamp.NANOS_PER_MILLIS;
+    const micros = this.__timestamp_micros_since_unix_epoch;
+    const millis = micros / Timestamp.MICROS_PER_MILLIS;
     if (
       millis > BigInt(Number.MAX_SAFE_INTEGER) ||
       millis < BigInt(Number.MIN_SAFE_INTEGER)

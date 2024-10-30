@@ -361,7 +361,7 @@ export class AlgebraicType {
   static createTimestampType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        '__timestamp_nanos_since_unix_epoch',
+        '__timestamp_micros_since_unix_epoch__',
         AlgebraicType.createI64Type()
       ),
     ]);
@@ -369,7 +369,7 @@ export class AlgebraicType {
   static createTimeDurationType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
-        '__time_duration_nanos',
+        '__time_duration_micros__',
         AlgebraicType.createI64Type()
       ),
     ]);
@@ -423,11 +423,11 @@ export class AlgebraicType {
   }
 
   isTimestamp(): boolean {
-    return this.#isI64Newtype('__timestamp_nanos_since_unix_epoch');
+    return this.#isI64Newtype('__timestamp_micros_since_unix_epoch__');
   }
 
   isTimeDuration(): boolean {
-    return this.#isI64Newtype('__time_duration_nanos');
+    return this.#isI64Newtype('__time_duration_micros__');
   }
 
   serialize(writer: BinaryWriter, value: any): void {

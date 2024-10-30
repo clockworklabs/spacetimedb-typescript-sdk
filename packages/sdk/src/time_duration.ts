@@ -1,24 +1,24 @@
 /**
- * A difference between two points in time, represented as a number of nanoseconds.
+ * A difference between two points in time, represented as a number of microseconds.
  */
 export class TimeDuration {
-  __time_duration_nanos: bigint;
+  __time_duration_micros__: bigint;
 
-  private static NANOS_PER_MILLIS: bigint = 1000000n;
+  private static MICROS_PER_MILLIS: bigint = 1000n;
 
-  get nanos(): bigint {
-    return this.__time_duration_nanos;
+  get micros(): bigint {
+    return this.__time_duration_micros__;
   }
 
   get millis(): number {
-    return Number(this.nanos / TimeDuration.NANOS_PER_MILLIS);
+    return Number(this.micros / TimeDuration.MICROS_PER_MILLIS);
   }
 
-  constructor(nanos: bigint) {
-    this.__time_duration_nanos = nanos;
+  constructor(micros: bigint) {
+    this.__time_duration_micros__ = micros;
   }
 
   static fromMillis(millis: number): TimeDuration {
-    return new TimeDuration(BigInt(millis) * TimeDuration.NANOS_PER_MILLIS);
+    return new TimeDuration(BigInt(millis) * TimeDuration.MICROS_PER_MILLIS);
   }
 }
