@@ -56,7 +56,8 @@ export type { DBContext, EventContextInterface, ReducerEvent };
 export type ConnectionEvent = 'connect' | 'disconnect' | 'connectError';
 
 export class DBConnectionImpl<DBView = any, Reducers = any>
-  implements DBContext<DBView, Reducers> {
+  implements DBContext<DBView, Reducers>
+{
   isActive = false;
   /**
    * The user's public identity.
