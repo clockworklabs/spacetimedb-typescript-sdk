@@ -6,7 +6,7 @@ import { hexStringToU128, u128ToHexString, u128ToUint8Array } from './utils';
 export class Address {
   data: bigint;
 
-  get __address_bytes(): bigint {
+  get __address__(): bigint {
     return this.data;
   }
 

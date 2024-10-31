@@ -8,7 +8,7 @@ import { hexStringToU256, u256ToHexString, u256ToUint8Array } from './utils';
 export class Identity {
   data: bigint;
 
-  get __identity_bytes(): bigint {
+  get __identity__(): bigint {
     return this.data;
   }
 
@@ -18,7 +18,7 @@ export class Identity {
    * `data` can be a hexadecimal string or a `bigint`.
    */
   constructor(data: string | bigint) {
-    // we get a JSON with __identity_bytes when getting a token with a JSON API
+    // we get a JSON with __identity__ when getting a token with a JSON API
     // and an bigint when using BSATN
     this.data = typeof data === 'string' ? hexStringToU256(data) : data;
   }

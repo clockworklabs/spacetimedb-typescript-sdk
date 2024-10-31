@@ -165,11 +165,11 @@ export class ProductType {
   deserialize = (reader: BinaryReader): object => {
     let result: { [key: string]: any } = {};
     if (this.elements.length === 1) {
-      if (this.elements[0].name === '__identity_bytes') {
+      if (this.elements[0].name === '__identity__') {
         return new Identity(reader.readU256());
       }
 
-      if (this.elements[0].name === '__address_bytes') {
+      if (this.elements[0].name === '__address__') {
         return new Address(reader.readU128());
       }
     }
@@ -344,12 +344,12 @@ export class AlgebraicType {
   }
   static createIdentityType(): AlgebraicType {
     return this.createProductType([
-      new ProductTypeElement('__identity_bytes', this.createU256Type()),
+      new ProductTypeElement('__identity__', this.createU256Type()),
     ]);
   }
   static createAddressType(): AlgebraicType {
     return this.createProductType([
-      new ProductTypeElement('__address_bytes', this.createU128Type()),
+      new ProductTypeElement('__address__', this.createU128Type()),
     ]);
   }
   static createScheduleAtType(): AlgebraicType {
@@ -383,7 +383,6 @@ export class AlgebraicType {
     return (
       this.isProductType() &&
       this.product.elements.length === 1 &&
-      // confusingly, Address and Identity's '__address_bytes' and '__identity_bytes' now store integers rather than byte arrays.
       (this.product.elements[0].algebraicType.type == Type.U128 ||
         this.product.elements[0].algebraicType.type == Type.U256) &&
       this.product.elements[0].name === tag
@@ -391,11 +390,11 @@ export class AlgebraicType {
   }
 
   isIdentity(): boolean {
-    return this.#isBytesNewtype('__identity_bytes');
+    return this.#isBytesNewtype('__identity__');
   }
 
   isAddress(): boolean {
-    return this.#isBytesNewtype('__address_bytes');
+    return this.#isBytesNewtype('__address__');
   }
 
   serialize(writer: BinaryWriter, value: any): void {
