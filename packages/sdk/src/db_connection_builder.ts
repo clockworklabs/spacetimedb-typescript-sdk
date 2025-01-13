@@ -52,11 +52,9 @@ export class DBConnectionBuilder<DBConnection> {
     return this;
   }
 
-  withCredentials(
-    creds: [identity: Identity, token: string]
+  withToken(
+    token: string?
   ): DBConnectionBuilder<DBConnection> {
-    const [identity, token] = creds;
-    this.#identity = identity;
     this.#token = token;
     return this;
   }
