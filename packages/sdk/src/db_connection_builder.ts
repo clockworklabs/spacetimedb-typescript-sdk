@@ -52,9 +52,7 @@ export class DBConnectionBuilder<DBConnection> {
     return this;
   }
 
-  withToken(
-    token?: string
-  ): DBConnectionBuilder<DBConnection> {
+  withToken(token?: string): DBConnectionBuilder<DBConnection> {
     this.#token = token;
     return this;
   }
