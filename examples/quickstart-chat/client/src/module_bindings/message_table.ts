@@ -38,10 +38,10 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "@clockworklabs/spacetimedb-sdk";
-import { Message } from "./message_type";
+} from '@clockworklabs/spacetimedb-sdk';
+import { Message } from './message_type';
 // @ts-ignore
-import { EventContext, Reducer, RemoteReducers, RemoteTables } from ".";
+import { EventContext, Reducer, RemoteReducers, RemoteTables } from '.';
 
 /**
  * Table handle for the table `message`.
@@ -70,17 +70,17 @@ export class MessageTableHandle {
 
   onInsert = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.onInsert(cb);
-  }
+  };
 
   removeOnInsert = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.removeOnInsert(cb);
-  }
+  };
 
   onDelete = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.onDelete(cb);
-  }
+  };
 
   removeOnDelete = (cb: (ctx: EventContext, row: Message) => void) => {
     return this.tableCache.removeOnDelete(cb);
-  }
+  };
 }

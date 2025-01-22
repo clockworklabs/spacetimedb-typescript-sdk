@@ -1,4 +1,4 @@
-# quickstart-chat 
+# quickstart-chat
 
 ## 0.0.3-rc1.0
 

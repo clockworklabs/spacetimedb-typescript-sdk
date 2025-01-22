@@ -38,10 +38,10 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "@clockworklabs/spacetimedb-sdk";
+} from '@clockworklabs/spacetimedb-sdk';
 
 export type SendMessage = {
-  text: string,
+  text: string;
 };
 
 /**
@@ -49,12 +49,12 @@ export type SendMessage = {
  */
 export namespace SendMessage {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("text", AlgebraicType.createStringType()),
+      new ProductTypeElement('text', AlgebraicType.createStringType()),
     ]);
   }
 
@@ -65,6 +65,4 @@ export namespace SendMessage {
   export function deserialize(reader: BinaryReader): SendMessage {
     return SendMessage.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
