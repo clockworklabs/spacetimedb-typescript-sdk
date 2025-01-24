@@ -84,51 +84,57 @@ function App() {
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [conn, setConn] = useState<DBConnection | null>(null);
 
-  useEffect(
-    () =>
-      setConn(
-        DBConnection.builder()
-          .withUri('ws://localhost:3000')
-          .withModuleName('quickstart-chat')
-          .withToken(localStorage.getItem('auth_token') || '')
-          .onConnect((conn, identity, token) => {
-            setIdentity(identity);
-            setConnected(true);
-            localStorage.setItem('auth_token', token);
-            console.log(
-              'Connected to SpacetimeDB with identity:',
-              identity.toHexString()
-            );
-            conn
-              .subscriptionBuilder()
-              .onApplied(() => {
-                console.log('SDK client cache initialized.');
-              })
-              .subscribe(['SELECT * FROM message', 'SELECT * FROM user']);
-          })
-          .onDisconnect(() => {
-            console.log('Disconnected from SpacetimeDB');
-            setConnected(false);
-          })
-          .onConnectError((_conn, err) => {
-            console.log('Error connecting to SpacetimeDB:', err);
-          })
-          .build()
-      ),
-    []
-  );
+  useEffect(() => {
+    const onConnect = (
+      conn: DBConnection,
+      identity: Identity,
+      token: string
+    ) => {
+      setIdentity(identity);
+      setConnected(true);
+      localStorage.setItem('auth_token', token);
+      console.log(
+        'Connected to SpacetimeDB with identity:',
+        identity.toHexString()
+      );
+      conn
+        .subscriptionBuilder()
+        .onApplied(() => {
+          console.log('SDK client cache initialized.');
+        })
+        .subscribe(['SELECT * FROM message', 'SELECT * FROM user']);
+    };
+
+    const onDisconnect = () => {
+      console.log('Disconnected from SpacetimeDB');
+      setConnected(false);
+    };
+
+    const onConnectError = (_conn: DBConnection, err: Error) => {
+      console.log('Error connecting to SpacetimeDB:', err);
+    };
+
+    setConn(
+      DBConnection.builder()
+        .withUri('ws://localhost:3000')
+        .withModuleName('quickstart-chat')
+        .withToken(localStorage.getItem('auth_token') || '')
+        .onConnect(onConnect)
+        .onDisconnect(onDisconnect)
+        .onConnectError(onConnectError)
+        .build()
+    );
+  }, []);
 
   useEffect(() => {
     if (!conn) return;
     conn.db.user.onInsert((_ctx, user) => {
-      console.log('insert', user);
       if (user.online) {
         const name = user.name || user.identity.toHexString().substring(0, 8);
         setSystemMessage(prev => prev + `\n${name} has connected.`);
       }
     });
     conn.db.user.onUpdate((_ctx, oldUser, newUser) => {
-      console.log('update', oldUser, newUser);
       const name =
         newUser.name || newUser.identity.toHexString().substring(0, 8);
       if (oldUser.online === false && newUser.online === true) {
@@ -142,6 +148,15 @@ function App() {
   const messages = useMessages(conn);
   const users = useUsers(conn);
 
+  const prettyMessages: PrettyMessage[] = messages
+    .sort((a, b) => (a.sent > b.sent ? 1 : -1))
+    .map(message => ({
+      senderName:
+        users.get(message.sender.toHexString())?.name ||
+        message.sender.toHexString().substring(0, 8),
+      text: message.text,
+    }));
+
   if (!conn || !connected || !identity) {
     return (
       <div className="App">
@@ -154,15 +169,6 @@ function App() {
     users.get(identity?.toHexString())?.name ||
     identity?.toHexString().substring(0, 8) ||
     '';
-
-  const prettyMessages: PrettyMessage[] = messages
-    .sort((a, b) => (a.sent > b.sent ? 1 : -1))
-    .map(message => ({
-      senderName:
-        users.get(message.sender.toHexString())?.name ||
-        message.sender.toHexString().substring(0, 8),
-      text: message.text,
-    }));
 
   const onSubmitNewName = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -196,7 +202,6 @@ function App() {
           <form onSubmit={onSubmitNewName}>
             <input
               type="text"
-              style={{ marginBottom: '1rem' }}
               value={newName}
               onChange={e => setNewName(e.target.value)}
             />
