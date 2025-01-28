@@ -36,39 +36,11 @@ importers:
         specifier: ^2.0.3
         version: 2.1.2(terser@5.34.1)
 
-  examples/quickstart:
+  examples/quickstart-chat:
     dependencies:
       '@clockworklabs/spacetimedb-sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
-    devDependencies:
-      '@types/react':
-        specifier: ^18.3.3
-        version: 18.3.11
-      '@types/react-dom':
-        specifier: ^18.3.0
-        version: 18.3.0
-      '@vitejs/plugin-react':
-        specifier: ^4.3.1
-        version: 4.3.2(vite@5.4.8(terser@5.34.1))
-      typescript:
-        specifier: ^5.2.2
-        version: 5.6.2
-      vite:
-        specifier: ^5.3.4
-        version: 5.4.8(terser@5.34.1)
-
-  examples/quickstart-chat/client:
-    dependencies:
-      '@clockworklabs/spacetimedb-sdk':
-        specifier: workspace:*
-        version: link:../../../packages/sdk
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2417,7 +2389,7 @@ snapshots:
     dependencies:
       '@babel/helper-validator-identifier': 7.25.9
       js-tokens: 4.0.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/compat-data@7.25.7': {}
 
