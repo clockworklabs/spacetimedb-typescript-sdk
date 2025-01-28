@@ -202,6 +202,7 @@ function App() {
           <form onSubmit={onSubmitNewName}>
             <input
               type="text"
+              aria-label="name input"
               value={newName}
               onChange={e => setNewName(e.target.value)}
             />
@@ -241,6 +242,7 @@ function App() {
         >
           <h3>New Message</h3>
           <textarea
+            aria-label="message input"
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
           ></textarea>

@@ -123,5 +123,5 @@ jobs:
           bash ./publish.sh
 
       - name: Run quickstart-chat tests
-        run: |
-          echo "HAP"
+        working-directory: examples/quickstart-chat
+        run: pnpm test
