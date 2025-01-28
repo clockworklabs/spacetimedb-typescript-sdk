@@ -127,6 +127,5 @@ jobs:
         run: |
           spacetime logs quickstart-chat
 
-      - name: Run quickstart-chat tests
-        working-directory: examples/quickstart-chat
+      - name: Run all tests recursively
         run: pnpm test
