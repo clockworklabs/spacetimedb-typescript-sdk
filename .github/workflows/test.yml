@@ -79,13 +79,14 @@ jobs:
           path: SpacetimeDB
 
       - name: Install Rust toolchain
+        working-directory: SpacetimeDB
         uses: dsherret/rust-toolchain-file@v1
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: unity-tests~/server-rust
-          shared-key: UnityTestServer
+          workspaces: SpacetimeDB/modules/quickstart-chat 
+          shared-key: 
 
       - name: Install SpacetimeDB CLI from the local checkout
         run: |
