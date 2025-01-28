@@ -77,16 +77,16 @@ const REMOTE_MODULE = {
     },
   },
   reducers: {
-    __identity_connected__: {
-      reducerName: '__identity_connected__',
+    identity_connected: {
+      reducerName: 'identity_connected',
       argsType: IdentityConnected.getTypeScriptAlgebraicType(),
     },
-    __identity_disconnected__: {
-      reducerName: '__identity_disconnected__',
+    identity_disconnected: {
+      reducerName: 'identity_disconnected',
       argsType: IdentityDisconnected.getTypeScriptAlgebraicType(),
     },
-    __init__: {
-      reducerName: '__init__',
+    init: {
+      reducerName: 'init',
       argsType: Init.getTypeScriptAlgebraicType(),
     },
     send_message: {
@@ -137,50 +137,50 @@ export class RemoteReducers {
 
   identityConnected() {
     this.connection.callReducer(
-      '__identity_connected__',
+      'identity_connected',
       new Uint8Array(0),
       this.setCallReducerFlags.identityConnectedFlags
     );
   }
 
   onIdentityConnected(callback: (ctx: EventContext) => void) {
-    this.connection.onReducer('__identity_connected__', callback);
+    this.connection.onReducer('identity_connected', callback);
   }
 
   removeOnIdentityConnected(callback: (ctx: EventContext) => void) {
-    this.connection.offReducer('__identity_connected__', callback);
+    this.connection.offReducer('identity_connected', callback);
   }
 
   identityDisconnected() {
     this.connection.callReducer(
-      '__identity_disconnected__',
+      'identity_disconnected',
       new Uint8Array(0),
       this.setCallReducerFlags.identityDisconnectedFlags
     );
   }
 
   onIdentityDisconnected(callback: (ctx: EventContext) => void) {
-    this.connection.onReducer('__identity_disconnected__', callback);
+    this.connection.onReducer('identity_disconnected', callback);
   }
 
   removeOnIdentityDisconnected(callback: (ctx: EventContext) => void) {
-    this.connection.offReducer('__identity_disconnected__', callback);
+    this.connection.offReducer('identity_disconnected', callback);
   }
 
   init() {
     this.connection.callReducer(
-      '__init__',
+      'init',
       new Uint8Array(0),
       this.setCallReducerFlags.initFlags
     );
   }
 
   onInit(callback: (ctx: EventContext) => void) {
-    this.connection.onReducer('__init__', callback);
+    this.connection.onReducer('init', callback);
   }
 
   removeOnInit(callback: (ctx: EventContext) => void) {
-    this.connection.offReducer('__init__', callback);
+    this.connection.offReducer('init', callback);
   }
 
   sendMessage(text: string) {
