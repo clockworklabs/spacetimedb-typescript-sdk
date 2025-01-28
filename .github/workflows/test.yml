@@ -117,7 +117,7 @@ jobs:
         working-directory: SpacetimeDB/modules/quickstart-chat
         run: |
           spacetime logout && spacetime login --server-issued-login local
-          spacetime publish -s local quickstart-chat -c
+          spacetime publish -s local quickstart-chat -c -y
 
       - name: Check if SpacetimeDB process is running
         run: |
