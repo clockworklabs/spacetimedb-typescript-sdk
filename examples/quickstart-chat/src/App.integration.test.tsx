@@ -12,8 +12,9 @@ describe('App Integration Test', () => {
 
     // Wait until "Connecting..." is gone (meaning we've connected)
     // This might require the actual DB to accept the connection
-    await waitFor(() =>
-      expect(screen.queryByText(/Connecting.../i)).not.toBeInTheDocument(),
+    await waitFor(
+      () =>
+        expect(screen.queryByText(/Connecting.../i)).not.toBeInTheDocument(),
       { timeout: 10000 }
     );
 
@@ -21,7 +22,9 @@ describe('App Integration Test', () => {
     // For example, you can check if the text is rendered.
     // If your default identity is something like 'abcdef12' or 'Unknown'
     // we do a generic check:
-    expect(screen.getByRole('heading', { name: /profile/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /profile/i })
+    ).toBeInTheDocument();
 
     // Let's change the user's name
     const editNameButton = screen.getByText(/Edit Name/i);
@@ -34,9 +37,12 @@ describe('App Integration Test', () => {
     await userEvent.click(submitNameButton);
 
     // If your DB or UI updates instantly, we can check that the new name shows up
-    await waitFor(() => {
-      expect(screen.getByText('TestUser')).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('TestUser')).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
 
     // Now let's send a message
     const textarea = screen.getByRole('textbox', { name: /message input/i });
@@ -46,9 +52,11 @@ describe('App Integration Test', () => {
     await userEvent.click(sendButton);
 
     // Wait for message to appear in the UI
-    await waitFor(() => {
-      expect(screen.getByText('Hello from GH Actions!')).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Hello from GH Actions!')).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
   });
 });
-
