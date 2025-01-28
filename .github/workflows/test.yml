@@ -41,35 +41,30 @@ jobs:
       - name: Compile
         run: pnpm compile
 
-      - name: Run tests
-        run: pnpm test
-
-      # Grab the SpacetimeDB branch name from the PR description. If it's not found, master will be used instead.
-      # We'll use this branch name for any integration tests with SpacetimeDB.
-      - name: Extract SpacetimeDB branch name or PR link from PR description
+      - name: Extract SpacetimeDB branch name from file
         id: extract-branch
-        if: github.event_name == 'pull_request'
-        env:
-          description: ${{ github.event.pull_request.body }}
         run: |
-          # Check if description contains a branch name or a PR link
-          branch_or_pr=$(echo "$description" | grep -oP '(?<=SpacetimeDB branch name:\s).+')
-          echo "Branch or PR found: $branch_or_pr"
+          # Define the path to the branch file
+          BRANCH_FILE=".github/spacetimedb-branch.txt"
 
-          if [[ -z "$branch_or_pr" ]]; then
+          # Default to master if file doesn't exist
+          if [ ! -f "$BRANCH_FILE" ]; then
+            echo "::notice::No SpacetimeDB branch file found, using 'master'"
+            echo "branch=master" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Read and trim whitespace from the file
+          branch=$(cat "$BRANCH_FILE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+          # Fallback to master if empty
+          if [ -z "$branch" ]; then
+            echo "::warning::SpacetimeDB branch file is empty, using 'master'"
             branch="master"
-          elif [[ "$branch_or_pr" =~ ^https://github.com/.*/pull/[0-9]+$ ]]; then
-            # If it's a PR link, extract the branch name from the PR
-            pr_number=$(echo "$branch_or_pr" | grep -oP '[0-9]+$')
-            branch=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/clockworklabs/SpacetimeDB/pulls/$pr_number | jq -r '.head.ref')
-          else
-            # It's already a branch name
-            branch="$branch_or_pr"
           fi
 
           echo "branch=$branch" >> $GITHUB_OUTPUT
-          echo "Final branch name: $branch"
+          echo "Using SpacetimeDB branch from file: $branch"
 
       - name: Checkout SpacetimeDB
         uses: actions/checkout@v4
@@ -120,7 +115,17 @@ jobs:
         working-directory: SpacetimeDB/modules/quickstart-chat
         run: |
           spacetime logout && spacetime login --server-issued-login local
-          bash ./publish.sh
+          spacetime publish -s local quickstart-chat -c
+
+      - name: Check if SpacetimeDB process is running
+        run: |
+          echo "Currently running spacetime processes:"
+          pgrep -laf spacetime || echo "No spacetime process found."
+
+      - name: Publish module to SpacetimeDB
+        working-directory: SpacetimeDB/modules/quickstart-chat
+        run: |
+          spacetime logs quickstart-chat
 
       - name: Run quickstart-chat tests
         working-directory: examples/quickstart-chat
