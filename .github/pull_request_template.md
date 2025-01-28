@@ -11,3 +11,14 @@ _If the API is breaking, please state below what will break_
 ## Requires SpacetimeDB PRs
 
 _List any PRs here that are required for this SDK change to work_
+
+## Testsuite
+*If you would like to run the your SDK changes in this PR against a specific SpacetimeDB branch, specify that here. This can be a branch name or a link to a PR.*
+
+SpacetimeDB branch name: master
+
+## Testing
+*Write instructions for a test that you performed for this PR*
+
+- [ ] Describe a test for this PR that you have completed
+

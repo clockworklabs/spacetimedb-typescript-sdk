@@ -79,7 +79,7 @@ jobs:
           path: SpacetimeDB
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dsherret/rust-toolchain-file@v1
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
