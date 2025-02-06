@@ -131,3 +131,9 @@ jobs:
 
       - name: Run all tests recursively
         run: pnpm test
+
+      # Run this step always, even if the previous steps fail
+      - name: Print rows in the user table
+        if: always()
+        run: spacetime sql quickstart-chat "SELECT * FROM user"
+
