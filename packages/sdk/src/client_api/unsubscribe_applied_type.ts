@@ -38,17 +38,17 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { QueryId as __QueryId } from "./query_id_type";
+import { QueryId as __QueryId } from './query_id_type';
 // @ts-ignore
-import { SubscribeRows as __SubscribeRows } from "./subscribe_rows_type";
+import { SubscribeRows as __SubscribeRows } from './subscribe_rows_type';
 
 export type UnsubscribeApplied = {
-  requestId: number,
-  totalHostExecutionDurationMicros: bigint,
-  queryId: __QueryId,
-  rows: __SubscribeRows,
+  requestId: number;
+  totalHostExecutionDurationMicros: bigint;
+  queryId: __QueryId;
+  rows: __SubscribeRows;
 };
 
 /**
@@ -56,26 +56,32 @@ export type UnsubscribeApplied = {
  */
 export namespace UnsubscribeApplied {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("requestId", AlgebraicType.createU32Type()),
-      new ProductTypeElement("totalHostExecutionDurationMicros", AlgebraicType.createU64Type()),
-      new ProductTypeElement("queryId", __QueryId.getTypeScriptAlgebraicType()),
-      new ProductTypeElement("rows", __SubscribeRows.getTypeScriptAlgebraicType()),
+      new ProductTypeElement('requestId', AlgebraicType.createU32Type()),
+      new ProductTypeElement(
+        'totalHostExecutionDurationMicros',
+        AlgebraicType.createU64Type()
+      ),
+      new ProductTypeElement('queryId', __QueryId.getTypeScriptAlgebraicType()),
+      new ProductTypeElement(
+        'rows',
+        __SubscribeRows.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: UnsubscribeApplied): void {
+  export function serialize(
+    writer: BinaryWriter,
+    value: UnsubscribeApplied
+  ): void {
     UnsubscribeApplied.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): UnsubscribeApplied {
     return UnsubscribeApplied.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

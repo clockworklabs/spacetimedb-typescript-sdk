@@ -38,9 +38,9 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 export type QueryId = {
-  id: number,
+  id: number;
 };
 
 /**
@@ -48,12 +48,12 @@ export type QueryId = {
  */
 export namespace QueryId {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("id", AlgebraicType.createU32Type()),
+      new ProductTypeElement('id', AlgebraicType.createU32Type()),
     ]);
   }
 
@@ -64,7 +64,4 @@ export namespace QueryId {
   export function deserialize(reader: BinaryReader): QueryId {
     return QueryId.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

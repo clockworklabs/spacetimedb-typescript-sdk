@@ -38,11 +38,11 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 export type IdentityToken = {
-  identity: Identity,
-  token: string,
-  connectionId: ConnectionId,
+  identity: Identity;
+  token: string;
+  connectionId: ConnectionId;
 };
 
 /**
@@ -50,14 +50,17 @@ export type IdentityToken = {
  */
 export namespace IdentityToken {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("token", AlgebraicType.createStringType()),
-      new ProductTypeElement("connectionId", AlgebraicType.createConnectionIdType()),
+      new ProductTypeElement('identity', AlgebraicType.createIdentityType()),
+      new ProductTypeElement('token', AlgebraicType.createStringType()),
+      new ProductTypeElement(
+        'connectionId',
+        AlgebraicType.createConnectionIdType()
+      ),
     ]);
   }
 
@@ -68,7 +71,4 @@ export namespace IdentityToken {
   export function deserialize(reader: BinaryReader): IdentityToken {
     return IdentityToken.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

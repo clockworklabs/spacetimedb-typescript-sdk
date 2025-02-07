@@ -38,24 +38,24 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { UpdateStatus as __UpdateStatus } from "./update_status_type";
+import { UpdateStatus as __UpdateStatus } from './update_status_type';
 // @ts-ignore
-import { Timestamp as __Timestamp } from "./timestamp_type";
+import { Timestamp as __Timestamp } from './timestamp_type';
 // @ts-ignore
-import { ReducerCallInfo as __ReducerCallInfo } from "./reducer_call_info_type";
+import { ReducerCallInfo as __ReducerCallInfo } from './reducer_call_info_type';
 // @ts-ignore
-import { EnergyQuanta as __EnergyQuanta } from "./energy_quanta_type";
+import { EnergyQuanta as __EnergyQuanta } from './energy_quanta_type';
 
 export type TransactionUpdate = {
-  status: __UpdateStatus,
-  timestamp: __Timestamp,
-  callerIdentity: Identity,
-  callerConnectionId: ConnectionId,
-  reducerCall: __ReducerCallInfo,
-  energyQuantaUsed: __EnergyQuanta,
-  hostExecutionDurationMicros: bigint,
+  status: __UpdateStatus;
+  timestamp: __Timestamp;
+  callerIdentity: Identity;
+  callerConnectionId: ConnectionId;
+  reducerCall: __ReducerCallInfo;
+  energyQuantaUsed: __EnergyQuanta;
+  hostExecutionDurationMicros: bigint;
 };
 
 /**
@@ -63,29 +63,50 @@ export type TransactionUpdate = {
  */
 export namespace TransactionUpdate {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("status", __UpdateStatus.getTypeScriptAlgebraicType()),
-      new ProductTypeElement("timestamp", __Timestamp.getTypeScriptAlgebraicType()),
-      new ProductTypeElement("callerIdentity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("callerConnectionId", AlgebraicType.createConnectionIdType()),
-      new ProductTypeElement("reducerCall", __ReducerCallInfo.getTypeScriptAlgebraicType()),
-      new ProductTypeElement("energyQuantaUsed", __EnergyQuanta.getTypeScriptAlgebraicType()),
-      new ProductTypeElement("hostExecutionDurationMicros", AlgebraicType.createU64Type()),
+      new ProductTypeElement(
+        'status',
+        __UpdateStatus.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'timestamp',
+        __Timestamp.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'callerIdentity',
+        AlgebraicType.createIdentityType()
+      ),
+      new ProductTypeElement(
+        'callerConnectionId',
+        AlgebraicType.createConnectionIdType()
+      ),
+      new ProductTypeElement(
+        'reducerCall',
+        __ReducerCallInfo.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'energyQuantaUsed',
+        __EnergyQuanta.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'hostExecutionDurationMicros',
+        AlgebraicType.createU64Type()
+      ),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: TransactionUpdate): void {
+  export function serialize(
+    writer: BinaryWriter,
+    value: TransactionUpdate
+  ): void {
     TransactionUpdate.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
   export function deserialize(reader: BinaryReader): TransactionUpdate {
     return TransactionUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

@@ -1,4 +1,4 @@
-import {ConnectionId} from './connection_id';
+import { ConnectionId } from './connection_id';
 import type { Timestamp, UpdateStatus } from './client_api/index.ts';
 import { Identity } from './identity.ts';
 

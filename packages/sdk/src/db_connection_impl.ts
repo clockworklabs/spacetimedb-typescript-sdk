@@ -228,7 +228,9 @@ export class DBConnectionImpl<
       case 'TransactionUpdate': {
         const txUpdate = message.value;
         const identity = txUpdate.callerIdentity;
-        const connectionId = ConnectionId.nullIfZero(txUpdate.callerConnectionId);
+        const connectionId = ConnectionId.nullIfZero(
+          txUpdate.callerConnectionId
+        );
         const originalReducerName = txUpdate.reducerCall.reducerName;
         const reducerName: string = toPascalCase(originalReducerName);
         const args = txUpdate.reducerCall.args;

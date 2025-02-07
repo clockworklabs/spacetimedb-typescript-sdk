@@ -38,12 +38,12 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { TableUpdate as __TableUpdate } from "./table_update_type";
+import { TableUpdate as __TableUpdate } from './table_update_type';
 
 export type DatabaseUpdate = {
-  tables: __TableUpdate[],
+  tables: __TableUpdate[];
 };
 
 /**
@@ -51,12 +51,17 @@ export type DatabaseUpdate = {
  */
 export namespace DatabaseUpdate {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("tables", AlgebraicType.createArrayType(__TableUpdate.getTypeScriptAlgebraicType())),
+      new ProductTypeElement(
+        'tables',
+        AlgebraicType.createArrayType(
+          __TableUpdate.getTypeScriptAlgebraicType()
+        )
+      ),
     ]);
   }
 
@@ -67,7 +72,4 @@ export namespace DatabaseUpdate {
   export function deserialize(reader: BinaryReader): DatabaseUpdate {
     return DatabaseUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

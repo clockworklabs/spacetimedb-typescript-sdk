@@ -38,13 +38,13 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { BsatnRowList as __BsatnRowList } from "./bsatn_row_list_type";
+import { BsatnRowList as __BsatnRowList } from './bsatn_row_list_type';
 
 export type QueryUpdate = {
-  deletes: __BsatnRowList,
-  inserts: __BsatnRowList,
+  deletes: __BsatnRowList;
+  inserts: __BsatnRowList;
 };
 
 /**
@@ -52,13 +52,19 @@ export type QueryUpdate = {
  */
 export namespace QueryUpdate {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("deletes", __BsatnRowList.getTypeScriptAlgebraicType()),
-      new ProductTypeElement("inserts", __BsatnRowList.getTypeScriptAlgebraicType()),
+      new ProductTypeElement(
+        'deletes',
+        __BsatnRowList.getTypeScriptAlgebraicType()
+      ),
+      new ProductTypeElement(
+        'inserts',
+        __BsatnRowList.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
@@ -69,7 +75,4 @@ export namespace QueryUpdate {
   export function deserialize(reader: BinaryReader): QueryUpdate {
     return QueryUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

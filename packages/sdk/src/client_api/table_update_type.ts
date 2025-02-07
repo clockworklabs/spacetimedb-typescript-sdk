@@ -38,15 +38,15 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { CompressableQueryUpdate as __CompressableQueryUpdate } from "./compressable_query_update_type";
+import { CompressableQueryUpdate as __CompressableQueryUpdate } from './compressable_query_update_type';
 
 export type TableUpdate = {
-  tableId: number,
-  tableName: string,
-  numRows: bigint,
-  updates: __CompressableQueryUpdate[],
+  tableId: number;
+  tableName: string;
+  numRows: bigint;
+  updates: __CompressableQueryUpdate[];
 };
 
 /**
@@ -54,15 +54,20 @@ export type TableUpdate = {
  */
 export namespace TableUpdate {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("tableId", AlgebraicType.createU32Type()),
-      new ProductTypeElement("tableName", AlgebraicType.createStringType()),
-      new ProductTypeElement("numRows", AlgebraicType.createU64Type()),
-      new ProductTypeElement("updates", AlgebraicType.createArrayType(__CompressableQueryUpdate.getTypeScriptAlgebraicType())),
+      new ProductTypeElement('tableId', AlgebraicType.createU32Type()),
+      new ProductTypeElement('tableName', AlgebraicType.createStringType()),
+      new ProductTypeElement('numRows', AlgebraicType.createU64Type()),
+      new ProductTypeElement(
+        'updates',
+        AlgebraicType.createArrayType(
+          __CompressableQueryUpdate.getTypeScriptAlgebraicType()
+        )
+      ),
     ]);
   }
 
@@ -73,7 +78,4 @@ export namespace TableUpdate {
   export function deserialize(reader: BinaryReader): TableUpdate {
     return TableUpdate.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-

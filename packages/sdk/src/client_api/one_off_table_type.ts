@@ -38,13 +38,13 @@ import {
   TableCache,
   // @ts-ignore
   deepEqual,
-} from "../index";
+} from '../index';
 // @ts-ignore
-import { BsatnRowList as __BsatnRowList } from "./bsatn_row_list_type";
+import { BsatnRowList as __BsatnRowList } from './bsatn_row_list_type';
 
 export type OneOffTable = {
-  tableName: string,
-  rows: __BsatnRowList,
+  tableName: string;
+  rows: __BsatnRowList;
 };
 
 /**
@@ -52,13 +52,16 @@ export type OneOffTable = {
  */
 export namespace OneOffTable {
   /**
-  * A function which returns this type represented as an AlgebraicType.
-  * This function is derived from the AlgebraicType used to generate this type.
-  */
+   * A function which returns this type represented as an AlgebraicType.
+   * This function is derived from the AlgebraicType used to generate this type.
+   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("tableName", AlgebraicType.createStringType()),
-      new ProductTypeElement("rows", __BsatnRowList.getTypeScriptAlgebraicType()),
+      new ProductTypeElement('tableName', AlgebraicType.createStringType()),
+      new ProductTypeElement(
+        'rows',
+        __BsatnRowList.getTypeScriptAlgebraicType()
+      ),
     ]);
   }
 
@@ -69,7 +72,4 @@ export namespace OneOffTable {
   export function deserialize(reader: BinaryReader): OneOffTable {
     return OneOffTable.getTypeScriptAlgebraicType().deserialize(reader);
   }
-
 }
-
-
