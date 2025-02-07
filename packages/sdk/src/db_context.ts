@@ -1,11 +1,3 @@
-import type { DBConnectionImpl } from './db_connection_impl.ts';
-import type {
-  ErrorContextInterface,
-  EventContextInterface,
-  SubscriptionEventContextInterface,
-} from './event_context.ts';
-import type SpacetimeModule from './spacetime_module.ts';
-
 type Result<T = undefined> =
   | {
       tag: 'Ok';
