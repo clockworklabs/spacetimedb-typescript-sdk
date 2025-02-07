@@ -6,7 +6,7 @@ import {
   User,
 } from '@clockworklabs/test-app/src/module_bindings';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { Address } from '../src/address';
+import { ConnectionId } from '../src/connection_id';
 import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import BinaryWriter from '../src/binary_writer';
@@ -150,7 +150,7 @@ describe('SpacetimeDBClient', () => {
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: anIdentity,
       token: 'a-token',
-      address: Address.random(),
+      connectionId: ConnectionId.random(),
     });
     wsAdapter.sendToClient(tokenMessage);
 
@@ -177,7 +177,7 @@ describe('SpacetimeDBClient', () => {
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: anIdentity,
       token: 'a-token',
-      address: Address.random(),
+      connectionId: ConnectionId.random(),
     });
     wsAdapter.sendToClient(tokenMessage);
 
@@ -286,7 +286,7 @@ describe('SpacetimeDBClient', () => {
       }),
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
-      callerAddress: Address.random(),
+      callerConnectionId: ConnectionId.random(),
       reducerCall: {
         reducerName: 'create_player',
         reducerId: 0,
@@ -335,7 +335,7 @@ describe('SpacetimeDBClient', () => {
     const tokenMessage = ws.ServerMessage.IdentityToken({
       identity: anIdentity,
       token: 'a-token',
-      address: Address.random(),
+      connectionId: ConnectionId.random(),
     });
     wsAdapter.sendToClient(tokenMessage);
 
@@ -434,7 +434,7 @@ describe('SpacetimeDBClient', () => {
       }),
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
-      callerAddress: Address.random(),
+      callerConnectionId: ConnectionId.random(),
       reducerCall: {
         reducerName: 'create_player',
         reducerId: 0,
@@ -516,7 +516,7 @@ describe('SpacetimeDBClient', () => {
       }),
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
-      callerAddress: Address.random(),
+      callerConnectionId: ConnectionId.random(),
       reducerCall: {
         reducerName: 'create_player',
         reducerId: 0,
@@ -553,7 +553,7 @@ describe('SpacetimeDBClient', () => {
         '0000000000000000000000000000000000000000000000000000000000000069'
       ),
       token: 'a-token',
-      address: Address.random(),
+      connectionId: ConnectionId.random(),
     });
     wsAdapter.sendToClient(tokenMessage);
 
@@ -663,7 +663,7 @@ describe('SpacetimeDBClient', () => {
       }),
       timestamp: { microseconds: BigInt(1681391805281203) },
       callerIdentity: anIdentity,
-      callerAddress: Address.random(),
+      callerConnectionId: ConnectionId.random(),
       reducerCall: {
         reducerName: 'create_player',
         reducerId: 0,

@@ -39,34 +39,35 @@ import {
   // @ts-ignore
   deepEqual,
 } from "../index";
-export type IdentityToken = {
-  identity: Identity,
-  token: string,
-  connectionId: ConnectionId,
+// @ts-ignore
+import { QueryId as __QueryId } from "./query_id_type";
+
+export type Unsubscribe = {
+  requestId: number,
+  queryId: __QueryId,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace IdentityToken {
+export namespace Unsubscribe {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("token", AlgebraicType.createStringType()),
-      new ProductTypeElement("connectionId", AlgebraicType.createConnectionIdType()),
+      new ProductTypeElement("requestId", AlgebraicType.createU32Type()),
+      new ProductTypeElement("queryId", __QueryId.getTypeScriptAlgebraicType()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: IdentityToken): void {
-    IdentityToken.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: Unsubscribe): void {
+    Unsubscribe.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): IdentityToken {
-    return IdentityToken.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): Unsubscribe {
+    return Unsubscribe.getTypeScriptAlgebraicType().deserialize(reader);
   }
 
 }

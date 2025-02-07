@@ -39,34 +39,30 @@ import {
   // @ts-ignore
   deepEqual,
 } from "../index";
-export type IdentityToken = {
-  identity: Identity,
-  token: string,
-  connectionId: ConnectionId,
+export type QueryId = {
+  id: number,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace IdentityToken {
+export namespace QueryId {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("token", AlgebraicType.createStringType()),
-      new ProductTypeElement("connectionId", AlgebraicType.createConnectionIdType()),
+      new ProductTypeElement("id", AlgebraicType.createU32Type()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: IdentityToken): void {
-    IdentityToken.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: QueryId): void {
+    QueryId.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): IdentityToken {
-    return IdentityToken.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): QueryId {
+    return QueryId.getTypeScriptAlgebraicType().deserialize(reader);
   }
 
 }

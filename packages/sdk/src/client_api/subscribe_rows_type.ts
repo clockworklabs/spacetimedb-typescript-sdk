@@ -39,34 +39,37 @@ import {
   // @ts-ignore
   deepEqual,
 } from "../index";
-export type IdentityToken = {
-  identity: Identity,
-  token: string,
-  connectionId: ConnectionId,
+// @ts-ignore
+import { TableUpdate as __TableUpdate } from "./table_update_type";
+
+export type SubscribeRows = {
+  tableId: number,
+  tableName: string,
+  tableRows: __TableUpdate,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace IdentityToken {
+export namespace SubscribeRows {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("token", AlgebraicType.createStringType()),
-      new ProductTypeElement("connectionId", AlgebraicType.createConnectionIdType()),
+      new ProductTypeElement("tableId", AlgebraicType.createU32Type()),
+      new ProductTypeElement("tableName", AlgebraicType.createStringType()),
+      new ProductTypeElement("tableRows", __TableUpdate.getTypeScriptAlgebraicType()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: IdentityToken): void {
-    IdentityToken.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: SubscribeRows): void {
+    SubscribeRows.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): IdentityToken {
-    return IdentityToken.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): SubscribeRows {
+    return SubscribeRows.getTypeScriptAlgebraicType().deserialize(reader);
   }
 
 }

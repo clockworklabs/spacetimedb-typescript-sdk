@@ -1,4 +1,4 @@
-import { Address } from './address.ts';
+import { ConnectionId } from './connection_id';
 import {
   AlgebraicType,
   ProductType,
@@ -97,7 +97,7 @@ export class DBConnectionImpl<
   reducers: Reducers;
   setReducerFlags: SetReducerFlags;
 
-  clientAddress: Address = Address.random();
+  connectionId: ConnectionId = ConnectionId.random();
 
   #messageQueue = Promise.resolve();
 
@@ -228,7 +228,7 @@ export class DBConnectionImpl<
       case 'TransactionUpdate': {
         const txUpdate = message.value;
         const identity = txUpdate.callerIdentity;
-        const address = Address.nullIfZero(txUpdate.callerAddress);
+        const connectionId = ConnectionId.nullIfZero(txUpdate.callerConnectionId);
         const originalReducerName = txUpdate.reducerCall.reducerName;
         const reducerName: string = toPascalCase(originalReducerName);
         const args = txUpdate.reducerCall.args;
@@ -252,7 +252,7 @@ export class DBConnectionImpl<
           tag: 'TransactionUpdate',
           tableUpdates,
           identity,
-          address,
+          connectionId,
           originalReducerName,
           reducerName,
           args,
@@ -270,7 +270,7 @@ export class DBConnectionImpl<
           tag: 'IdentityToken',
           identity: message.value.identity,
           token: message.value.token,
-          address: message.value.address,
+          connectionId: message.value.connectionId,
         };
         callback(identityTokenMessage);
         break;
@@ -417,7 +417,7 @@ export class DBConnectionImpl<
             const reducerEvent = {
               callerIdentity: message.identity,
               status: message.status,
-              callerAddress: message.address as Address,
+              callerConnectionId: message.connectionId as ConnectionId,
               timestamp: message.timestamp,
               energyConsumed: message.energyConsumed,
               reducer: {
@@ -446,7 +446,7 @@ export class DBConnectionImpl<
           if (!this.token && message.token) {
             this.token = message.token;
           }
-          this.clientAddress = message.address;
+          this.connectionId = message.connectionId;
           this.#emitter.emit('connect', this, this.identity, this.token);
         }
       })

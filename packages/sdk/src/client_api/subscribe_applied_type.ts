@@ -39,34 +39,41 @@ import {
   // @ts-ignore
   deepEqual,
 } from "../index";
-export type IdentityToken = {
-  identity: Identity,
-  token: string,
-  connectionId: ConnectionId,
+// @ts-ignore
+import { QueryId as __QueryId } from "./query_id_type";
+// @ts-ignore
+import { SubscribeRows as __SubscribeRows } from "./subscribe_rows_type";
+
+export type SubscribeApplied = {
+  requestId: number,
+  totalHostExecutionDurationMicros: bigint,
+  queryId: __QueryId,
+  rows: __SubscribeRows,
 };
 
 /**
  * A namespace for generated helper functions.
  */
-export namespace IdentityToken {
+export namespace SubscribeApplied {
   /**
   * A function which returns this type represented as an AlgebraicType.
   * This function is derived from the AlgebraicType used to generate this type.
   */
   export function getTypeScriptAlgebraicType(): AlgebraicType {
     return AlgebraicType.createProductType([
-      new ProductTypeElement("identity", AlgebraicType.createIdentityType()),
-      new ProductTypeElement("token", AlgebraicType.createStringType()),
-      new ProductTypeElement("connectionId", AlgebraicType.createConnectionIdType()),
+      new ProductTypeElement("requestId", AlgebraicType.createU32Type()),
+      new ProductTypeElement("totalHostExecutionDurationMicros", AlgebraicType.createU64Type()),
+      new ProductTypeElement("queryId", __QueryId.getTypeScriptAlgebraicType()),
+      new ProductTypeElement("rows", __SubscribeRows.getTypeScriptAlgebraicType()),
     ]);
   }
 
-  export function serialize(writer: BinaryWriter, value: IdentityToken): void {
-    IdentityToken.getTypeScriptAlgebraicType().serialize(writer, value);
+  export function serialize(writer: BinaryWriter, value: SubscribeApplied): void {
+    SubscribeApplied.getTypeScriptAlgebraicType().serialize(writer, value);
   }
 
-  export function deserialize(reader: BinaryReader): IdentityToken {
-    return IdentityToken.getTypeScriptAlgebraicType().deserialize(reader);
+  export function deserialize(reader: BinaryReader): SubscribeApplied {
+    return SubscribeApplied.getTypeScriptAlgebraicType().deserialize(reader);
   }
 
 }
