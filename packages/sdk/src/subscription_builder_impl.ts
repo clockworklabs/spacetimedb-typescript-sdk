@@ -129,22 +129,13 @@ export class SubscriptionManager {
   > = new Map();
 }
 
-type Result<T = undefined> =
-  | {
-      tag: 'Ok';
-      value: T;
-    }
-  | {
-      tag: 'Err';
-      value: Error;
-    };
-
 export class SubscriptionHandleImpl<
   DBView = any,
   Reducers = any,
   SetReducerFlags = any,
 > {
   #queryId: number;
+  #unsubscribeCalled: boolean = false;
   #endedState: boolean = false;
   #activeState: boolean = false;
   #emitter: EventEmitter<SubscribeEvent, (...args: any[]) => void> =
@@ -195,10 +186,13 @@ export class SubscriptionHandleImpl<
    * removing this query from the client's set of subscribed queries.
    * It is only valid to call this method if `is_active()` is `true`.
    */
-  unsubscribe(): Result {
+  unsubscribe(): void {
+    if (this.#unsubscribeCalled) {
+      throw new Error('Unsubscribe has already been called');
+    }
+    this.#unsubscribeCalled = true;
     this.db.unregisterSubscription(this.#queryId);
     this.db['unsubscribe'](this.#queryId);
-    return { tag: 'Ok', value: undefined };
   }
 
   /**
@@ -215,7 +209,14 @@ export class SubscriptionHandleImpl<
     onEnd: (
       ctx: SubscriptionEventContextInterface<DBView, Reducers, SetReducerFlags>
     ) => void
-  ): Result {
+  ): void {
+    if (this.#endedState) {
+      throw new Error('Subscription has already ended');
+    }
+    if (this.#unsubscribeCalled) {
+      throw new Error('Unsubscribe has already been called');
+    }
+    this.#unsubscribeCalled = true;
     this.#emitter.on(
       'end',
       (
@@ -230,7 +231,6 @@ export class SubscriptionHandleImpl<
         onEnd(ctx);
       }
     );
-    return { tag: 'Ok', value: undefined };
   }
 
   /**

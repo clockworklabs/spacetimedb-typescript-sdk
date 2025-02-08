@@ -415,7 +415,7 @@ export class AlgebraicType {
       this.product.elements[0].name === tag
     );
   }
-  
+
   isTimestamp(): boolean {
     return this.#isBytesNewtype('__timestamp_micros_since_unix_epoch__');
   }
