@@ -2,7 +2,7 @@ import { Address } from './address';
 import type BinaryReader from './binary_reader';
 import type BinaryWriter from './binary_writer';
 import { Identity } from './identity';
-import ScheduleAt from "./schedule_at";
+import ScheduleAt from './schedule_at';
 
 /**
  * A variant of a sum type.
@@ -393,14 +393,14 @@ export class AlgebraicType {
   isAddress(): boolean {
     return this.#isBytesNewtype('__address__');
   }
-  
+
   isScheduleAt(): boolean {
     return (
       this.isSumType() &&
       this.sum.variants.length === 2 &&
-      this.sum.variants[0].name === "Interval" &&
+      this.sum.variants[0].name === 'Interval' &&
       this.sum.variants[0].algebraicType.type === Type.U64 &&
-      this.sum.variants[1].name === "Time" &&
+      this.sum.variants[1].name === 'Time' &&
       this.sum.variants[1].algebraicType.type === Type.U64
     );
   }
