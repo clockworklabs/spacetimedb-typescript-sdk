@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { TableUpdate as __TableUpdate } from './table_update_type';
 
 export type DatabaseUpdate = {

@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 // A namespace for generated variants and helper functions.
 export namespace RowSizeHint {
   // These are the generated variant types for each variant of the tagged union.

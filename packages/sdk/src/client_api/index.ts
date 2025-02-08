@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 
 // Import and reexport all reducer arg types
 

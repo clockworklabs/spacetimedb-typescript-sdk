@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { BsatnRowList as __BsatnRowList } from './bsatn_row_list_type';
 
 export type OneOffTable = {

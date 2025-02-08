@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { CompressableQueryUpdate as __CompressableQueryUpdate } from './compressable_query_update_type';
 
 export type TableUpdate = {

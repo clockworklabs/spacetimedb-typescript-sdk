@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { RowSizeHint as __RowSizeHint } from './row_size_hint_type';
 
 export type BsatnRowList = {

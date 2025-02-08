@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { UpdateStatus as __UpdateStatus } from './update_status_type';
 import { ReducerCallInfo as __ReducerCallInfo } from './reducer_call_info_type';
 import { EnergyQuanta as __EnergyQuanta } from './energy_quanta_type';

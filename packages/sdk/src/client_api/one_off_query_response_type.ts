@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { OneOffTable as __OneOffTable } from './one_off_table_type';
 
 export type OneOffQueryResponse = {

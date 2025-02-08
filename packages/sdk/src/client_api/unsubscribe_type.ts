@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '../index';
+} from '@clockworklabs/spacetimedb-sdk';
 import { QueryId as __QueryId } from './query_id_type';
 
 export type Unsubscribe = {
