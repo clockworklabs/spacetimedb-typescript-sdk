@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '@clockworklabs/spacetimedb-sdk';
+} from '..index';
 export type CallReducer = {
   reducer: string;
   args: Uint8Array;

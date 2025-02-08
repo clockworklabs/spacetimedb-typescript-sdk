@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '@clockworklabs/spacetimedb-sdk';
+} from '..index';
 import { DatabaseUpdate as __DatabaseUpdate } from './database_update_type';
 
 // A namespace for generated variants and helper functions.

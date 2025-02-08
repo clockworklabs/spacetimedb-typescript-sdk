@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '@clockworklabs/spacetimedb-sdk';
+} from '..index';
 import { InitialSubscription as __InitialSubscription } from './initial_subscription_type';
 import { TransactionUpdate as __TransactionUpdate } from './transaction_update_type';
 import { TransactionUpdateLight as __TransactionUpdateLight } from './transaction_update_light_type';

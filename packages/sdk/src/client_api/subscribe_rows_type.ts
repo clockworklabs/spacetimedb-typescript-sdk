@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '@clockworklabs/spacetimedb-sdk';
+} from '..index';
 import { TableUpdate as __TableUpdate } from './table_update_type';
 
 export type SubscribeRows = {
