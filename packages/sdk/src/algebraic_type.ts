@@ -1,3 +1,4 @@
+import { TimeDuration, Timestamp } from '.';
 import { ConnectionId } from './connection_id';
 import type BinaryReader from './binary_reader';
 import type BinaryWriter from './binary_writer';
@@ -162,9 +163,17 @@ export class ProductType {
     }
   };
 
-  deserialize = (reader: BinaryReader): object => {
+  deserialize = (reader: BinaryReader): any => {
     let result: { [key: string]: any } = {};
     if (this.elements.length === 1) {
+      if (this.elements[0].name === '__time_duration_micros__') {
+        return new TimeDuration(reader.readI64());
+      }
+
+      if (this.elements[0].name === '__timestamp_micros_since_unix_epoch__') {
+        return new Timestamp(reader.readI64());
+      }
+
       if (this.elements[0].name === '__identity__') {
         return new Identity(reader.readU256());
       }
@@ -347,14 +356,17 @@ export class AlgebraicType {
       new ProductTypeElement('__identity__', this.createU256Type()),
     ]);
   }
+
   static createConnectionIdType(): AlgebraicType {
     return this.createProductType([
       new ProductTypeElement('__connection_id__', this.createU128Type()),
     ]);
   }
+
   static createScheduleAtType(): AlgebraicType {
     return ScheduleAt.getAlgebraicType();
   }
+
   static createTimestampType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
@@ -363,6 +375,7 @@ export class AlgebraicType {
       ),
     ]);
   }
+
   static createTimeDurationType(): AlgebraicType {
     return AlgebraicType.createProductType([
       new ProductTypeElement(
@@ -396,10 +409,19 @@ export class AlgebraicType {
     return (
       this.isProductType() &&
       this.product.elements.length === 1 &&
-      (this.product.elements[0].algebraicType.type == Type.U128 ||
+      (this.product.elements[0].algebraicType.type == Type.I64 ||
+        this.product.elements[0].algebraicType.type == Type.U128 ||
         this.product.elements[0].algebraicType.type == Type.U256) &&
       this.product.elements[0].name === tag
     );
+  }
+  
+  isTimestamp(): boolean {
+    return this.#isBytesNewtype('__timestamp_micros_since_unix_epoch__');
+  }
+
+  isTimeDuration(): boolean {
+    return this.#isBytesNewtype('__time_duration_micros__');
   }
 
   #isI64Newtype(tag: string): boolean {

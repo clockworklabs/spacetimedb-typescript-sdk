@@ -13,7 +13,7 @@ import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import BinaryWriter from '../src/binary_writer';
 import * as ws from '../src/client_api';
-import { ReducerEvent } from '../src/db_connection_impl';
+import { ReducerEvent, TimeDuration, Timestamp } from '../src/db_connection_impl';
 import { Identity } from '../src/identity';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 

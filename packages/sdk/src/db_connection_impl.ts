@@ -50,6 +50,40 @@ import {
 import { stdbLogger } from './logger.ts';
 import type { ReducerRuntimeTypeInfo } from './spacetime_module.ts';
 
+export class Timestamp {
+  value: bigint;
+
+  get __timestamp_micros_since_unix_epoch__(): bigint {
+    return this.value;
+  }
+
+  /**
+   * Creates a new `Timestamp`.
+   *
+   * `data` must be a `bigint` representing since the Unix epoch in microseconds.
+   */
+  constructor(data: bigint) {
+    this.value = data;
+  }
+}
+
+export class TimeDuration {
+  value: bigint;
+
+  get __time_duration_micros__(): bigint {
+    return this.value;
+  }
+
+  /**
+   * Creates a new `TimeDuration`.
+   *
+   * `data` must be a `bigint` representing microseconds.
+   */
+  constructor(data: bigint) {
+    this.value = data;
+  }
+}
+
 export {
   AlgebraicType,
   AlgebraicValue,
