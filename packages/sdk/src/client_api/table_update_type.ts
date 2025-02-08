@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 import { CompressableQueryUpdate as __CompressableQueryUpdate } from './compressable_query_update_type';
 
 export type TableUpdate = {

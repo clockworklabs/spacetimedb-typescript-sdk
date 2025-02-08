@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 import { QueryUpdate as __QueryUpdate } from './query_update_type';
 
 // A namespace for generated variants and helper functions.

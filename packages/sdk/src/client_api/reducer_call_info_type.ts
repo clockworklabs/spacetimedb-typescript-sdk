@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 export type ReducerCallInfo = {
   reducerName: string;
   reducerId: number;

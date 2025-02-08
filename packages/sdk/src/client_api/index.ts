@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 
 // Import and reexport all reducer arg types
 
@@ -89,7 +89,7 @@ export { Unsubscribe };
 import { UnsubscribeApplied } from './unsubscribe_applied_type.ts';
 export { UnsubscribeApplied };
 import { UpdateStatus } from './update_status_type.ts';
-export { UpdateStatus };
+export { UpdateStatus, Timestamp };
 
 const REMOTE_MODULE = {
   tables: {},

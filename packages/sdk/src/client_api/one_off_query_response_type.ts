@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 import { OneOffTable as __OneOffTable } from './one_off_table_type';
 
 export type OneOffQueryResponse = {

@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 export type OneOffQuery = {
   messageId: Uint8Array;
   queryString: string;

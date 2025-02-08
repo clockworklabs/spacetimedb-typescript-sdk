@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 import { CallReducer as __CallReducer } from './call_reducer_type';
 import { Subscribe as __Subscribe } from './subscribe_type';
 import { OneOffQuery as __OneOffQuery } from './one_off_query_type';

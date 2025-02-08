@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 export type SubscriptionError = {
   totalHostExecutionDurationMicros: bigint;
   requestId: number | undefined;

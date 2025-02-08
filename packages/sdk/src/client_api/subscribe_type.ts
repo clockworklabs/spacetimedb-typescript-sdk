@@ -29,7 +29,7 @@ import {
   TimeDuration,
   Timestamp,
   deepEqual,
-} from '..index';
+} from '../index';
 export type Subscribe = {
   queryStrings: string[];
   requestId: number;
