@@ -122,6 +122,7 @@ export class RemoteReducers {
     private setCallReducerFlags: SetReducerFlags
   ) {}
 
+<<<<<<< HEAD
   onIdentityConnected(callback: (ctx: ReducerEventContext) => void) {
     this.connection.onReducer('identity_connected', callback);
   }
@@ -135,6 +136,21 @@ export class RemoteReducers {
   }
 
   removeOnIdentityDisconnected(callback: (ctx: ReducerEventContext) => void) {
+=======
+  onIdentityConnected(callback: (ctx: EventContext) => void) {
+    this.connection.onReducer('identity_connected', callback);
+  }
+
+  removeOnIdentityConnected(callback: (ctx: EventContext) => void) {
+    this.connection.offReducer('identity_connected', callback);
+  }
+
+  onIdentityDisconnected(callback: (ctx: EventContext) => void) {
+    this.connection.onReducer('identity_disconnected', callback);
+  }
+
+  removeOnIdentityDisconnected(callback: (ctx: EventContext) => void) {
+>>>>>>> main
     this.connection.offReducer('identity_disconnected', callback);
   }
 
