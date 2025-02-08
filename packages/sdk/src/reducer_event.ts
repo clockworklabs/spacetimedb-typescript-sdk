@@ -1,10 +1,6 @@
 import { Address } from './address.ts';
-<<<<<<< HEAD
-import type { Reducer, Timestamp, UpdateStatus } from './client_api/index.ts';
-=======
 import { Timestamp } from './timestamp.ts';
 import type { UpdateStatus } from './client_api/index.ts';
->>>>>>> 45a6abe (Add `Timestamp` to the SDK, moving it out of `client_api`)
 import { Identity } from './identity.ts';
 
 export type ReducerInfoType = { name: string; args?: any } | never;
