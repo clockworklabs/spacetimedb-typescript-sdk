@@ -7,6 +7,7 @@ It is based directly on the plain React + TypeScript + Vite template. You can fo
 You can follow the instructions for creating your own SpacetimeDB module here: [SpacetimeDB Rust Module Quickstart](https://spacetimedb.com/docs/modules/rust/quickstart). Place the module in the `quickstart-chat/server` directory for compability with this project.
 
 In order to run this example, you need to:
+
 - `pnpm compile` in the root directory (`spacetimedb-typescriptsdk`)
 - `pnpm install` in this directory
 - `pnpm run build` in this directory
