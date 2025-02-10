@@ -278,9 +278,14 @@ export class DBConnectionImpl<
           break;
         }
 
-        let reducerInfo;
+        let reducerInfo: {
+          originalReducerName: string;
+          reducerName: string;
+          args: Uint8Array;
+        } | undefined;
         if (originalReducerName !== '') {
           reducerInfo = {
+            originalReducerName,
             reducerName,
             args,
           };
@@ -451,7 +456,7 @@ export class DBConnectionImpl<
             unknownTransaction = true;
           } else {
             const reducerTypeInfo =
-              this.remoteModule.reducers[reducerInfo.reducerName];
+              this.remoteModule.reducers[reducerInfo.originalReducerName];
             try {
               const reader = new BinaryReader(reducerInfo.args as Uint8Array);
               reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
