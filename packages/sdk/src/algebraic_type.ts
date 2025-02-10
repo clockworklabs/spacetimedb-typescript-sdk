@@ -1,8 +1,8 @@
 import { ConnectionId } from './connection_id';
-import { ProductValue, SumValue, type ValueAdapter } from './algebraic_value';
 import type BinaryReader from './binary_reader';
 import type BinaryWriter from './binary_writer';
 import { Identity } from './identity';
+import ScheduleAt from './schedule_at';
 
 /**
  * A variant of a sum type.
@@ -353,9 +353,22 @@ export class AlgebraicType {
     ]);
   }
   static createScheduleAtType(): AlgebraicType {
-    return AlgebraicType.createSumType([
-      new SumTypeVariant('Interval', AlgebraicType.createU64Type()),
-      new SumTypeVariant('Time', AlgebraicType.createU64Type()),
+    return ScheduleAt.getAlgebraicType();
+  }
+  static createTimestampType(): AlgebraicType {
+    return AlgebraicType.createProductType([
+      new ProductTypeElement(
+        '__timestamp_micros_since_unix_epoch__',
+        AlgebraicType.createI64Type()
+      ),
+    ]);
+  }
+  static createTimeDurationType(): AlgebraicType {
+    return AlgebraicType.createProductType([
+      new ProductTypeElement(
+        '__time_duration_micros__',
+        AlgebraicType.createI64Type()
+      ),
     ]);
   }
 
@@ -389,12 +402,40 @@ export class AlgebraicType {
     );
   }
 
+  #isI64Newtype(tag: string): boolean {
+    return (
+      this.isProductType() &&
+      this.product.elements.length === 1 &&
+      this.product.elements[0].algebraicType.type === Type.I64 &&
+      this.product.elements[0].name === tag
+    );
+  }
+
   isIdentity(): boolean {
     return this.#isBytesNewtype('__identity__');
   }
 
   isConnectionId(): boolean {
     return this.#isBytesNewtype('__connection_id__');
+  }
+
+  isScheduleAt(): boolean {
+    return (
+      this.isSumType() &&
+      this.sum.variants.length === 2 &&
+      this.sum.variants[0].name === 'Interval' &&
+      this.sum.variants[0].algebraicType.type === Type.U64 &&
+      this.sum.variants[1].name === 'Time' &&
+      this.sum.variants[1].algebraicType.type === Type.U64
+    );
+  }
+
+  isTimestamp(): boolean {
+    return this.#isI64Newtype('__timestamp_micros_since_unix_epoch__');
+  }
+
+  isTimeDuration(): boolean {
+    return this.#isI64Newtype('__time_duration_micros__');
   }
 
   serialize(writer: BinaryWriter, value: any): void {
