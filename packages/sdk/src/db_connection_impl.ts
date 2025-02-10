@@ -278,11 +278,13 @@ export class DBConnectionImpl<
           break;
         }
 
-        let reducerInfo: {
-          originalReducerName: string;
-          reducerName: string;
-          args: Uint8Array;
-        } | undefined;
+        let reducerInfo:
+          | {
+              originalReducerName: string;
+              reducerName: string;
+              args: Uint8Array;
+            }
+          | undefined;
         if (originalReducerName !== '') {
           reducerInfo = {
             originalReducerName,
