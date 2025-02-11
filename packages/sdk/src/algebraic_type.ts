@@ -368,19 +368,19 @@ export class AlgebraicType {
   }
 
   static createTimestampType(): AlgebraicType {
-    return AlgebraicType.createProductType([
+    return this.createProductType([
       new ProductTypeElement(
         '__timestamp_micros_since_unix_epoch__',
-        AlgebraicType.createI64Type()
+        this.createI64Type()
       ),
     ]);
   }
 
   static createTimeDurationType(): AlgebraicType {
-    return AlgebraicType.createProductType([
+    return this.createProductType([
       new ProductTypeElement(
         '__time_duration_micros__',
-        AlgebraicType.createI64Type()
+        this.createI64Type()
       ),
     ]);
   }
