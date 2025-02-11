@@ -292,7 +292,9 @@ export class DBConnectionImpl<
   }
 
   // This function is async because we decompress the message async
-  async #processParsedMessage(message: ws.ServerMessage): Promise<Message | undefined> {
+  async #processParsedMessage(
+    message: ws.ServerMessage
+  ): Promise<Message | undefined> {
     const parseRowList = (
       type: 'insert' | 'delete',
       tableName: string,
@@ -621,11 +623,9 @@ export class DBConnectionImpl<
         this.#applyTableUpdates(message.tableUpdates, eventContext);
 
         const argsArray: any[] = [];
-        reducerTypeInfo.argsType.product.elements.forEach(
-          (element, index) => {
-            argsArray.push(reducerArgs[element.name]);
-          }
-        );
+        reducerTypeInfo.argsType.product.elements.forEach((element, index) => {
+          argsArray.push(reducerArgs[element.name]);
+        });
         this.#reducerEmitter.emit(
           reducerInfo.reducerName,
           reducerEventContext,

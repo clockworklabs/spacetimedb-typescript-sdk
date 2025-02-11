@@ -13,9 +13,7 @@ import { AlgebraicType } from '../src/algebraic_type';
 import { parseValue } from '../src/algebraic_value';
 import BinaryWriter from '../src/binary_writer';
 import * as ws from '../src/client_api';
-import {
-  ReducerEvent,
-} from '../src/db_connection_impl';
+import { ReducerEvent } from '../src/db_connection_impl';
 import { Identity } from '../src/identity';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
 
@@ -84,10 +82,7 @@ function encodeUser(value: User): Uint8Array {
   return writer.getBuffer();
 }
 
-function encodeCreatePlayerArgs(
-  name: string,
-  location: Point
-): Uint8Array {
+function encodeCreatePlayerArgs(name: string, location: Point): Uint8Array {
   const writer = new BinaryWriter(1024);
   AlgebraicType.createStringType().serialize(writer, name);
   Point.serialize(writer, location);
@@ -673,8 +668,7 @@ describe('DBConnection', () => {
       identity: sallyIdentity,
       username: 'sally',
     };
-    const users: Map<string, User> = (db.user.tableCache as any)
-      .rows;
+    const users: Map<string, User> = (db.user.tableCache as any).rows;
     users.set('abc123', user1);
     users.set('def456', user2);
 
