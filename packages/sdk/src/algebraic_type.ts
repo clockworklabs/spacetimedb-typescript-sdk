@@ -378,10 +378,7 @@ export class AlgebraicType {
 
   static createTimeDurationType(): AlgebraicType {
     return this.createProductType([
-      new ProductTypeElement(
-        '__time_duration_micros__',
-        this.createI64Type()
-      ),
+      new ProductTypeElement('__time_duration_micros__', this.createI64Type()),
     ]);
   }
 
