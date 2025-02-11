@@ -76,91 +76,12 @@ export class DBConnectionBuilder<
     return this;
   }
 
-  withLightMode(light_mode: boolean): this {
-    this.#lightMode = light_mode;
+  withLightMode(lightMode: boolean): this {
+    this.#lightMode = lightMode;
     return this;
   }
 
   /**
-<<<<<<< HEAD
-   * Connect to The SpacetimeDB Websocket For Your Module. By default, this will use a secure websocket connection. The parameters are optional, and if not provided, will use the values provided on construction of the client.
-   *
-   * @param host The hostname of the SpacetimeDB server. Defaults to the value passed to the `constructor`.
-   * @param nameOrAddress The name or address of the SpacetimeDB module. Defaults to the value passed to the `constructor`.
-   * @param authToken The credentials to use to authenticate with SpacetimeDB. Defaults to the value passed to the `constructor`.
-   *
-   * @example
-   *
-   * ```ts
-   * const host = "ws://localhost:3000";
-   * const name_or_address = "database_name"
-   * const auth_token = undefined;
-   *
-   * var spacetimeDBClient = new SpacetimeDBClient(host, name_or_address, auth_token);
-   * // Connect with the initial parameters
-   * spacetimeDBClient.connect();
-   * //Set the `auth_token`
-   * spacetimeDBClient.connect(undefined, undefined, NEW_TOKEN);
-   * ```
-   */
-  build(): DBConnection {
-    stdbLogger('info', 'Connecting to SpacetimeDB WS...');
-
-    let url = new URL(`database/subscribe/${this.#nameOrAddress}`, this.#uri);
-
-    if (!this.#uri) {
-      throw new Error('URI is required to connect to SpacetimeDB');
-    }
-
-    if (!/^wss?:/.test(this.#uri.protocol)) {
-      url.protocol = 'ws:';
-    }
-
-    const connection = new DBConnectionImpl(
-      this.spacetimeModule,
-      this.#emitter
-    );
-    connection.identity = this.#identity;
-    connection.token = this.#token;
-
-    let connectionId = connection.connectionId.toHexString();
-    url.searchParams.set('connection_id', connectionId);
-
-    connection.wsPromise = this.#createWSFn({
-      url,
-      wsProtocol: 'v1.bsatn.spacetimedb',
-      authToken: connection.token,
-      compression: this.#compression,
-      light_mode: this.#light_mode,
-    })
-      .then(v => {
-        connection.ws = v;
-
-        connection.ws.onclose = () => {
-          this.#emitter.emit('disconnect', connection);
-        };
-        connection.ws.onerror = (e: ErrorEvent) => {
-          this.#emitter.emit('connectError', connection, e);
-        };
-        connection.ws.onopen = connection.handleOnOpen.bind(connection);
-        connection.ws.onmessage = connection.handleOnMessage.bind(connection);
-
-        return v;
-      })
-      .catch(e => {
-        stdbLogger('error', 'Error connecting to SpacetimeDB WS');
-        connection.on('connectError', e);
-        // TODO(cloutiertyler): I don't know but this makes it compile and
-        // I don't have time to investigate how to do this properly.
-        throw e;
-      });
-
-    return this.dbConnectionConstructor(connection);
-  }
-
-  /**
-=======
->>>>>>> c082b9b (Implemented the new subscriptions API)
    * Register a callback to be invoked upon authentication with the database.
    *
    * @param token The credentials to use to authenticate with SpacetimeDB.

@@ -50,40 +50,6 @@ import {
 import { stdbLogger } from './logger.ts';
 import type { ReducerRuntimeTypeInfo } from './spacetime_module.ts';
 
-export class Timestamp {
-  value: bigint;
-
-  get __timestamp_micros_since_unix_epoch__(): bigint {
-    return this.value;
-  }
-
-  /**
-   * Creates a new `Timestamp`.
-   *
-   * `data` must be a `bigint` representing since the Unix epoch in microseconds.
-   */
-  constructor(data: bigint) {
-    this.value = data;
-  }
-}
-
-export class TimeDuration {
-  value: bigint;
-
-  get __time_duration_micros__(): bigint {
-    return this.value;
-  }
-
-  /**
-   * Creates a new `TimeDuration`.
-   *
-   * `data` must be a `bigint` representing microseconds.
-   */
-  constructor(data: bigint) {
-    this.value = data;
-  }
-}
-
 export {
   AlgebraicType,
   AlgebraicValue,
@@ -326,7 +292,7 @@ export class DBConnectionImpl<
   }
 
   // This function is async because we decompress the message async
-  async #processParsedMessage(message: ws.ServerMessage): Promise<Message> {
+  async #processParsedMessage(message: ws.ServerMessage): Promise<Message | undefined> {
     const parseRowList = (
       type: 'insert' | 'delete',
       tableName: string,
@@ -446,7 +412,7 @@ export class DBConnectionImpl<
         if (originalReducerName === '<none>') {
           let errorMessage = errMessage;
           console.error(`Received an error from the database: ${errorMessage}`);
-          break;
+          return;
         }
 
         let reducerInfo:
@@ -560,6 +526,9 @@ export class DBConnectionImpl<
   async #processMessage(data: Uint8Array): Promise<void> {
     const serverMessage = parseValue(ws.ServerMessage, data);
     const message = await this.#processParsedMessage(serverMessage);
+    if (!message) {
+      return;
+    }
     switch (message.tag) {
       case 'InitialSubscription': {
         let event: Event<never> = { tag: 'SubscribeApplied' };

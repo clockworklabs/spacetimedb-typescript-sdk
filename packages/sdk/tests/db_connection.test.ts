@@ -1,6 +1,6 @@
 import {
   CreatePlayer,
-  DBConnection,
+  DbConnection,
   Player,
   Point,
   User,
@@ -15,8 +15,6 @@ import BinaryWriter from '../src/binary_writer';
 import * as ws from '../src/client_api';
 import {
   ReducerEvent,
-  TimeDuration,
-  Timestamp,
 } from '../src/db_connection_impl';
 import { Identity } from '../src/identity';
 import WebsocketTestAdapter from '../src/websocket_test_adapter';
@@ -102,7 +100,7 @@ describe('DBConnection', () => {
 
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
-    const client = DBConnection.builder()
+    const client = DbConnection.builder()
       .withUri('ws://127.0.0.1:1234')
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
@@ -130,7 +128,7 @@ describe('DBConnection', () => {
   test('it calls onInsert callback when a record is added with a subscription update and then with a transaction update', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
-    const client = DBConnection.builder()
+    const client = DbConnection.builder()
       .withUri('ws://127.0.0.1:1234')
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
@@ -292,7 +290,7 @@ describe('DBConnection', () => {
   test('it calls onUpdate callback when a record is added with a subscription update and then with a transaction update', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
-    const client = DBConnection.builder()
+    const client = DbConnection.builder()
       .withUri('ws://127.0.0.1:1234')
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
@@ -431,7 +429,7 @@ describe('DBConnection', () => {
   test('a reducer callback should be called after the database callbacks', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
-    const client = DBConnection.builder()
+    const client = DbConnection.builder()
       .withUri('ws://127.0.0.1:1234')
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
@@ -511,7 +509,7 @@ describe('DBConnection', () => {
   test('it calls onUpdate callback when a record is added with a subscription update and then with a transaction update when the PK is of type Identity', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
-    const client = DBConnection.builder()
+    const client = DbConnection.builder()
       .withUri('ws://127.0.0.1:1234')
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
@@ -663,7 +661,7 @@ describe('DBConnection', () => {
 
   test('Filtering works', async () => {
     const wsAdapter = new WebsocketTestAdapter();
-    const client = DBConnection.builder()
+    const client = DbConnection.builder()
       .withUri('ws://127.0.0.1:1234')
       .withModuleName('db')
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))

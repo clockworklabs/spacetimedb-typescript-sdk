@@ -409,19 +409,10 @@ export class AlgebraicType {
     return (
       this.isProductType() &&
       this.product.elements.length === 1 &&
-      (this.product.elements[0].algebraicType.type == Type.I64 ||
-        this.product.elements[0].algebraicType.type == Type.U128 ||
+      (this.product.elements[0].algebraicType.type == Type.U128 ||
         this.product.elements[0].algebraicType.type == Type.U256) &&
       this.product.elements[0].name === tag
     );
-  }
-
-  isTimestamp(): boolean {
-    return this.#isBytesNewtype('__timestamp_micros_since_unix_epoch__');
-  }
-
-  isTimeDuration(): boolean {
-    return this.#isBytesNewtype('__time_duration_micros__');
   }
 
   #isI64Newtype(tag: string): boolean {
