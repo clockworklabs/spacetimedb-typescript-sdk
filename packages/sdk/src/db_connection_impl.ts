@@ -37,7 +37,7 @@ import type {
 } from './message_types.ts';
 import type { ReducerEvent } from './reducer_event.ts';
 import type RemoteModule from './spacetime_module.ts';
-import { TableCache, type Operation, type TableUpdate } from './table_cache.ts';
+import { TableCache, type Operation, type PendingCallback, type TableUpdate } from './table_cache.ts';
 import { deepEqual, toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
@@ -512,17 +512,20 @@ export class DbConnectionImpl<
     this.isActive = true;
   }
 
+
   #applyTableUpdates(
     tableUpdates: TableUpdate[],
     eventContext: EventContextInterface
-  ): void {
+  ): PendingCallback[] {
+    const pendingCallbacks: PendingCallback[] = [];
     for (let tableUpdate of tableUpdates) {
       // Get table information for the table being updated
       const tableName = tableUpdate.tableName;
       const tableTypeInfo = this.#remoteModule.tables[tableName]!;
       const table = this.clientCache.getOrCreateTable(tableTypeInfo);
-      table.applyOperations(tableUpdate.operations, eventContext);
+      pendingCallbacks.push(...table.applyOperations(tableUpdate.operations, eventContext));
     }
+    return pendingCallbacks;
   }
 
   async #processMessage(data: Uint8Array): Promise<void> {
@@ -542,10 +545,13 @@ export class DbConnectionImpl<
         // Remove the event from the subscription event context
         // It is not a field in the type narrowed SubscriptionEventContext
         const { event: _, ...subscriptionEventContext } = eventContext;
-        this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
 
         if (this.#emitter) {
           this.#onApplied?.(subscriptionEventContext);
+        }
+        for (const callback of callbacks) {
+          callback.cb();
         }
         break;
       }

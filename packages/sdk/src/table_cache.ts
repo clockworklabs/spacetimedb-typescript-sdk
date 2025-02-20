@@ -15,11 +15,16 @@ export type TableUpdate = {
   operations: Operation[];
 };
 
+export type PendingCallback = {
+  type: 'insert' | 'delete' | 'update';
+  table: string;
+  cb: () => void;
+};
 /**
  * Builder to generate calls to query a `table` in the database
  */
 export class TableCache<RowType = any> {
-  private rows: Map<string, RowType>;
+  private rows: Map<string, [RowType, number]>;
   private tableTypeInfo: TableRuntimeTypeInfo;
   private emitter: EventEmitter<'insert' | 'delete' | 'update'>;
 
@@ -46,69 +51,135 @@ export class TableCache<RowType = any> {
    * @returns The values of the rows in the table
    */
   iter(): any[] {
-    return Array.from(this.rows.values());
+    return Array.from(this.rows.values()).map(([row]) => row);
   }
 
   applyOperations = (
     operations: Operation[],
     ctx: EventContextInterface
-  ): void => {
+  ): PendingCallback[] => {
+    const pendingCallbacks: PendingCallback[] = [];
     if (this.tableTypeInfo.primaryKey !== undefined) {
       const primaryKey = this.tableTypeInfo.primaryKey;
-      const inserts: Operation[] = [];
-      const deleteMap = new OperationsMap<any, Operation>();
+      const insertMap = new Map<any, [Operation, number]>();
+      const deleteMap = new Map<any, [Operation, number]>();
       for (const op of operations) {
         if (op.type === 'insert') {
-          inserts.push(op);
+          const [_, prevCount] = insertMap.get(op.row[primaryKey]) || [op, 0]; 
+          insertMap.set(op.row[primaryKey], [op, prevCount + 1]);
         } else {
-          deleteMap.set(op.row[primaryKey], op);
+          const [_, prevCount] = deleteMap.get(op.row[primaryKey]) || [op, 0]; 
+          deleteMap.set(op.row[primaryKey], [op, prevCount + 1]);
         }
       }
-      for (const insertOp of inserts) {
-        const deleteOp = deleteMap.get(insertOp.row[primaryKey]);
-        if (deleteOp) {
-          // the pk for updates will differ between insert/delete, so we have to
-          // use the row from delete
-          this.update(ctx, insertOp, deleteOp);
-          deleteMap.delete(insertOp.row[primaryKey]);
+      for (const [primaryKey, [insertOp, refCount]] of insertMap) {
+        const deleteEntry = deleteMap.get(primaryKey);
+        if (deleteEntry) {
+          const [deleteOp, deleteCount] = deleteEntry;
+          if (deleteCount !== refCount) {
+            // This should not happen.
+            // TODO: log a warning/error.
+          }
+          const maybeCb = this.update(ctx, insertOp, deleteOp);
+          if (maybeCb) {
+            pendingCallbacks.push(maybeCb);
+          }
+          deleteMap.delete(primaryKey);
         } else {
-          this.insert(ctx, insertOp);
+          const maybeCb = this.insert(ctx, insertOp, refCount);
+          if (maybeCb) {
+            pendingCallbacks.push(maybeCb);
+          }
         }
       }
-      for (const deleteOp of deleteMap.values()) {
-        this.delete(ctx, deleteOp);
+      for (const [deleteOp, refCount] of deleteMap.values()) {
+        const maybeCb = this.delete(ctx, deleteOp, refCount);
+        if (maybeCb) {
+          pendingCallbacks.push(maybeCb);
+        }
       }
     } else {
       for (const op of operations) {
         if (op.type === 'insert') {
-          this.insert(ctx, op);
+          const maybeCb = this.insert(ctx, op);
+          if (maybeCb) {
+            pendingCallbacks.push(maybeCb);
+          }
         } else {
-          this.delete(ctx, op);
+          const maybeCb = this.delete(ctx, op);
+          if (maybeCb) {
+            pendingCallbacks.push(maybeCb);
+          }
         }
       }
     }
+    return pendingCallbacks;
   };
 
   update = (
     ctx: EventContextInterface,
     newDbOp: Operation,
     oldDbOp: Operation
-  ): void => {
-    const newRow = newDbOp.row;
-    const oldRow = oldDbOp.row;
-    this.rows.delete(oldDbOp.rowId);
-    this.rows.set(newDbOp.rowId, newRow);
-    this.emitter.emit('update', ctx, oldRow, newRow);
+  ): PendingCallback | undefined => {
+    const [oldRow, previousCount] = this.rows.get(newDbOp.rowId) || [oldDbOp.row, 0];
+    // TODO: Consider taking the expected ref count to log warnings here.
+    const refCount = Math.max(1, previousCount);
+    this.rows.set(newDbOp.rowId, [newDbOp.row, refCount]);
+    // This indicates something is wrong, so we could arguably crash here.
+    if (previousCount === 0) {
+      return {
+        type: 'insert',
+        table: this.tableTypeInfo.tableName,
+        cb: () => {
+          this.emitter.emit('insert', ctx, newDbOp.row);
+        },
+      };
+    }
+    return {
+      'type': 'update',
+      'table': this.tableTypeInfo.tableName,
+      'cb': () => {
+        this.emitter.emit('update', ctx, oldRow, newDbOp.row);
+      }
+    };
   };
 
-  insert = (ctx: EventContextInterface, operation: Operation): void => {
-    this.rows.set(operation.rowId, operation.row);
-    this.emitter.emit('insert', ctx, operation.row);
+  insert = (ctx: EventContextInterface, operation: Operation, count: number = 1): PendingCallback | undefined => {
+    const [_, previousCount] = this.rows.get(operation.rowId) || [operation.row, 0];
+    this.rows.set(operation.rowId, [operation.row, previousCount + count]);
+    if (previousCount === 0) {
+      return {
+        type: 'insert',
+        table: this.tableTypeInfo.tableName,
+        cb: () => {
+          this.emitter.emit('insert', ctx, operation.row);
+        },
+      };
+    }
+    return undefined;
   };
 
-  delete = (ctx: EventContextInterface, dbOp: Operation): void => {
-    this.rows.delete(dbOp.rowId);
-    this.emitter.emit('delete', ctx, dbOp.row);
+  delete = (ctx: EventContextInterface, operation: Operation, count: number = 1): PendingCallback | undefined => {
+    const [_, previousCount] = this.rows.get(operation.rowId) || [operation.row, 0];
+    // This should never happen.
+    if (previousCount === 0) {
+      // TODO: Log a warning/error if previousCount is 0.
+      return undefined;
+    }
+    // If this was the last reference, we are actually deleting the row.
+    if (previousCount <= count) {
+      // TODO: Log a warning/error if previousCount is less than count.
+      this.rows.delete(operation.rowId);
+      return {
+        type: 'delete',
+        table: this.tableTypeInfo.tableName,
+        cb: () => {
+          this.emitter.emit('delete', ctx, operation.row);
+        }
+      };
+    }
+    this.rows.set(operation.rowId, [operation.row, previousCount - 1]);
+    return undefined;
   };
 
   /**
