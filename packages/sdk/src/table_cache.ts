@@ -131,6 +131,7 @@ export class TableCache<RowType = any> {
         type: 'insert',
         table: this.tableTypeInfo.tableName,
         cb: () => {
+          console.log("Calling insert on table", this.tableTypeInfo.tableName);
           this.emitter.emit('insert', ctx, newDbOp.row);
         },
       };
@@ -152,6 +153,7 @@ export class TableCache<RowType = any> {
         type: 'insert',
         table: this.tableTypeInfo.tableName,
         cb: () => {
+          console.log("Calling insert on table", this.tableTypeInfo.tableName);
           this.emitter.emit('insert', ctx, operation.row);
         },
       };
@@ -178,7 +180,7 @@ export class TableCache<RowType = any> {
         }
       };
     }
-    this.rows.set(operation.rowId, [operation.row, previousCount - 1]);
+    this.rows.set(operation.rowId, [operation.row, previousCount - count]);
     return undefined;
   };
 

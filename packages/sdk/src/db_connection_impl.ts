@@ -115,8 +115,7 @@ export class DbConnectionImpl<
   DBView = any,
   Reducers = any,
   SetReducerFlags = any,
-> implements DbContext<DBView, Reducers>
-{
+> implements DbContext<DBView, Reducers> {
   /**
    * Whether or not the connection is active.
    */
@@ -419,10 +418,10 @@ export class DbConnectionImpl<
 
         let reducerInfo:
           | {
-              originalReducerName: string;
-              reducerName: string;
-              args: Uint8Array;
-            }
+            originalReducerName: string;
+            reducerName: string;
+            args: Uint8Array;
+          }
           | undefined;
         if (originalReducerName !== '') {
           reducerInfo = {
@@ -517,6 +516,7 @@ export class DbConnectionImpl<
     tableUpdates: TableUpdate[],
     eventContext: EventContextInterface
   ): PendingCallback[] {
+    console.log("Appling table updates ", tableUpdates.length);
     const pendingCallbacks: PendingCallback[] = [];
     for (let tableUpdate of tableUpdates) {
       // Get table information for the table being updated
@@ -525,6 +525,7 @@ export class DbConnectionImpl<
       const table = this.clientCache.getOrCreateTable(tableTypeInfo);
       pendingCallbacks.push(...table.applyOperations(tableUpdate.operations, eventContext));
     }
+    console.log("Total callbacks: ", pendingCallbacks.length);
     return pendingCallbacks;
   }
 
@@ -561,7 +562,10 @@ export class DbConnectionImpl<
           this,
           event
         );
-        this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+        for (const callback of callbacks) {
+          callback.cb();
+        }
         break;
       }
       case 'TransactionUpdate': {
@@ -592,7 +596,11 @@ export class DbConnectionImpl<
             this,
             event
           );
-          this.#applyTableUpdates(message.tableUpdates, eventContext);
+          const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+
+          for (const callback of callbacks) {
+            callback.cb();
+          }
           return;
         }
 
@@ -626,7 +634,9 @@ export class DbConnectionImpl<
           event: reducerEvent,
         };
 
-        this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+        console.log("Pending callbacks for transaction update: ", callbacks.length);
+        console.log("Reducer type info: ", reducerTypeInfo);
 
         const argsArray: any[] = [];
         reducerTypeInfo.argsType.product.elements.forEach((element, index) => {
@@ -637,6 +647,11 @@ export class DbConnectionImpl<
           reducerEventContext,
           ...argsArray
         );
+        console.log("Calling them");
+        for (const callback of callbacks) {
+          console.log("Calling a callback of type %s for table %s", callback.type, callback.table);
+          callback.cb();
+        }
         break;
       }
       case 'IdentityToken': {
@@ -655,10 +670,13 @@ export class DbConnectionImpl<
           event
         );
         const { event: _, ...subscriptionEventContext } = eventContext;
-        this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
         this.#subscriptionManager.subscriptions
           .get(message.queryId)
           ?.emitter.emit('applied', subscriptionEventContext);
+        for (const callback of callbacks) {
+          callback.cb();
+        }
         break;
       }
       case 'UnsubscribeApplied': {
@@ -668,10 +686,13 @@ export class DbConnectionImpl<
           event
         );
         const { event: _, ...subscriptionEventContext } = eventContext;
-        this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
         this.#subscriptionManager.subscriptions
           .get(message.queryId)
           ?.emitter.emit('end', subscriptionEventContext);
+        for (const callback of callbacks) {
+          callback.cb();
+        }
         break;
       }
       case 'SubscriptionError': {

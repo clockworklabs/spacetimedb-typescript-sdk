@@ -121,6 +121,7 @@ describe('DbConnection', () => {
   });
 
   test('it calls onInsert callback when a record is added with a subscription update and then with a transaction update', async () => {
+    console.log("starting test");
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
     const client = DbConnection.builder()
@@ -132,7 +133,10 @@ describe('DbConnection', () => {
       })
       .build();
 
-    await client['wsPromise'];
+    await Promise.race([
+      client['wsPromise'],
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+    ]);
     wsAdapter.acceptConnection();
 
     const tokenMessage = ws.ServerMessage.IdentityToken({
@@ -156,6 +160,7 @@ describe('DbConnection', () => {
     const insert2Promise = new Deferred<void>();
 
     client.db.player.onInsert((ctx, player) => {
+      console.log('onInsert called');
       if (ctx.event.tag === 'Reducer') {
         inserts.push({ reducerEvent: ctx.event.value, player });
       } else {
@@ -217,7 +222,11 @@ describe('DbConnection', () => {
 
     wsAdapter.sendToClient(subscriptionMessage);
 
-    await insert1Promise.promise;
+    //await insert1Promise.promise;
+    await Promise.race([
+      insert1Promise.promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+    ]);
 
     expect(inserts).toHaveLength(1);
     expect(inserts[0].player.ownerId).toBe('player-1');
@@ -263,7 +272,11 @@ describe('DbConnection', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
-    await insert2Promise.promise;
+    // await insert2Promise.promise;
+    await Promise.race([
+      insert2Promise.promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+    ]);
 
     expect(inserts).toHaveLength(2);
     expect(inserts[1].player.ownerId).toBe('player-2');
