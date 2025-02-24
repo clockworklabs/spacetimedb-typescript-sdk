@@ -131,6 +131,7 @@ export class TableCache<RowType = any> {
       0,
     ];
     const refCount = Math.max(1, previousCount + refCountDelta);
+    this.rows.delete(oldDbOp.rowId);
     this.rows.set(newDbOp.rowId, [newDbOp.row, refCount]);
     // This indicates something is wrong, so we could arguably crash here.
     if (previousCount === 0) {
