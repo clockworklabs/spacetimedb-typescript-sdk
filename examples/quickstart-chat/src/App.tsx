@@ -92,15 +92,12 @@ function App() {
 
   useEffect(() => {
     const subscribeToQueries = (conn: DbConnection, queries: string[]) => {
-      let count = 0;
+      // let count = 0;
       for (const query of queries) {
         conn
           ?.subscriptionBuilder()
           .onApplied(() => {
-            count++;
-            if (count === queries.length) {
-              console.log('SDK client cache initialized.');
-            }
+            console.log('SDK client cache initialized.');
           })
           .subscribe(query);
       }
@@ -108,7 +105,6 @@ function App() {
 
     const onConnect = (
       conn: DbConnection,
-      //ctx: SubscriptionEventContext,
       identity: Identity,
       token: string
     ) => {
