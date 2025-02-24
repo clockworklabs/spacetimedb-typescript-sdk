@@ -92,7 +92,6 @@ function App() {
 
   useEffect(() => {
     const subscribeToQueries = (conn: DbConnection, queries: string[]) => {
-      // let count = 0;
       for (const query of queries) {
         conn
           ?.subscriptionBuilder()
