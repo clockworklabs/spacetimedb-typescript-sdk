@@ -108,6 +108,7 @@ function App() {
 
     const onConnect = (
       conn: DbConnection,
+      //ctx: SubscriptionEventContext,
       identity: Identity,
       token: string
     ) => {

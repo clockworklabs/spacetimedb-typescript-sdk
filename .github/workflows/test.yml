@@ -106,8 +106,10 @@ jobs:
           git diff --exit-code examples/quickstart-chat/src/module_bindings || {
               echo "Error: Bindings are dirty. Please generate bindings again and commit them to this branch."
               exit 1
-          }
 
+      - name: Run sdk tests
+        working-directory: packages/sdk
+        run: pnpm test
 #      - name: Start SpacetimeDB
 #        run: |
 #          spacetime start &

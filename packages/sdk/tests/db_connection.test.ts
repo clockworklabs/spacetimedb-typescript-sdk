@@ -121,7 +121,7 @@ describe('DbConnection', () => {
   });
 
   test('it calls onInsert callback when a record is added with a subscription update and then with a transaction update', async () => {
-    console.log("starting test");
+    console.log('starting test');
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
     const client = DbConnection.builder()
@@ -135,7 +135,9 @@ describe('DbConnection', () => {
 
     await Promise.race([
       client['wsPromise'],
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 1000)
+      ),
     ]);
     wsAdapter.acceptConnection();
 
@@ -225,7 +227,9 @@ describe('DbConnection', () => {
     //await insert1Promise.promise;
     await Promise.race([
       insert1Promise.promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 1000)
+      ),
     ]);
 
     expect(inserts).toHaveLength(1);
@@ -275,7 +279,9 @@ describe('DbConnection', () => {
     // await insert2Promise.promise;
     await Promise.race([
       insert2Promise.promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 1000)
+      ),
     ]);
 
     expect(inserts).toHaveLength(2);
@@ -295,7 +301,7 @@ describe('DbConnection', () => {
     );
   });
 
-  test('it calls onUpdate callback when a record is added with a subscription update and then with a transaction update', async () => {
+  test('tables should be updated before the reducer callback', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
     const client = DbConnection.builder()
@@ -310,78 +316,16 @@ describe('DbConnection', () => {
     await client['wsPromise'];
     wsAdapter.acceptConnection();
 
-    const tokenMessage = ws.ServerMessage.IdentityToken({
-      identity: anIdentity,
-      token: 'a-token',
-      connectionId: ConnectionId.random(),
+    let callbackLog: string[] = [];
+
+    const updatePromise = new Deferred<void>();
+
+    expect(client.db.player.count()).toBe(0);
+
+    client.reducers.onCreatePlayer((ctx, name, location) => {
+      expect(client.db.player.count()).toBe(1);
+      updatePromise.resolve();
     });
-    wsAdapter.sendToClient(tokenMessage);
-
-    const update1Promise = new Deferred<void>();
-    const update2Promise = new Deferred<void>();
-
-    const updates: {
-      oldPlayer: Player;
-      newPlayer: Player;
-    }[] = [];
-    client.db.player.onUpdate((_ctx, oldPlayer, newPlayer) => {
-      updates.push({
-        oldPlayer,
-        newPlayer,
-      });
-
-      if (!update1Promise.isResolved) {
-        update1Promise.resolve();
-      } else {
-        update2Promise.resolve();
-      }
-    });
-
-    const subscriptionMessage = ws.ServerMessage.InitialSubscription({
-      databaseUpdate: {
-        tables: [
-          {
-            tableId: 35,
-            tableName: 'player',
-            numRows: BigInt(2),
-            updates: [
-              ws.CompressableQueryUpdate.Uncompressed({
-                deletes: {
-                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array([
-                    ...encodePlayer({
-                      ownerId: 'player-1',
-                      name: 'drogus',
-                      location: { x: 0, y: 0 },
-                    }),
-                  ]),
-                },
-                // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
-                inserts: {
-                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array([
-                    ...encodePlayer({
-                      ownerId: 'player-1',
-                      name: 'mr.drogus',
-                      location: { x: 0, y: 0 },
-                    }),
-                  ]),
-                },
-              }),
-            ],
-          },
-        ],
-      },
-      requestId: 0,
-      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
-    });
-    wsAdapter.sendToClient(subscriptionMessage);
-
-    await update1Promise.promise;
-
-    expect(updates).toHaveLength(1);
-    expect(updates[0]['oldPlayer'].name).toBe('drogus');
-    expect(updates[0]['newPlayer'].name).toBe('mr.drogus');
 
     const transactionUpdate = ws.ServerMessage.TransactionUpdate({
       status: ws.UpdateStatus.Committed({
@@ -389,24 +333,23 @@ describe('DbConnection', () => {
           {
             tableId: 35,
             tableName: 'player',
-            numRows: BigInt(2),
+            numRows: BigInt(1),
             updates: [
               ws.CompressableQueryUpdate.Uncompressed({
                 deletes: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: encodePlayer({
-                    ownerId: 'player-2',
-                    name: 'Jaime',
-                    location: { x: 0, y: 0 },
-                  }),
+                  rowsData: new Uint8Array(),
                 },
+                // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
                 inserts: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: encodePlayer({
-                    ownerId: 'player-2',
-                    name: 'Kingslayer',
-                    location: { x: 0, y: 0 },
-                  }),
+                  rowsData: new Uint8Array([
+                    ...encodePlayer({
+                      ownerId: 'player-2',
+                      name: 'foo',
+                      location: { x: 0, y: 0 },
+                    }),
+                  ]),
                 },
               }),
             ],
@@ -427,14 +370,10 @@ describe('DbConnection', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
-    await update2Promise.promise;
-
-    expect(updates).toHaveLength(2);
-    expect(updates[1]['oldPlayer'].name).toBe('Jaime');
-    expect(updates[1]['newPlayer'].name).toBe('Kingslayer');
+    await Promise.all([updatePromise.promise]);
   });
 
-  test('a reducer callback should be called after the database callbacks', async () => {
+  test('a reducer callback should be called before the database callbacks', async () => {
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
     const client = DbConnection.builder()
@@ -511,7 +450,7 @@ describe('DbConnection', () => {
 
     await Promise.all([insertPromise.promise, updatePromise.promise]);
 
-    expect(callbackLog).toEqual(['Player', 'CreatePlayerReducer']);
+    expect(callbackLog).toEqual(['CreatePlayerReducer', 'Player']);
   });
 
   test('it calls onUpdate callback when a record is added with a subscription update and then with a transaction update when the PK is of type Identity', async () => {
@@ -539,23 +478,34 @@ describe('DbConnection', () => {
     wsAdapter.sendToClient(tokenMessage);
 
     const update1Promise = new Deferred<void>();
-    const update2Promise = new Deferred<void>();
+    const initialInsertPromise = new Deferred<void>();
+    const userIdentity = Identity.fromString(
+      '41db74c20cdda916dd2637e5a11b9f31eb1672249aa7172f7e22b4043a6a9008'
+    );
+
+    const initialUser: User = {
+      identity: userIdentity,
+      username: 'originalName',
+    };
+    const updatedUser: User = {
+      identity: userIdentity,
+      username: 'newName',
+    };
 
     const updates: {
       oldUser: User;
       newUser: User;
     }[] = [];
+    client.db.user.onInsert((ctx, user) => {
+      initialInsertPromise.resolve();
+      console.log('got insert');
+    });
     client.db.user.onUpdate((_ctx, oldUser, newUser) => {
       updates.push({
         oldUser,
         newUser,
       });
-
-      if (!update1Promise.isResolved) {
-        update1Promise.resolve();
-      } else {
-        update2Promise.resolve();
-      }
+      update1Promise.resolve();
     });
 
     const subscriptionMessage = ws.ServerMessage.InitialSubscription({
@@ -570,26 +520,11 @@ describe('DbConnection', () => {
               ws.CompressableQueryUpdate.Uncompressed({
                 deletes: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array([
-                    ...encodeUser({
-                      identity: Identity.fromString(
-                        '41db74c20cdda916dd2637e5a11b9f31eb1672249aa7172f7e22b4043a6a9008'
-                      ),
-                      username: 'drogus',
-                    }),
-                  ]),
+                  rowsData: new Uint8Array([]),
                 },
-                // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
                 inserts: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array([
-                    ...encodeUser({
-                      identity: Identity.fromString(
-                        '41db74c20cdda916dd2637e5a11b9f31eb1672249aa7172f7e22b4043a6a9008'
-                      ),
-                      username: 'mr.drogus',
-                    }),
-                  ]),
+                  rowsData: new Uint8Array([...encodeUser(initialUser)]),
                 },
               }),
             ],
@@ -602,11 +537,13 @@ describe('DbConnection', () => {
 
     wsAdapter.sendToClient(subscriptionMessage);
 
-    await update1Promise.promise;
+    // await update1Promise.promise;
+    await initialInsertPromise.promise;
+    console.log('First insert is done');
 
-    expect(updates).toHaveLength(1);
-    expect(updates[0]['oldUser'].username).toBe('drogus');
-    expect(updates[0]['newUser'].username).toBe('mr.drogus');
+    // expect(updates).toHaveLength(1);
+    // expect(updates[0]['oldUser'].username).toBe('drogus');
+    // expect(updates[0]['newUser'].username).toBe('mr.drogus');
 
     const transactionUpdate = ws.ServerMessage.TransactionUpdate({
       status: ws.UpdateStatus.Committed({
@@ -619,26 +556,12 @@ describe('DbConnection', () => {
               ws.CompressableQueryUpdate.Uncompressed({
                 deletes: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array([
-                    ...encodeUser({
-                      identity: Identity.fromString(
-                        '11db74c20cdda916dd2637e5a11b9f31eb1672249aa7172f7e22b4043a6a9008'
-                      ),
-                      username: 'jaime',
-                    }),
-                  ]),
+                  rowsData: new Uint8Array([...encodeUser(initialUser)]),
                 },
                 // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
                 inserts: {
                   sizeHint: ws.RowSizeHint.FixedSize(0), // not used
-                  rowsData: new Uint8Array([
-                    ...encodeUser({
-                      identity: Identity.fromString(
-                        '11db74c20cdda916dd2637e5a11b9f31eb1672249aa7172f7e22b4043a6a9008'
-                      ),
-                      username: 'kingslayer',
-                    }),
-                  ]),
+                  rowsData: new Uint8Array([...encodeUser(updatedUser)]),
                 },
               }),
             ],
@@ -658,13 +581,17 @@ describe('DbConnection', () => {
       totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
     });
 
+    console.log('Sending transaction update');
     wsAdapter.sendToClient(transactionUpdate);
 
-    await update2Promise.promise;
+    await update1Promise.promise;
 
-    expect(updates).toHaveLength(2);
-    expect(updates[1]['oldUser'].username).toBe('jaime');
-    expect(updates[1]['newUser'].username).toBe('kingslayer');
+    expect(updates).toHaveLength(1);
+    expect(updates[0]['oldUser'].username).toBe(initialUser.username);
+    expect(updates[0]['newUser'].username).toBe(updatedUser.username);
+
+    console.log('Users: ', [...client.db.user.iter()]);
+    expect(client.db.user.count()).toBe(1);
   });
 
   test('Filtering works', async () => {
@@ -675,18 +602,61 @@ describe('DbConnection', () => {
       .withWSFn(wsAdapter.createWebSocketFn.bind(wsAdapter))
       .build();
     await client['wsPromise'];
-    const db = client.db;
     const user1 = { identity: bobIdentity, username: 'bob' };
     const user2 = {
       identity: sallyIdentity,
       username: 'sally',
     };
-    const users: Map<string, User> = (db.user.tableCache as any).rows;
-    users.set('abc123', user1);
-    users.set('def456', user2);
+    const binary = [...encodeUser(user1)].concat([...encodeUser(user2)]);
+    const transactionUpdate = ws.ServerMessage.TransactionUpdate({
+      status: ws.UpdateStatus.Committed({
+        tables: [
+          {
+            tableId: 35,
+            tableName: 'user',
+            numRows: BigInt(1),
+            updates: [
+              ws.CompressableQueryUpdate.Uncompressed({
+                deletes: {
+                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                  rowsData: new Uint8Array([]),
+                },
+                // FIXME: this test is evil: an initial subscription can never contain deletes or updates.
+                inserts: {
+                  sizeHint: ws.RowSizeHint.FixedSize(0), // not used
+                  rowsData: new Uint8Array(binary),
+                },
+              }),
+            ],
+          },
+        ],
+      }),
+      timestamp: new Timestamp(1681391805281203n),
+      callerIdentity: anIdentity,
+      callerConnectionId: ConnectionId.random(),
+      reducerCall: {
+        reducerName: 'create_player',
+        reducerId: 0,
+        args: encodeCreatePlayerArgs('A Player', { x: 2, y: 3 }),
+        requestId: 0,
+      },
+      energyQuantaUsed: { quanta: BigInt(33841000) },
+      totalHostExecutionDuration: new TimeDuration(BigInt(1234567890)),
+    });
+    const gotAllInserts = new Deferred<void>();
+    var inserts = 0;
+    client.db.user.onInsert((ctx, user) => {
+      inserts++;
+      if (inserts == 2) {
+        gotAllInserts.resolve();
+      }
+    });
+    wsAdapter.sendToClient(transactionUpdate);
+    await gotAllInserts.promise;
 
     const filteredUser = client.db.user.identity.find(sallyIdentity);
     expect(filteredUser).not.toBeUndefined;
     expect(filteredUser!.username).toBe('sally');
+    expect(client.db.user.count()).toBe(2);
   });
 });

@@ -43,7 +43,10 @@ export class DbConnectionBuilder<
    *
    **/
   withUri(uri: string | URL): this {
+    // this.#uri = new URL('/v1', uri);
     this.#uri = new URL(uri);
+    // console.log("withUri", this.#uri);
+    // console.log("withUri2", new URL('/v2', uri));
     return this;
   }
 
@@ -132,7 +135,8 @@ export class DbConnectionBuilder<
    */
   onConnect(
     callback: (
-      ctx: SubscriptionEventContext,
+      // ctx: SubscriptionEventContext,
+      connection: DbConnection,
       identity: Identity,
       token: string
     ) => void

@@ -15,7 +15,6 @@ export type TransactionUpdateMessage = {
   identity: Identity;
   connectionId: ConnectionId | null;
   reducerInfo?: {
-    originalReducerName: string;
     reducerName: string;
     args: Uint8Array;
   };

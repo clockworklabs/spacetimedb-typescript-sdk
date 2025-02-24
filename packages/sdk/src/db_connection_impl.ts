@@ -37,7 +37,12 @@ import type {
 } from './message_types.ts';
 import type { ReducerEvent } from './reducer_event.ts';
 import type RemoteModule from './spacetime_module.ts';
-import { TableCache, type Operation, type PendingCallback, type TableUpdate } from './table_cache.ts';
+import {
+  TableCache,
+  type Operation,
+  type PendingCallback,
+  type TableUpdate,
+} from './table_cache.ts';
 import { deepEqual, toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
 import type { WebsocketTestAdapter } from './websocket_test_adapter.ts';
@@ -115,7 +120,8 @@ export class DbConnectionImpl<
   DBView = any,
   Reducers = any,
   SetReducerFlags = any,
-> implements DbContext<DBView, Reducers> {
+> implements DbContext<DBView, Reducers>
+{
   /**
    * Whether or not the connection is active.
    */
@@ -186,7 +192,7 @@ export class DbConnectionImpl<
   }: DbConnectionConfig) {
     stdbLogger('info', 'Connecting to SpacetimeDB WS...');
 
-    let url = new URL(`database/${nameOrAddress}/subscribe`, uri);
+    let url = new URL(`v1/database/${nameOrAddress}/subscribe`, uri);
 
     if (!/^wss?:/.test(uri.protocol)) {
       url.protocol = 'ws:';
@@ -300,21 +306,22 @@ export class DbConnectionImpl<
       rowList: ws.BsatnRowList
     ): Operation[] => {
       const buffer = rowList.rowsData;
-      const length = buffer.length;
-      let offset = buffer.byteOffset;
-      const endingOffset = offset + length;
       const reader = new BinaryReader(buffer);
       const rows: any[] = [];
       const rowType = this.#remoteModule.tables[tableName]!.rowType;
-      while (offset < endingOffset) {
+      while (reader.offset < buffer.length + buffer.byteOffset) {
+        const initialOffset = reader.offset;
         const row = rowType.deserialize(reader);
-        const rowId = new TextDecoder('utf-8').decode(buffer);
+        // This is super inefficient, but the buffer indexes are weird, so we are doing this for now.
+        // We should just base64 encode the bytes.
+        const rowId = JSON.stringify(row, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
         rows.push({
           type,
           rowId,
           row,
         });
-        offset = reader.offset;
       }
       return rows;
     };
@@ -389,7 +396,7 @@ export class DbConnectionImpl<
           txUpdate.callerConnectionId
         );
         const originalReducerName = txUpdate.reducerCall.reducerName;
-        const reducerName: string = toPascalCase(originalReducerName);
+        const reducerName: string = originalReducerName;
         const args = txUpdate.reducerCall.args;
         const energyQuantaUsed = txUpdate.energyQuantaUsed;
 
@@ -418,14 +425,12 @@ export class DbConnectionImpl<
 
         let reducerInfo:
           | {
-            originalReducerName: string;
-            reducerName: string;
-            args: Uint8Array;
-          }
+              reducerName: string;
+              args: Uint8Array;
+            }
           | undefined;
-        if (originalReducerName !== '') {
+        if (reducerName !== '') {
           reducerInfo = {
-            originalReducerName,
             reducerName,
             args,
           };
@@ -511,21 +516,20 @@ export class DbConnectionImpl<
     this.isActive = true;
   }
 
-
   #applyTableUpdates(
     tableUpdates: TableUpdate[],
     eventContext: EventContextInterface
   ): PendingCallback[] {
-    console.log("Appling table updates ", tableUpdates.length);
     const pendingCallbacks: PendingCallback[] = [];
     for (let tableUpdate of tableUpdates) {
       // Get table information for the table being updated
       const tableName = tableUpdate.tableName;
       const tableTypeInfo = this.#remoteModule.tables[tableName]!;
       const table = this.clientCache.getOrCreateTable(tableTypeInfo);
-      pendingCallbacks.push(...table.applyOperations(tableUpdate.operations, eventContext));
+      pendingCallbacks.push(
+        ...table.applyOperations(tableUpdate.operations, eventContext)
+      );
     }
-    console.log("Total callbacks: ", pendingCallbacks.length);
     return pendingCallbacks;
   }
 
@@ -546,7 +550,10 @@ export class DbConnectionImpl<
         // Remove the event from the subscription event context
         // It is not a field in the type narrowed SubscriptionEventContext
         const { event: _, ...subscriptionEventContext } = eventContext;
-        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(
+          message.tableUpdates,
+          eventContext
+        );
 
         if (this.#emitter) {
           this.#onApplied?.(subscriptionEventContext);
@@ -562,7 +569,10 @@ export class DbConnectionImpl<
           this,
           event
         );
-        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(
+          message.tableUpdates,
+          eventContext
+        );
         for (const callback of callbacks) {
           callback.cb();
         }
@@ -576,8 +586,8 @@ export class DbConnectionImpl<
         if (!reducerInfo) {
           unknownTransaction = true;
         } else {
-          const reducerTypeInfo =
-            this.#remoteModule.reducers[reducerInfo.originalReducerName];
+          reducerTypeInfo =
+            this.#remoteModule.reducers[reducerInfo.reducerName];
           try {
             const reader = new BinaryReader(reducerInfo.args as Uint8Array);
             reducerArgs = reducerTypeInfo.argsType.deserialize(reader);
@@ -596,7 +606,10 @@ export class DbConnectionImpl<
             this,
             event
           );
-          const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+          const callbacks = this.#applyTableUpdates(
+            message.tableUpdates,
+            eventContext
+          );
 
           for (const callback of callbacks) {
             callback.cb();
@@ -634,9 +647,10 @@ export class DbConnectionImpl<
           event: reducerEvent,
         };
 
-        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
-        console.log("Pending callbacks for transaction update: ", callbacks.length);
-        console.log("Reducer type info: ", reducerTypeInfo);
+        const callbacks = this.#applyTableUpdates(
+          message.tableUpdates,
+          eventContext
+        );
 
         const argsArray: any[] = [];
         reducerTypeInfo.argsType.product.elements.forEach((element, index) => {
@@ -647,9 +661,7 @@ export class DbConnectionImpl<
           reducerEventContext,
           ...argsArray
         );
-        console.log("Calling them");
         for (const callback of callbacks) {
-          console.log("Calling a callback of type %s for table %s", callback.type, callback.table);
           callback.cb();
         }
         break;
@@ -670,7 +682,10 @@ export class DbConnectionImpl<
           event
         );
         const { event: _, ...subscriptionEventContext } = eventContext;
-        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(
+          message.tableUpdates,
+          eventContext
+        );
         this.#subscriptionManager.subscriptions
           .get(message.queryId)
           ?.emitter.emit('applied', subscriptionEventContext);
@@ -686,7 +701,10 @@ export class DbConnectionImpl<
           event
         );
         const { event: _, ...subscriptionEventContext } = eventContext;
-        const callbacks = this.#applyTableUpdates(message.tableUpdates, eventContext);
+        const callbacks = this.#applyTableUpdates(
+          message.tableUpdates,
+          eventContext
+        );
         this.#subscriptionManager.subscriptions
           .get(message.queryId)
           ?.emitter.emit('end', subscriptionEventContext);
@@ -712,6 +730,7 @@ export class DbConnectionImpl<
             ?.emitter.emit('error', errorContext, error);
         } else {
           console.error('Received an error message without a queryId: ', error);
+          // TODO: This should actually kill the connection.
           // Send it to all of them:
           this.#subscriptionManager.subscriptions.forEach(({ emitter }) => {
             emitter.emit('error', errorContext, error);
