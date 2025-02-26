@@ -541,9 +541,6 @@ describe('DbConnection', () => {
     await initialInsertPromise.promise;
     console.log('First insert is done');
 
-    // expect(updates).toHaveLength(1);
-    // expect(updates[0]['oldUser'].username).toBe('drogus');
-    // expect(updates[0]['newUser'].username).toBe('mr.drogus');
 
     const transactionUpdate = ws.ServerMessage.TransactionUpdate({
       status: ws.UpdateStatus.Committed({
