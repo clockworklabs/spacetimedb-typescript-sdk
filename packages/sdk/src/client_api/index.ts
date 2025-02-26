@@ -162,10 +162,10 @@ export class DbConnection extends DbConnectionImpl<
     SubscriptionEventContext
   > => {
     return new DbConnectionBuilder<
-      DBConnection,
+      DbConnection,
       ErrorContext,
       SubscriptionEventContext
-    >(REMOTE_MODULE, (imp: DBConnectionImpl) => imp as DBConnection);
+    >(REMOTE_MODULE, (imp: DbConnectionImpl) => imp as DbConnection);
   };
   subscriptionBuilder = (): SubscriptionBuilder => {
     return new SubscriptionBuilder(this);
