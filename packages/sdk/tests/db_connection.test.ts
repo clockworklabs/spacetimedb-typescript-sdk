@@ -276,7 +276,6 @@ describe('DbConnection', () => {
     });
     wsAdapter.sendToClient(transactionUpdate);
 
-    // await insert2Promise.promise;
     await Promise.race([
       insert2Promise.promise,
       new Promise((_, reject) =>
