@@ -121,7 +121,6 @@ describe('DbConnection', () => {
   });
 
   test('it calls onInsert callback when a record is added with a subscription update and then with a transaction update', async () => {
-    console.log('starting test');
     const wsAdapter = new WebsocketTestAdapter();
     let called = false;
     const client = DbConnection.builder()
