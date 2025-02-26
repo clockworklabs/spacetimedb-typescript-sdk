@@ -189,7 +189,7 @@ export class TableCache<RowType = any> {
     ];
     // This should never happen.
     if (previousCount === 0) {
-      // TODO: Log a warning/error if previousCount is 0.
+      stdbLogger('warn', 'Deleting a row that was not present in the cache');
       return undefined;
     }
     // If this was the last reference, we are actually deleting the row.

@@ -161,7 +161,7 @@ export class DbConnection extends DbConnectionImpl<
     ErrorContext,
     SubscriptionEventContext
   > => {
-    return new DBConnectionBuilder<
+    return new DbConnectionBuilder<
       DBConnection,
       ErrorContext,
       SubscriptionEventContext

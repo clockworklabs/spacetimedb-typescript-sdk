@@ -538,7 +538,6 @@ describe('DbConnection', () => {
     await initialInsertPromise.promise;
     console.log('First insert is done');
 
-
     const transactionUpdate = ws.ServerMessage.TransactionUpdate({
       status: ws.UpdateStatus.Committed({
         tables: [

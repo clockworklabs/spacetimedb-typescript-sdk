@@ -395,8 +395,7 @@ export class DbConnectionImpl<
         const connectionId = ConnectionId.nullIfZero(
           txUpdate.callerConnectionId
         );
-        const originalReducerName = txUpdate.reducerCall.reducerName;
-        const reducerName: string = originalReducerName;
+        const reducerName: string = txUpdate.reducerCall.reducerName;
         const args = txUpdate.reducerCall.args;
         const energyQuantaUsed = txUpdate.energyQuantaUsed;
 
@@ -417,7 +416,7 @@ export class DbConnectionImpl<
 
         // TODO: Can `reducerName` be '<none>'?
         // See: https://github.com/clockworklabs/SpacetimeDB/blob/a2a1b5d9b2e0ebaaf753d074db056d319952d442/crates/core/src/client/message_handlers.rs#L155
-        if (originalReducerName === '<none>') {
+        if (reducerName === '<none>') {
           let errorMessage = errMessage;
           console.error(`Received an error from the database: ${errorMessage}`);
           return;
@@ -731,6 +730,9 @@ export class DbConnectionImpl<
         } else {
           console.error('Received an error message without a queryId: ', error);
           // TODO: This should actually kill the connection.
+          // A subscription error without a specific subscription means we aren't receiving
+          // updates for all of our subscriptions, so our cache is out of sync.
+
           // Send it to all of them:
           this.#subscriptionManager.subscriptions.forEach(({ emitter }) => {
             emitter.emit('error', errorContext, error);
