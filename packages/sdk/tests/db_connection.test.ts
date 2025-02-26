@@ -224,7 +224,6 @@ describe('DbConnection', () => {
 
     wsAdapter.sendToClient(subscriptionMessage);
 
-    //await insert1Promise.promise;
     await Promise.race([
       insert1Promise.promise,
       new Promise((_, reject) =>
