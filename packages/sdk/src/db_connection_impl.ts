@@ -746,6 +746,7 @@ export class DbConnectionImpl<
           this.#subscriptionManager.subscriptions
             .get(message.queryId)
             ?.emitter.emit('error', errorContext, error);
+          this.#subscriptionManager.subscriptions.delete(message.queryId);
         } else {
           console.error('Received an error message without a queryId: ', error);
           // TODO: This should actually kill the connection.
