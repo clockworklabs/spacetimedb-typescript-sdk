@@ -525,7 +525,9 @@ export class DbConnectionImpl<
       const tableName = tableUpdate.tableName;
       const tableTypeInfo = this.#remoteModule.tables[tableName]!;
       const table = this.clientCache.getOrCreateTable(tableTypeInfo);
-      pendingCallbacks = pendingCallbacks.concat(table.applyOperations(tableUpdate.operations, eventContext));
+      pendingCallbacks = pendingCallbacks.concat(
+        table.applyOperations(tableUpdate.operations, eventContext)
+      );
     }
     return pendingCallbacks;
   }
