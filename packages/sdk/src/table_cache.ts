@@ -1,5 +1,4 @@
 import { EventEmitter } from './event_emitter.ts';
-import OperationsMap from './operations_map.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
 
 import { type EventContextInterface } from './db_connection_impl.ts';
@@ -62,8 +61,9 @@ export class TableCache<RowType = any> {
     const pendingCallbacks: PendingCallback[] = [];
     if (this.tableTypeInfo.primaryKey !== undefined) {
       const primaryKey = this.tableTypeInfo.primaryKey;
-      const insertMap = new OperationsMap<any, [Operation, number]>();
-      const deleteMap = new OperationsMap<any, [Operation, number]>();
+      const insertMap = new Map<any,[Operation, number]>();
+      const deleteMap = new Map<any,[Operation, number]>();
+
       for (const op of operations) {
         if (op.type === 'insert') {
           const [_, prevCount] = insertMap.get(op.row[primaryKey]) || [op, 0];
@@ -73,34 +73,44 @@ export class TableCache<RowType = any> {
           deleteMap.set(op.row[primaryKey], [op, prevCount + 1]);
         }
       }
-      for (const {
-        key: primaryKey,
-        value: [insertOp, refCount],
-      } of insertMap) {
-        const deleteEntry = deleteMap.get(primaryKey);
-        if (deleteEntry) {
-          const [deleteOp, deleteCount] = deleteEntry;
-          // In most cases the refCountDelta will be either 0 or refCount, but if
-          // an update moves a row in or out of the result set of different queries, then
-          // other deltas are possible.
-          const refCountDelta = refCount - deleteCount;
-          const maybeCb = this.update(ctx, insertOp, deleteOp, refCountDelta);
-          if (maybeCb) {
-            pendingCallbacks.push(maybeCb);
+
+      if(deleteMap.size > 0)
+      {
+        for (const [primaryKey,[insertOp,refCount]] of insertMap.entries()) {
+          const deleteEntry = deleteMap.get(primaryKey);
+          if (deleteEntry) {
+            const [deleteOp, deleteCount] = deleteEntry;
+            // In most cases the refCountDelta will be either 0 or refCount, but if
+            // an update moves a row in or out of the result set of different queries, then
+            // other deltas are possible.
+            const refCountDelta = refCount - deleteCount;
+            const maybeCb = this.update(ctx, insertOp, deleteOp, refCountDelta);
+            if (maybeCb) {
+              pendingCallbacks.push(maybeCb);
+            }
+            deleteMap.delete(primaryKey);
+          } else {
+            const maybeCb = this.insert(ctx, insertOp, refCount);
+            if (maybeCb) {
+              pendingCallbacks.push(maybeCb);
+            }
           }
-          deleteMap.delete(primaryKey);
-        } else {
-          const maybeCb = this.insert(ctx, insertOp, refCount);
+        }
+        for (const [deleteOp, refCount] of deleteMap.values()) {
+          const maybeCb = this.delete(ctx, deleteOp, refCount);
           if (maybeCb) {
             pendingCallbacks.push(maybeCb);
           }
         }
       }
-      for (const [deleteOp, refCount] of deleteMap.values()) {
-        const maybeCb = this.delete(ctx, deleteOp, refCount);
-        if (maybeCb) {
-          pendingCallbacks.push(maybeCb);
-        }
+      else
+      {
+        for (const [insertOp,refCount] of insertMap.values()) {
+            const maybeCb = this.insert(ctx, insertOp, refCount);
+            if (maybeCb) {
+              pendingCallbacks.push(maybeCb);
+            }
+        } 
       }
     } else {
       for (const op of operations) {
