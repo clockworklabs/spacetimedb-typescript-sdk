@@ -37,6 +37,10 @@ export class Identity {
     return u256ToHexString(this.data);
   }
 
+  toPrimaryKey(): string {
+    return this.toHexString();
+  }
+
   /**
    * Convert the address to a Uint8Array.
    */

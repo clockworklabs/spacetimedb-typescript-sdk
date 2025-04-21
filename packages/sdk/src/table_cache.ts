@@ -65,12 +65,17 @@ export class TableCache<RowType = any> {
       const deleteMap = new Map<any, [Operation, number]>();
 
       for (const op of operations) {
+        let key = op.row[primaryKey];
+        if (typeof key === 'object' && 'toPrimaryKey' in key) {
+          key = key.toPrimaryKey();
+        }
+
         if (op.type === 'insert') {
-          const [_, prevCount] = insertMap.get(op.row[primaryKey]) || [op, 0];
-          insertMap.set(op.row[primaryKey], [op, prevCount + 1]);
+          const [_, prevCount] = insertMap.get(key) || [op, 0];
+          insertMap.set(key, [op, prevCount + 1]);
         } else {
-          const [_, prevCount] = deleteMap.get(op.row[primaryKey]) || [op, 0];
-          deleteMap.set(op.row[primaryKey], [op, prevCount + 1]);
+          const [_, prevCount] = deleteMap.get(key) || [op, 0];
+          deleteMap.set(key, [op, prevCount + 1]);
         }
       }
 

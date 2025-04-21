@@ -47,6 +47,10 @@ export class ConnectionId {
     return this.data == other.data;
   }
 
+  toPrimaryKey(): bigint {
+    return this.data;
+  }
+
   /**
    * Print the connection ID as a hexadecimal string.
    */
