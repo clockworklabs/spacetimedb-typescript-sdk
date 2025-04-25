@@ -525,14 +525,15 @@ export class DbConnectionImpl<
     tableUpdates: TableUpdate[],
     eventContext: EventContextInterface
   ): PendingCallback[] {
-    const pendingCallbacks: PendingCallback[] = [];
+    let pendingCallbacks: PendingCallback[] = [];
     for (let tableUpdate of tableUpdates) {
       // Get table information for the table being updated
       const tableName = tableUpdate.tableName;
       const tableTypeInfo = this.#remoteModule.tables[tableName]!;
       const table = this.clientCache.getOrCreateTable(tableTypeInfo);
-      pendingCallbacks.push(
-        ...table.applyOperations(tableUpdate.operations, eventContext)
+
+      pendingCallbacks = pendingCallbacks.concat(
+        table.applyOperations(tableUpdate.operations, eventContext)
       );
     }
     return pendingCallbacks;
