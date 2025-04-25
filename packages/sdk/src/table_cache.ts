@@ -1,5 +1,4 @@
 import { EventEmitter } from './event_emitter.ts';
-import OperationsMap from './operations_map.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
 
 import {
