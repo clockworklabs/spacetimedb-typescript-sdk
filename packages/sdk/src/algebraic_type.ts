@@ -164,7 +164,7 @@ export class ProductType {
     }
   };
 
-  intoMapKey(value: any): any {
+  intoMapKey(value: any): ComparablePrimitive {
     if (this.elements.length === 1) {
       if (this.elements[0].name === '__time_duration_micros__') {
         return (value as TimeDuration).__time_duration_micros__;
@@ -188,7 +188,7 @@ export class ProductType {
     return writer.toBase64();
   }
 
-  deserialize = (reader: BinaryReader): any => {
+  deserialize = (reader: BinaryReader): { [key: string]: any } => {
     let result: { [key: string]: any } = {};
     if (this.elements.length === 1) {
       if (this.elements[0].name === '__time_duration_micros__') {
@@ -239,6 +239,8 @@ type AnyType =
   | EnumLabel
   | TypeRef
   | None;
+
+export type ComparablePrimitive = number | string | String | boolean | bigint;
 
 /**
  * The SpacetimeDB Algebraic Type System (SATS) is a structural type system in
@@ -480,7 +482,7 @@ export class AlgebraicType {
    * @param value A value of the algebraic type
    * @returns Something that can be used as a key in a map.
    */
-  intoMapKey(value: any): any {
+  intoMapKey(value: any): ComparablePrimitive {
     switch (this.type) {
       case Type.U8:
       case Type.U16:

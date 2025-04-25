@@ -21,7 +21,7 @@ export default class BinaryWriter {
     this.#view = new DataView(this.#buffer.buffer);
   }
 
-  toBase64(): String {
+  toBase64(): string {
     return fromByteArray(this.#buffer.subarray(0, this.#offset));
   }
 

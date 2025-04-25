@@ -7,11 +7,14 @@ import {
   type EventContextInterface,
 } from './db_connection_impl.ts';
 import { stdbLogger } from './logger.ts';
+import type { ComparablePrimitive } from './algebraic_type.ts';
 
 export type Operation = {
   type: 'insert' | 'delete';
-  // rowId: string;
-  rowId: string;
+  // For tables with a primary key, this is the primary key value, as a primitive or string.
+  // Otherwise, it is an encoding of the full row.
+  rowId: ComparablePrimitive;
+  // TODO: Refine this type to at least reflect that it is a product.
   row: any;
 };
 
@@ -29,7 +32,7 @@ export type PendingCallback = {
  * Builder to generate calls to query a `table` in the database
  */
 export class TableCache<RowType = any> {
-  private rows: Map<string, [RowType, number]>;
+  private rows: Map<ComparablePrimitive, [RowType, number]>;
   private tableTypeInfo: TableRuntimeTypeInfo;
   private emitter: EventEmitter<'insert' | 'delete' | 'update'>;
 
@@ -65,30 +68,18 @@ export class TableCache<RowType = any> {
   ): PendingCallback[] => {
     const pendingCallbacks: PendingCallback[] = [];
     if (this.tableTypeInfo.primaryKeyInfo !== undefined) {
-      const primaryKeyCol = this.tableTypeInfo.primaryKeyInfo.colName;
-      const primaryKeyType = this.tableTypeInfo.primaryKeyInfo.colType;
-      const getPrimaryKey = (row: any) => {
-        const primaryKeyValue = row[primaryKeyCol];
-        const writer = new BinaryWriter(10);
-        primaryKeyType.serialize(writer, primaryKeyValue);
-        return writer.toBase64();
-      };
-      const insertMap = new OperationsMap<any, [Operation, number]>();
-      const deleteMap = new OperationsMap<any, [Operation, number]>();
+      const insertMap = new Map<ComparablePrimitive, [Operation, number]>();
+      const deleteMap = new Map<ComparablePrimitive, [Operation, number]>();
       for (const op of operations) {
-        const primaryKey = getPrimaryKey(op.row);
         if (op.type === 'insert') {
-          const [_, prevCount] = insertMap.get(primaryKey) || [op, 0];
-          insertMap.set(primaryKey, [op, prevCount + 1]);
+          const [_, prevCount] = insertMap.get(op.rowId) || [op, 0];
+          insertMap.set(op.rowId, [op, prevCount + 1]);
         } else {
-          const [_, prevCount] = deleteMap.get(primaryKey) || [op, 0];
-          deleteMap.set(primaryKey, [op, prevCount + 1]);
+          const [_, prevCount] = deleteMap.get(op.rowId) || [op, 0];
+          deleteMap.set(op.rowId, [op, prevCount + 1]);
         }
       }
-      for (const {
-        key: primaryKey,
-        value: [insertOp, refCount],
-      } of insertMap) {
+      for (const [primaryKey, [insertOp, refCount]] of insertMap) {
         const deleteEntry = deleteMap.get(primaryKey);
         if (deleteEntry) {
           const [deleteOp, deleteCount] = deleteEntry;
@@ -96,7 +87,12 @@ export class TableCache<RowType = any> {
           // an update moves a row in or out of the result set of different queries, then
           // other deltas are possible.
           const refCountDelta = refCount - deleteCount;
-          const maybeCb = this.update(ctx, insertOp, deleteOp, refCountDelta);
+          const maybeCb = this.update(
+            ctx,
+            primaryKey,
+            insertOp.row,
+            refCountDelta
+          );
           if (maybeCb) {
             pendingCallbacks.push(maybeCb);
           }
@@ -134,36 +130,48 @@ export class TableCache<RowType = any> {
 
   update = (
     ctx: EventContextInterface,
-    newDbOp: Operation,
-    oldDbOp: Operation,
+    rowId: ComparablePrimitive,
+    newRow: RowType,
     refCountDelta: number = 0
   ): PendingCallback | undefined => {
-    const [oldRow, previousCount] = this.rows.get(oldDbOp.rowId) || [
-      oldDbOp.row,
-      0,
-    ];
+    const existingEntry = this.rows.get(rowId);
+    if (!existingEntry) {
+      // TODO: this should throw an error and kill the connection.
+      stdbLogger(
+        'error',
+        `Updating a row that was not present in the cache. Table: ${this.tableTypeInfo.tableName}, RowId: ${rowId}`
+      );
+      return undefined;
+    }
+    const [oldRow, previousCount] = existingEntry;
     const refCount = Math.max(1, previousCount + refCountDelta);
-    this.rows.delete(oldDbOp.rowId);
-    this.rows.set(newDbOp.rowId, [newDbOp.row, refCount]);
+    if (previousCount + refCountDelta <= 0) {
+      stdbLogger(
+        'error',
+        `Negative reference count for in table ${this.tableTypeInfo.tableName} row ${rowId} (${previousCount} + ${refCountDelta})`
+      );
+      return undefined;
+    }
+    this.rows.set(rowId, [newRow, refCount]);
     // This indicates something is wrong, so we could arguably crash here.
     if (previousCount === 0) {
-      stdbLogger('error', 'Updating a row that was not present in the cache');
+      stdbLogger(
+        'error',
+        `Updating a row id in table ${this.tableTypeInfo.tableName} which was not present in the cache (rowId: ${rowId})`
+      );
       return {
         type: 'insert',
         table: this.tableTypeInfo.tableName,
         cb: () => {
-          this.emitter.emit('insert', ctx, newDbOp.row);
+          this.emitter.emit('insert', ctx, newRow);
         },
       };
-    } else if (previousCount + refCountDelta <= 0) {
-      stdbLogger('error', 'Negative reference count for row');
-      // TODO: We should actually error and kill the connection here.
     }
     return {
       type: 'update',
       table: this.tableTypeInfo.tableName,
       cb: () => {
-        this.emitter.emit('update', ctx, oldRow, newDbOp.row);
+        this.emitter.emit('update', ctx, oldRow, newRow);
       },
     };
   };
@@ -187,7 +195,7 @@ export class TableCache<RowType = any> {
         },
       };
     }
-    console.log(`previousCount of ${previousCount} for ${operation.rowId}`);
+    // It's possible to get a duplicate insert because rows can be returned from multiple queries.
     return undefined;
   };
 
