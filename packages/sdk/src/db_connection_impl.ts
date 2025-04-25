@@ -54,6 +54,7 @@ import {
 } from './subscription_builder_impl.ts';
 import { stdbLogger } from './logger.ts';
 import type { ReducerRuntimeTypeInfo } from './spacetime_module.ts';
+import { fromByteArray } from 'base64-js';
 
 export {
   AlgebraicType,
@@ -306,19 +307,23 @@ export class DbConnectionImpl<
     ): Operation[] => {
       const buffer = rowList.rowsData;
       const reader = new BinaryReader(buffer);
-      const rows: any[] = [];
+      const rows: Operation[] = [];
       const rowType = this.#remoteModule.tables[tableName]!.rowType;
       while (reader.offset < buffer.length + buffer.byteOffset) {
         const initialOffset = reader.offset;
         const row = rowType.deserialize(reader);
-        // This is super inefficient, but the buffer indexes are weird, so we are doing this for now.
-        // We should just base64 encode the bytes.
-        const rowId = JSON.stringify(row, (_, v) =>
-          typeof v === 'bigint' ? v.toString() : v
+
+        // Get a view of the bytes for this row.
+        const rowBytes = buffer.subarray(
+          initialOffset - buffer.byteOffset,
+          reader.offset - buffer.byteOffset
         );
+        // Convert it to a base64 string, so we can use it as a map key.
+        const asBase64 = fromByteArray(rowBytes);
+
         rows.push({
           type,
-          rowId,
+          rowId: asBase64,
           row,
         });
       }

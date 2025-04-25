@@ -54,12 +54,22 @@ const REMOTE_MODULE = {
     player: {
       tableName: 'player',
       rowType: Player.getTypeScriptAlgebraicType(),
-      primaryKey: 'owner_id',
+      primaryKey: 'ownerId',
+      primaryKeyInfo: {
+        colName: 'ownerId',
+        colType:
+          Player.getTypeScriptAlgebraicType().product.elements[0].algebraicType,
+      },
     },
     user: {
       tableName: 'user',
       rowType: User.getTypeScriptAlgebraicType(),
       primaryKey: 'identity',
+      primaryKeyInfo: {
+        colName: 'identity',
+        colType:
+          User.getTypeScriptAlgebraicType().product.elements[0].algebraicType,
+      },
     },
   },
   reducers: {

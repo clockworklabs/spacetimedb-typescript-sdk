@@ -2,11 +2,15 @@ import { EventEmitter } from './event_emitter.ts';
 import OperationsMap from './operations_map.ts';
 import type { TableRuntimeTypeInfo } from './spacetime_module.ts';
 
-import { type EventContextInterface } from './db_connection_impl.ts';
+import {
+  BinaryWriter,
+  type EventContextInterface,
+} from './db_connection_impl.ts';
 import { stdbLogger } from './logger.ts';
 
 export type Operation = {
   type: 'insert' | 'delete';
+  // rowId: string;
   rowId: string;
   row: any;
 };
@@ -60,17 +64,25 @@ export class TableCache<RowType = any> {
     ctx: EventContextInterface
   ): PendingCallback[] => {
     const pendingCallbacks: PendingCallback[] = [];
-    if (this.tableTypeInfo.primaryKey !== undefined) {
-      const primaryKey = this.tableTypeInfo.primaryKey;
+    if (this.tableTypeInfo.primaryKeyInfo !== undefined) {
+      const primaryKeyCol = this.tableTypeInfo.primaryKeyInfo.colName;
+      const primaryKeyType = this.tableTypeInfo.primaryKeyInfo.colType;
+      const getPrimaryKey = (row: any) => {
+        const primaryKeyValue = row[primaryKeyCol];
+        const writer = new BinaryWriter(10);
+        primaryKeyType.serialize(writer, primaryKeyValue);
+        return writer.toBase64();
+      };
       const insertMap = new OperationsMap<any, [Operation, number]>();
       const deleteMap = new OperationsMap<any, [Operation, number]>();
       for (const op of operations) {
+        const primaryKey = getPrimaryKey(op.row);
         if (op.type === 'insert') {
-          const [_, prevCount] = insertMap.get(op.row[primaryKey]) || [op, 0];
-          insertMap.set(op.row[primaryKey], [op, prevCount + 1]);
+          const [_, prevCount] = insertMap.get(primaryKey) || [op, 0];
+          insertMap.set(primaryKey, [op, prevCount + 1]);
         } else {
-          const [_, prevCount] = deleteMap.get(op.row[primaryKey]) || [op, 0];
-          deleteMap.set(op.row[primaryKey], [op, prevCount + 1]);
+          const [_, prevCount] = deleteMap.get(primaryKey) || [op, 0];
+          deleteMap.set(primaryKey, [op, prevCount + 1]);
         }
       }
       for (const {
@@ -175,6 +187,7 @@ export class TableCache<RowType = any> {
         },
       };
     }
+    console.log(`previousCount of ${previousCount} for ${operation.rowId}`);
     return undefined;
   };
 
