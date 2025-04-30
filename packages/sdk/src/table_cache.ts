@@ -81,7 +81,7 @@ export class TableCache<RowType = any> {
       for (const [primaryKey, [insertOp, refCount]] of insertMap) {
         const deleteEntry = deleteMap.get(primaryKey);
         if (deleteEntry) {
-          const [deleteOp, deleteCount] = deleteEntry;
+          const [_, deleteCount] = deleteEntry;
           // In most cases the refCountDelta will be either 0 or refCount, but if
           // an update moves a row in or out of the result set of different queries, then
           // other deltas are possible.

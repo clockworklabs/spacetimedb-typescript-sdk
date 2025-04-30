@@ -15,7 +15,13 @@ import {
 } from './algebraic_value.ts';
 import BinaryReader from './binary_reader.ts';
 import BinaryWriter from './binary_writer.ts';
-import * as ws from './client_api/index.ts';
+import { BsatnRowList } from './client_api/bsatn_row_list_type.ts';
+import { ClientMessage } from './client_api/client_message_type.ts';
+import { DatabaseUpdate } from './client_api/database_update_type.ts';
+import { QueryUpdate } from './client_api/query_update_type.ts';
+import { ServerMessage } from './client_api/server_message_type.ts';
+import { TableUpdate as RawTableUpdate } from './client_api/table_update_type.ts';
+import type * as clientApi from './client_api/index.ts';
 import { ClientCache } from './client_cache.ts';
 import { DbConnectionBuilder } from './db_connection_builder.ts';
 import { type DbContext } from './db_context.ts';
@@ -41,7 +47,7 @@ import {
   TableCache,
   type Operation,
   type PendingCallback,
-  type TableUpdate,
+  type TableUpdate as CacheTableUpdate,
 } from './table_cache.ts';
 import { deepEqual, toPascalCase } from './utils.ts';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter.ts';
@@ -53,7 +59,7 @@ import {
   type SubscribeEvent,
 } from './subscription_builder_impl.ts';
 import { stdbLogger } from './logger.ts';
-import type { ReducerRuntimeTypeInfo } from './spacetime_module.ts';
+import { type ReducerRuntimeTypeInfo } from './spacetime_module.ts';
 import { fromByteArray } from 'base64-js';
 
 export {
@@ -274,7 +280,7 @@ export class DbConnectionImpl<
       emitter: handleEmitter,
     });
     this.#sendMessage(
-      ws.ClientMessage.SubscribeMulti({
+      ClientMessage.SubscribeMulti({
         queryStrings: querySql,
         queryId: { id: queryId },
         // The TypeScript SDK doesn't currently track `request_id`s,
@@ -287,7 +293,7 @@ export class DbConnectionImpl<
 
   unregisterSubscription(queryId: number): void {
     this.#sendMessage(
-      ws.ClientMessage.UnsubscribeMulti({
+      ClientMessage.UnsubscribeMulti({
         queryId: { id: queryId },
         // The TypeScript SDK doesn't currently track `request_id`s,
         // so always use 0.
@@ -298,12 +304,12 @@ export class DbConnectionImpl<
 
   // This function is async because we decompress the message async
   async #processParsedMessage(
-    message: ws.ServerMessage
+    message: ServerMessage
   ): Promise<Message | undefined> {
     const parseRowList = (
       type: 'insert' | 'delete',
       tableName: string,
-      rowList: ws.BsatnRowList
+      rowList: BsatnRowList
     ): Operation[] => {
       const buffer = rowList.rowsData;
       const reader = new BinaryReader(buffer);
@@ -340,15 +346,15 @@ export class DbConnectionImpl<
     };
 
     const parseTableUpdate = async (
-      rawTableUpdate: ws.TableUpdate
-    ): Promise<TableUpdate> => {
+      rawTableUpdate: RawTableUpdate
+    ): Promise<CacheTableUpdate> => {
       const tableName = rawTableUpdate.tableName;
       let operations: Operation[] = [];
       for (const update of rawTableUpdate.updates) {
-        let decompressed: ws.QueryUpdate;
+        let decompressed: QueryUpdate;
         if (update.tag === 'Gzip') {
           const decompressedBuffer = await decompress(update.value, 'gzip');
-          decompressed = ws.QueryUpdate.deserialize(
+          decompressed = QueryUpdate.deserialize(
             new BinaryReader(decompressedBuffer)
           );
         } else if (update.tag === 'Brotli') {
@@ -372,9 +378,9 @@ export class DbConnectionImpl<
     };
 
     const parseDatabaseUpdate = async (
-      dbUpdate: ws.DatabaseUpdate
-    ): Promise<TableUpdate[]> => {
-      const tableUpdates: TableUpdate[] = [];
+      dbUpdate: DatabaseUpdate
+    ): Promise<CacheTableUpdate[]> => {
+      const tableUpdates: CacheTableUpdate[] = [];
       for (const rawTableUpdate of dbUpdate.tables) {
         tableUpdates.push(await parseTableUpdate(rawTableUpdate));
       }
@@ -412,7 +418,7 @@ export class DbConnectionImpl<
         const args = txUpdate.reducerCall.args;
         const energyQuantaUsed = txUpdate.energyQuantaUsed;
 
-        let tableUpdates: TableUpdate[];
+        let tableUpdates: CacheTableUpdate[];
         let errMessage = '';
         switch (txUpdate.status.tag) {
           case 'Committed':
@@ -512,11 +518,11 @@ export class DbConnectionImpl<
     }
   }
 
-  #sendMessage(message: ws.ClientMessage): void {
+  #sendMessage(message: ClientMessage): void {
     this.wsPromise.then(wsResolved => {
       if (wsResolved) {
         const writer = new BinaryWriter(1024);
-        ws.ClientMessage.serialize(writer, message);
+        ClientMessage.serialize(writer, message);
         const encoded = writer.getBuffer();
         wsResolved.send(encoded);
       }
@@ -531,7 +537,7 @@ export class DbConnectionImpl<
   }
 
   #applyTableUpdates(
-    tableUpdates: TableUpdate[],
+    tableUpdates: CacheTableUpdate[],
     eventContext: EventContextInterface
   ): PendingCallback[] {
     let pendingCallbacks: PendingCallback[] = [];
@@ -549,7 +555,7 @@ export class DbConnectionImpl<
   }
 
   async #processMessage(data: Uint8Array): Promise<void> {
-    const serverMessage = parseValue(ws.ServerMessage, data);
+    const serverMessage = parseValue(ServerMessage, data);
     const message = await this.#processParsedMessage(serverMessage);
     if (!message) {
       return;
@@ -803,7 +809,7 @@ export class DbConnectionImpl<
     argsBuffer: Uint8Array,
     flags: CallReducerFlags
   ): void {
-    const message = ws.ClientMessage.CallReducer({
+    const message = ClientMessage.CallReducer({
       reducer: reducerName,
       args: argsBuffer,
       // The TypeScript SDK doesn't currently track `request_id`s,
