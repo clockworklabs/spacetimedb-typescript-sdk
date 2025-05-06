@@ -5,6 +5,7 @@ import {
   ProductTypeElement,
   SumType,
   SumTypeVariant,
+  type ComparablePrimitive,
 } from './algebraic_type.ts';
 import {
   AlgebraicValue,
@@ -320,7 +321,7 @@ export class DbConnectionImpl<
       while (reader.offset < buffer.length + buffer.byteOffset) {
         const initialOffset = reader.offset;
         const row = rowType.deserialize(reader);
-        let rowId: any | undefined = undefined;
+        let rowId: ComparablePrimitive | undefined = undefined;
         if (primaryKeyInfo !== undefined) {
           rowId = primaryKeyInfo.colType.intoMapKey(
             row[primaryKeyInfo.colName]
@@ -546,10 +547,13 @@ export class DbConnectionImpl<
       const tableName = tableUpdate.tableName;
       const tableTypeInfo = this.#remoteModule.tables[tableName]!;
       const table = this.clientCache.getOrCreateTable(tableTypeInfo);
-
-      pendingCallbacks = pendingCallbacks.concat(
-        table.applyOperations(tableUpdate.operations, eventContext)
+      const newCallbacks = table.applyOperations(
+        tableUpdate.operations,
+        eventContext
       );
+      for (const callback of newCallbacks) {
+        pendingCallbacks.push(callback);
+      }
     }
     return pendingCallbacks;
   }
