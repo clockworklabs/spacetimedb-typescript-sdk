@@ -2,6 +2,7 @@ import { DbConnectionImpl, type ConnectionEvent } from './db_connection_impl';
 import { EventEmitter } from './event_emitter';
 import type { Identity } from './identity';
 import type RemoteModule from './spacetime_module';
+import { ensureMinimumVersionOrThrow } from './version';
 import { WebsocketDecompressAdapter } from './websocket_decompress_adapter';
 
 /**
@@ -214,6 +215,13 @@ export class DbConnectionBuilder<
         'Database name or address is required to connect to SpacetimeDB'
       );
     }
+    let versionString: string | undefined = undefined;
+    if (this.remoteModule.versionInfo) {
+      versionString = this.remoteModule.versionInfo.cliVersion;
+    }
+    // We could consider making this an `onConnectError` instead of throwing here.
+    // Ideally, it would be a compile time error, but I'm not sure how to accomplish that.
+    ensureMinimumVersionOrThrow(versionString);
 
     return this.dbConnectionConstructor(
       new DbConnectionImpl({
