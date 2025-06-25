@@ -60,22 +60,22 @@ export class PlayerTableHandle {
     return this.tableCache.iter();
   }
   /**
-   * Access to the `owner_id` unique index on the table `player`,
+   * Access to the `ownerId` unique index on the table `player`,
    * which allows point queries on the field of the same name
    * via the [`PlayerOwnerIdUnique.find`] method.
    *
    * Users are encouraged not to explicitly reference this type,
    * but to directly chain method calls,
-   * like `ctx.db.player.owner_id().find(...)`.
+   * like `ctx.db.player.ownerId().find(...)`.
    *
-   * Get a handle on the `owner_id` unique index on the table `player`.
+   * Get a handle on the `ownerId` unique index on the table `player`.
    */
-  owner_id = {
-    // Find the subscribed row whose `owner_id` column value is equal to `col_val`,
+  ownerId = {
+    // Find the subscribed row whose `ownerId` column value is equal to `col_val`,
     // if such a row is present in the client cache.
     find: (col_val: string): Player | undefined => {
       for (let row of this.tableCache.iter()) {
-        if (deepEqual(row.owner_id, col_val)) {
+        if (deepEqual(row.ownerId, col_val)) {
           return row;
         }
       }
