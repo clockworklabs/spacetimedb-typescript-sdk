@@ -114,8 +114,8 @@ export class SemanticVersion {
 // The SDK depends on some module information that was not generated before this version.
 export const _MINIMUM_CLI_VERSION: SemanticVersion = new SemanticVersion(
   1,
-  1,
-  2
+  2,
+  0
 );
 
 export function ensureMinimumVersionOrThrow(versionString?: string): void {
