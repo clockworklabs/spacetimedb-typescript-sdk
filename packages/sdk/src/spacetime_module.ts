@@ -27,4 +27,7 @@ export default interface RemoteModule {
     setReducerFlags: any
   ) => any;
   setReducerFlagsConstructor: () => any;
+  versionInfo?: {
+    cliVersion: string;
+  };
 }

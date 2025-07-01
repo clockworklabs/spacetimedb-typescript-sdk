@@ -202,10 +202,9 @@ export class DbConnectionImpl<
   }: DbConnectionConfig) {
     stdbLogger('info', 'Connecting to SpacetimeDB WS...');
 
-    let url = new URL(`v1/database/${nameOrAddress}/subscribe`, uri);
-
+    let url = new URL(uri);
     if (!/^wss?:/.test(uri.protocol)) {
-      url.protocol = 'ws:';
+      url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     }
 
     this.identity = identity;
@@ -227,6 +226,7 @@ export class DbConnectionImpl<
 
     this.wsPromise = createWSFn({
       url,
+      nameOrAddress,
       wsProtocol: 'v1.bsatn.spacetimedb',
       authToken: token,
       compression: compression,

@@ -63,6 +63,7 @@ export class WebsocketDecompressAdapter {
 
   static async createWebSocketFn({
     url,
+    nameOrAddress,
     wsProtocol,
     authToken,
     compression,
@@ -70,6 +71,7 @@ export class WebsocketDecompressAdapter {
   }: {
     url: URL;
     wsProtocol: string;
+    nameOrAddress: string;
     authToken?: string;
     compression: 'gzip' | 'none';
     lightMode: boolean;
@@ -88,30 +90,38 @@ export class WebsocketDecompressAdapter {
       WS = WebSocket;
     }
 
+    // We swap our original token to a shorter-lived token
+    // to avoid sending the original via query params.
+    let temporaryAuthToken: string | undefined = undefined;
     if (authToken) {
       headers.set('Authorization', `Bearer ${authToken}`);
-      const tokenUrl = new URL('/v1/identity/websocket-token', url);
+      const tokenUrl = new URL('v1/identity/websocket-token', url);
       tokenUrl.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
 
       const response = await fetch(tokenUrl, { method: 'POST', headers });
       if (response.ok) {
         const { token } = await response.json();
-        url.searchParams.set('token', token);
+        temporaryAuthToken = token;
       } else {
         return Promise.reject(
           new Error(`Failed to verify token: ${response.statusText}`)
         );
       }
     }
-    url.searchParams.set(
+
+    const databaseUrl = new URL(`v1/database/${nameOrAddress}/subscribe`, url);
+    if (temporaryAuthToken) {
+      databaseUrl.searchParams.set('token', temporaryAuthToken);
+    }
+    databaseUrl.searchParams.set(
       'compression',
       compression === 'gzip' ? 'Gzip' : 'None'
     );
     if (lightMode) {
-      url.searchParams.set('light', 'true');
+      databaseUrl.searchParams.set('light', 'true');
     }
 
-    const ws = new WS(url, wsProtocol);
+    const ws = new WS(databaseUrl, wsProtocol);
 
     return new WebsocketDecompressAdapter(ws);
   }
