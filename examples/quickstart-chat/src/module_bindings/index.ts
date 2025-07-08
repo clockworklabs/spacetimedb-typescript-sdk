@@ -6,7 +6,6 @@
 /* eslint-disable */
 /* tslint:disable */
 // @ts-nocheck
-// hello world
 import {
   AlgebraicType,
   AlgebraicValue,
