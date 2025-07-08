@@ -107,7 +107,9 @@ jobs:
 
       - name: Check for changes
         run: |
-          if ! git diff --exit-code examples/quickstart-chat/src/module_bindings; then
+          # This was copied from SpacetimeDB/tools/check-diff.sh
+          PATTERN='^// This was generated using spacetimedb cli version.*'
+          if ! git diff --exit-code --ignore-matching-lines="$PATTERN" -- examples/quickstart-chat/src/module_bindings; then
             echo "Error: Bindings are dirty. Please generate bindings again and commit them to this branch."
             exit 1
           fi
