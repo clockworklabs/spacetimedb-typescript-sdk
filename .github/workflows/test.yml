@@ -107,7 +107,9 @@ jobs:
 
       - name: Check for changes
         run: |
-          # This was copied from SpacetimeDB/tools/check-diff.sh
+          # This was copied from SpacetimeDB/tools/check-diff.sh.
+          # It's required because `spacetime generate` creates lines with the SpacetimeDB commit
+          # version, which would make this `git diff` check very brittle if included.
           PATTERN='^// This was generated using spacetimedb cli version.*'
           if ! git diff --exit-code --ignore-matching-lines="$PATTERN" -- examples/quickstart-chat/src/module_bindings; then
             echo "Error: Bindings are dirty. Please generate bindings again and commit them to this branch."
@@ -137,8 +139,8 @@ jobs:
       # - name: Run quickstart-chat tests
       #   working-directory: examples/quickstart-chat
       #   run: pnpm test
-
-      # Run this step always, even if the previous steps fail
+      #
+      # # Run this step always, even if the previous steps fail
       # - name: Print rows in the user table
       #   if: always()
       #   run: spacetime sql quickstart-chat "SELECT * FROM user"
