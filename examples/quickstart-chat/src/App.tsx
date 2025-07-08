@@ -14,7 +14,7 @@ export type PrettyMessage = {
   text: string;
 };
 
-function useMessages(conn: string | null): Message[] {
+function useMessages(conn: DbConnection | null): Message[] {
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
