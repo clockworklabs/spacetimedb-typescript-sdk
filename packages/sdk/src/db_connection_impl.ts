@@ -202,7 +202,9 @@ export class DbConnectionImpl<
   }: DbConnectionConfig) {
     stdbLogger('info', 'Connecting to SpacetimeDB WS...');
 
-    let url = new URL(uri);
+    // Use .toString() due to some React Native versions have a bug where the `URL` constructor treat
+    // tries to call `.endsWith()` on an URI object, therefore causing an error.
+    let url = new URL(uri.toString());
     if (!/^wss?:/.test(uri.protocol)) {
       url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     }
