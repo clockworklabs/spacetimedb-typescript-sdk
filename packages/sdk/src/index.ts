@@ -1,3 +1,5 @@
+import 'react-native-url-polyfill/auto'; // For React Native compatibility, their URL class is barely implemented
+
 // Should be at the top as other modules depend on it
 export * from './db_connection_impl.ts';
 
