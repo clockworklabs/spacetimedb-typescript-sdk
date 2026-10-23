@@ -2,7 +2,7 @@
   "name": "spacetimedb-ts-sdk",
   "private": true,
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.23.4",
     "pnpm": ">=9.0.0"
   },
   "scripts": {
